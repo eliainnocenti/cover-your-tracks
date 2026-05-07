@@ -285,7 +285,7 @@ function TerminalView() {
   const [histIdx, setHistIdx] = useState(-1)
   const [lines, setLines] = useState([
     { text: '╔════════════════════════════════════════╗', type: 'system' },
-    { text: '║  FORENSIC TERMINAL  v2.1 — RESTRICTED  ║', type: 'system' },
+    { text: '║  FORENSIC TERMINAL  v2.1 ---- RESTRICTED  ║', type: 'system' },
     { text: '╚════════════════════════════════════════╝', type: 'system' },
     { text: 'Type "help" for available commands.', type: 'comment' },
     { text: '', type: 'output' },
@@ -328,11 +328,30 @@ function TerminalView() {
     else if (base === 'ls') {
       if (scenario?.filesystem) {
         const root = scenario.filesystem.root
-        const items = root.children ? Object.values(root.children) : []
-        items.forEach(item => push({
-          text: `${item.type === 'directory' ? 'drwxr-xr-x' : '-rw-r--r--'}  ${item.name}`,
-          type: item.type === 'directory' ? 'warn' : 'output',
-        }))
+        const targetPath = args[0]
+        let targetNode = root
+        if (targetPath) {
+          targetNode = resolvePathNode(root, targetPath)
+          if (!targetNode) {
+            push({ text: `ls: cannot access '${targetPath}': No such file or directory`, type: 'error' })
+            setInput('')
+            return
+          }
+          if (targetNode.type === 'file') {
+            push({ text: `${'-rw-r--r--'}  ${targetNode.name}`, type: 'output' })
+            setInput('')
+            return
+          }
+        }
+        const items = targetNode.children ? Object.values(targetNode.children) : []
+        if (items.length === 0) {
+          push({ text: '(empty directory)', type: 'comment' })
+        } else {
+          items.forEach(item => push({
+            text: `${item.type === 'directory' ? 'drwxr-xr-x' : '-rw-r--r--'}  ${item.name}`,
+            type: item.type === 'directory' ? 'warn' : 'output',
+          }))
+        }
       } else {
         push({ text: 'No filesystem loaded.', type: 'error' })
       }
@@ -522,7 +541,7 @@ function HexView() {
   // Build 128 bytes: magic + deterministic noise
   const allBytes = [...magicBytes]
   while (allBytes.length < 128) {
-    const seed = (allBytes.length * 6364136223846793005n) % 256n
+    const seed = (BigInt(allBytes.length) * 6364136223846793005n) % 256n
     allBytes.push(Number(seed).toString(16).padStart(2, '0').toUpperCase())
   }
 
@@ -667,6 +686,22 @@ function EmptyPanel({ msg }) {
       <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{msg}</span>
     </div>
   )
+}
+
+function resolvePathNode(root, path) {
+  // Strip trailing slash, normalize separators
+  const cleaned = path.replace(/\/$/g, '').replace(/\\/g, '/')
+  const segments = cleaned.split('/').filter(Boolean)
+  let current = root
+  for (const seg of segments) {
+    if (!current.children) return null
+    // Try exact key match first, then case-insensitive name match
+    const child = current.children[seg]
+      ?? Object.values(current.children).find(c => c.name.toLowerCase() === seg.toLowerCase())
+    if (!child) return null
+    current = child
+  }
+  return current
 }
 
 function findFileByName(node, name) {
