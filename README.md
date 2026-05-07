@@ -17,11 +17,17 @@ Each scenario follows a structured learning loop:
 4. **Post-Quiz** — Confirm understanding after hands-on investigation
 5. **Debrief** — Review the technique, real-world tools, and learning metrics
 
+### Core Features
+- **Scenario-Based Learning**: Play through 6 distinct scenarios covering filesystem, memory, network, and steganography domains.
+- **Chain of Custody**: Every action (viewing files, running commands, using hints) is tracked in an immutable session log visible at the end of the game.
+- **Cross-Reference Connections**: Players can link multiple pieces of evidence together to uncover hidden narrative connections and earn bonus points.
+- **Persistent Leaderboard**: Completed scenarios save to local storage, allowing players to track their progress and aim for higher investigation tiers.
+
 ### Scenarios
 
 | # | Title | Domain | Technique | Difficulty |
 |---|-------|--------|-----------|------------|
-| 01 | The Timestomper | Filesystem | MAC time manipulation ($SI vs $FN) | ★☆☆☆☆ |
+| 01 | The Timestomper | Filesystem | MAC time manipulation (\$SI vs \$FN) | ★☆☆☆☆ |
 | 02 | Ghosts in the Sectors | Filesystem | Slack space exploitation | ★★☆☆☆ |
 | 03 | Ghost in the Machine | RAM | DKOM rootkit / process hiding | ★★★☆☆ |
 | 04 | The Whispering DNS | Network | DNS tunneling for data exfiltration | ★★★☆☆ |
@@ -47,8 +53,8 @@ Each scenario follows a structured learning loop:
 
 ```bash
 # Clone the repository
-git clone https://github.com/eliainnocenti/forensics-serious-game.git
-cd forensics-serious-game
+git clone https://github.com/eliainnocenti/cover-your-tracks.git
+cd cover-your-tracks
 
 # Install dependencies
 npm install
@@ -63,30 +69,33 @@ The app will be available at `http://localhost:5173/`.
 
 ```bash
 npm run build
-npm run preview   # Preview the production build locally
+npm run preview  # Preview the production build locally
 ```
 
 ## Project Structure
 
 ```
 cover-your-tracks/
-├── index.html                    # Entry point
-├── package.json                  # Dependencies & scripts
-├── vite.config.js                # Vite configuration
-├── tailwind.config.js            # Tailwind CSS configuration
-├── postcss.config.js             # PostCSS configuration
+├── index.html           # Entry point
+├── package.json         # Dependencies & scripts
+├── vite.config.js       # Vite configuration
+├── tailwind.config.js   # Tailwind CSS configuration
+├── postcss.config.js    # PostCSS configuration
 └── src/
-    ├── main.jsx                  # React root
-    ├── App.jsx                   # Game shell & phase router
+    ├── main.jsx         # React root
+    ├── App.jsx          # Game shell & phase router
     ├── styles/
-    │   └── index.css             # Design system (CSS variables, CRT theme)
+    │   └── index.css    # Design system (CSS variables, CRT theme)
     ├── components/
     │   └── game/
     │       ├── ScenarioEngine.jsx         # State machine (useReducer + Context)
     │       ├── Landing.jsx                # Scenario selection screen
+    │       ├── Leaderboard.jsx            # Local storage high scores
     │       ├── EvidenceNavigator.jsx      # File Explorer / Terminal / HEX / RAM / Network
     │       ├── InvestigatorNotebook.jsx   # Evidence tagging & flag submission
+    │       ├── CrossReference.jsx         # Evidence connection linking mechanic
     │       ├── Quiz.jsx                   # Pre/Post quiz with explanations
+    │       ├── ChainOfCustody.jsx         # Investigation audit trail log
     │       └── Debrief.jsx                # Learning assessment dashboard
     └── data/
         └── scenarios/
@@ -118,6 +127,8 @@ The game uses a **finite state machine** powered by React's `useReducer` + Conte
 | `wrongAttempts` | Methodical vs. guessing behavior |
 | `totalTimeSeconds` | Efficiency |
 | `completionRate` | Thoroughness (flags found / total) |
+| `connectionsFound` | Ability to correlate findings across domains |
+| `sessionLog` | Chain of custody audit trail of player actions |
 
 ## License
 
