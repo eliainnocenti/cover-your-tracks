@@ -40,10 +40,10 @@ export default function Landing({ onStart }) {
         }} className="glow-green">
           Cover Your Tracks
         </h1>
-        <p style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', margin: '0 0 6px' }}>
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)', letterSpacing: '0.1em', margin: '0 0 8px' }}>
           Anti-Forensics Detection Lab
         </p>
-        <p style={{ fontSize: '10px', color: 'var(--text-ghost)', maxWidth: 440, lineHeight: 1.7, margin: '0 auto' }}>
+        <p style={{ fontSize: '12px', color: 'var(--text-ghost)', maxWidth: 440, lineHeight: 1.7, margin: '0 auto' }}>
           A serious game for the Computer Forensics & Cyber Crime Analysis course.<br />
           Detect anti-forensic techniques across filesystem, memory, and network domains.
         </p>
@@ -70,7 +70,7 @@ export default function Landing({ onStart }) {
               {/* Domain badge + difficulty */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <span style={{
-                  fontSize: '9px', color: dc.color, background: dc.bg,
+                  fontSize: '10px', color: dc.color, background: dc.bg,
                   border: `1px solid ${dc.border}`, borderRadius: 3,
                   padding: '2px 7px', textTransform: 'uppercase', letterSpacing: '0.1em',
                 }}>
@@ -84,15 +84,15 @@ export default function Landing({ onStart }) {
               </div>
 
               {/* Title */}
-              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>
                 {String(i + 1).padStart(2, '0')}. {s.title}
               </div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.4 }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.4 }}>
                 {s.subtitle}
               </div>
 
               {/* Meta row */}
-              <div style={{ display: 'flex', gap: 16, fontSize: '9px', color: 'var(--text-ghost)' }}>
+              <div style={{ display: 'flex', gap: 16, fontSize: '11px', color: 'var(--text-ghost)' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Clock size={9} /> {s.minutes} min
                 </span>

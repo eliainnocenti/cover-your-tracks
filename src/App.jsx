@@ -1,5 +1,5 @@
 // App.jsx — Game shell + phase router
-import { useEffect } from 'react';
+import { useState } from 'react';
 
 import { ScenarioProvider, useEngine } from './components/game/ScenarioEngine';
 import EvidenceNavigator from './components/game/EvidenceNavigator';
@@ -7,6 +7,8 @@ import InvestigatorNotebook from './components/game/InvestigatorNotebook';
 import Quiz from './components/game/Quiz';
 import Debrief from './components/game/Debrief';
 import Landing from './components/game/Landing';
+import BriefingModal from './components/game/BriefingModal';
+import TutorialOverlay from './components/game/TutorialOverlay';
 
 import scenario01 from './data/scenarios/scenario_01_timestomper.json';
 import scenario02 from './data/scenarios/scenario_02_slackspace.json';
@@ -40,13 +42,49 @@ function GameRouter() {
   const { state, loadScenario } = useEngine();
   const { phase, scenario } = state;
 
+  // Briefing modal state — shows after selecting a scenario, before quiz
+  const [showBriefing, setShowBriefing] = useState(false);
+  const [pendingScenario, setPendingScenario] = useState(null);
+
+  // Tutorial overlay state — shows after quiz, before investigation
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialShownForScenario, setTutorialShownForScenario] = useState(null);
+
+  // Detect when we enter investigation phase — show tutorial if not yet shown
+  if (
+    phase === 'investigation' &&
+    scenario &&
+    scenario.id !== tutorialShownForScenario &&
+    !showTutorial
+  ) {
+    setShowTutorial(true);
+    setTutorialShownForScenario(scenario.id);
+  }
+
   // Landing screen — scenario selection
   if (phase === 'landing') {
     return (
-      <Landing onStart={(scenarioId) => {
-        const data = ALL_SCENARIOS[scenarioId];
-        if (data) loadScenario(data);
-      }} />
+      <>
+        <Landing onStart={(scenarioId) => {
+          const data = ALL_SCENARIOS[scenarioId];
+          if (data) {
+            setPendingScenario(data);
+            setShowBriefing(true);
+          }
+        }} />
+
+        {/* Briefing modal overlay */}
+        {showBriefing && pendingScenario && (
+          <BriefingModal
+            scenario={pendingScenario}
+            onContinue={() => {
+              setShowBriefing(false);
+              loadScenario(pendingScenario);
+              setPendingScenario(null);
+            }}
+          />
+        )}
+      </>
     );
   }
 
@@ -56,7 +94,20 @@ function GameRouter() {
   if (phase === 'post_quiz') return <QuizScreen type="post" />;
   if (phase === 'debrief') return <DebriefScreen />;
   if (phase === 'complete') return <CompleteScreen />;
-  return <InvestigationScreen />;
+
+  return (
+    <>
+      <InvestigationScreen />
+
+      {/* Tutorial overlay */}
+      {showTutorial && (
+        <TutorialOverlay
+          scenario={scenario}
+          onDismiss={() => setShowTutorial(false)}
+        />
+      )}
+    </>
+  );
 }
 
 // ─── Screen components ────────────────────────────────────────────────────────
@@ -94,25 +145,27 @@ function InvestigationScreen() {
       {/* Scenario brief strip */}
       <div className="bg-gray-900/80 border-b border-green-900/30 px-4 py-2.5 flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-green-600 text-xs font-mono">CASE</span>
-          <span className="text-green-400 text-xs font-mono font-bold">{scenario.id.toUpperCase()}</span>
+          <span style={{ color: 'var(--green-dim)', fontSize: '12px' }}>CASE</span>
+          <span style={{ color: 'var(--green-main)', fontSize: '12px', fontWeight: 700 }}>{scenario.id.toUpperCase()}</span>
         </div>
         <div className="h-3 w-px bg-gray-700" />
-        <span className="text-gray-300 text-xs font-mono font-bold">{scenario.title}</span>
+        <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 700 }}>{scenario.title}</span>
         <div className="h-3 w-px bg-gray-700" />
-        <span className="text-gray-500 text-xs font-mono">{scenario.subtitle}</span>
+        <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{scenario.subtitle}</span>
         <div className="ml-auto">
           <DomainBadge domain={scenario.domain} />
         </div>
       </div>
 
       {/* Narrative */}
-      <div className="bg-gray-900/40 border-b border-gray-800/50 px-4 py-2">
-        <p className="text-gray-500 text-xs font-mono leading-relaxed">{scenario.narrative}</p>
+      <div className="bg-gray-900/40 border-b border-gray-800/50 px-4 py-2.5">
+        <p style={{ color: 'var(--text-secondary)', fontSize: '12px', lineHeight: 1.6, margin: 0 }}>
+          {scenario.narrative}
+        </p>
       </div>
 
       {/* 2-panel layout */}
-      <div className="flex-1 overflow-hidden grid grid-cols-[1fr_340px] gap-3 p-3">
+      <div className="flex-1 overflow-hidden grid grid-cols-[1fr_360px] gap-3 p-3">
         <EvidenceNavigator />
         <InvestigatorNotebook />
       </div>
@@ -155,17 +208,17 @@ function TopBar() {
   return (
     <div className="flex items-center justify-between px-4 py-2.5 border-b border-green-900/40 bg-gray-900">
       <div className="flex items-center gap-3">
-        <span className="text-green-400 text-xs font-mono font-bold tracking-widest">
+        <span style={{ color: 'var(--green-main)', fontSize: '13px', fontWeight: 700, letterSpacing: '0.12em' }}>
           COVER YOUR TRACKS
         </span>
         <span className="text-gray-700 text-xs font-mono">|</span>
-        <span className="text-gray-500 text-xs font-mono">Anti-Forensics Detection Lab</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Anti-Forensics Detection Lab</span>
       </div>
       <div className="flex items-center gap-4">
         <PhaseIndicator phase={phase} />
         {phase === 'investigation' && (
-          <span className="text-green-400 text-xs font-mono">
-            Score: <span className="font-bold">{score}</span>
+          <span style={{ color: 'var(--green-main)', fontSize: '13px' }}>
+            Score: <span style={{ fontWeight: 700 }}>{score}</span>
           </span>
         )}
       </div>
@@ -175,15 +228,15 @@ function TopBar() {
 
 function PhaseIndicator({ phase }) {
   const labels = {
-    landing: { label: 'Select Case', color: 'text-gray-400' },
-    pre_quiz: { label: 'Pre-Quiz', color: 'text-blue-400' },
-    investigation: { label: 'Investigation', color: 'text-green-400' },
-    post_quiz: { label: 'Post-Quiz', color: 'text-yellow-400' },
-    debrief: { label: 'Debrief', color: 'text-purple-400' },
-    complete: { label: 'Complete', color: 'text-green-400' },
+    landing: { label: 'Select Case', color: 'var(--text-muted)' },
+    pre_quiz: { label: 'Pre-Quiz', color: 'var(--blue-accent)' },
+    investigation: { label: 'Investigation', color: 'var(--green-main)' },
+    post_quiz: { label: 'Post-Quiz', color: 'var(--amber-main)' },
+    debrief: { label: 'Debrief', color: 'var(--purple-accent)' },
+    complete: { label: 'Complete', color: 'var(--green-main)' },
   };
-  const p = labels[phase] ?? { label: phase, color: 'text-gray-400' };
-  return <span className={`text-xs font-mono ${p.color}`}>{p.label}</span>;
+  const p = labels[phase] ?? { label: phase, color: 'var(--text-muted)' };
+  return <span style={{ fontSize: '12px', color: p.color }}>{p.label}</span>;
 }
 
 function DomainBadge({ domain }) {
@@ -195,7 +248,8 @@ function DomainBadge({ domain }) {
     steganography: 'bg-emerald-950/40 text-emerald-400 border-emerald-800/40',
   };
   return (
-    <span className={`text-xs font-mono px-2 py-0.5 rounded border uppercase tracking-wider ${colors[domain] ?? 'text-gray-400'}`}>
+    <span className={`font-mono px-2 py-0.5 rounded border uppercase tracking-wider ${colors[domain] ?? 'text-gray-400'}`}
+      style={{ fontSize: '11px' }}>
       {domain}
     </span>
   );
