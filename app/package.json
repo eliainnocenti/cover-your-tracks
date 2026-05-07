@@ -1,7 +1,12 @@
 {
   "name": "cover-your-tracks",
-  "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "An interactive forensic serious game for identifying anti-forensic techniques across filesystem, memory, and network domains.",
+  "author": "Elia Innocenti <elia.innocenti@studenti.polito.it>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eliainnocenti/cover-your-tracks.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

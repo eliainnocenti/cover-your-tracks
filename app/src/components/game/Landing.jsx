@@ -1,5 +1,5 @@
-// Landing.jsx
-import { Shield, ChevronRight, Clock, Target, Layers } from 'lucide-react'
+import { useState } from 'react'
+import { Shield, ChevronRight, Clock, Target, Layers, Info, Github, Linkedin, Mail, X } from 'lucide-react'
 import { useEngine } from './ScenarioEngine'
 import Leaderboard from './Leaderboard'
 
@@ -22,6 +22,7 @@ const DOMAIN_COLORS = {
 
 export default function Landing({ onStart }) {
   const { loadLeaderboard } = useEngine()
+  const [showAbout, setShowAbout] = useState(false)
   return (
     <div style={{ height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px' }}>
       {/* Hero */}
@@ -110,6 +111,69 @@ export default function Landing({ onStart }) {
 
       {/* Leaderboard */}
       <Leaderboard loadLeaderboard={loadLeaderboard} />
+
+      {/* Footer About Link */}
+      <div style={{ marginTop: 40, marginBottom: 20 }}>
+        <button
+          onClick={() => setShowAbout(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--text-ghost)', fontSize: '11px', fontFamily: 'var(--font-mono)',
+            textTransform: 'uppercase', letterSpacing: '0.1em'
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-ghost)'}
+        >
+          <Info size={12} /> About & Credits
+        </button>
+      </div>
+
+      {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
+    </div>
+  )
+}
+
+function AboutModal({ onClose }) {
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: 400, padding: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Info size={16} style={{ color: 'var(--green-main)' }} />
+            <h2 style={{ fontSize: '14px', margin: 0, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>About the Project</h2>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }} onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
+            <X size={16} />
+          </button>
+        </div>
+
+        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 24 }}>
+          <p style={{ margin: '0 0 12px' }}>
+            <strong style={{ color: 'var(--text-primary)' }}>Cover Your Tracks</strong> is an interactive serious game developed for the Computer Forensics & Cyber Crime Analysis course at Politecnico di Torino.
+          </p>
+          <p style={{ margin: 0 }}>
+            It is designed to teach students how to identify advanced anti-forensic techniques through a simulated investigation environment.
+          </p>
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--border-dim)', paddingTop: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Author</div>
+          <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700 }}>Elia Innocenti</div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+            <a href="mailto:elia.innocenti@studenti.polito.it" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '11px', fontFamily: 'var(--font-mono)' }} onMouseEnter={e => e.currentTarget.style.color='var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color='var(--text-secondary)'}>
+              <Mail size={12} /> elia.innocenti@studenti.polito.it
+            </a>
+            <a href="https://github.com/eliainnocenti/cover-your-tracks" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '11px', fontFamily: 'var(--font-mono)' }} onMouseEnter={e => e.currentTarget.style.color='var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color='var(--text-secondary)'}>
+              <Github size={12} /> github.com/eliainnocenti
+            </a>
+            <a href="https://www.linkedin.com/in/eliainnocenti/" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '11px', fontFamily: 'var(--font-mono)' }} onMouseEnter={e => e.currentTarget.style.color='var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color='var(--text-secondary)'}>
+              <Linkedin size={12} /> linkedin.com/in/eliainnocenti
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
