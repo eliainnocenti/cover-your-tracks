@@ -1,6 +1,6 @@
 # Scenario 04 — The Whispering DNS
 
-## Full Testing & Solution Guide
+## Full Testing and Solution Guide
 
 > **Domain:** Network Forensics — DNS Tunneling Exfiltration  
 > **Difficulty:** ★★★☆☆ (3/5)  
@@ -12,16 +12,16 @@
 
 1. [Scenario Overview](#1-scenario-overview)
 2. [The Theory Behind It](#2-the-theory-behind-it)
-3. [Pre-Quiz — Answers & Rationale](#3-pre-quiz--answers--rationale)
+3. [Pre-Quiz — Answers and Rationale](#3-pre-quiz--answers--rationale)
 4. [Network Log Layout](#4-network-log-layout)
 5. [Investigation Walkthrough](#5-investigation-walkthrough)
-6. [Flags — What to Submit & Why](#6-flags--what-to-submit--why)
-7. [Hints & Their Cost](#7-hints--their-cost)
+6. [Flags — What to Submit and Why](#6-flags--what-to-submit--why)
+7. [Hints and Their Cost](#7-hints--their-cost)
 8. [Scoring Breakdown](#8-scoring-breakdown)
 9. [Views to Test](#9-views-to-test)
-10. [Post-Quiz — Answers & Rationale](#10-post-quiz--answers--rationale)
+10. [Post-Quiz — Answers and Rationale](#10-post-quiz--answers--rationale)
 11. [Debriefing Verification](#11-debriefing-verification)
-12. [Common Mistakes & Edge Cases](#12-common-mistakes--edge-cases)
+12. [Common Mistakes and Edge Cases](#12-common-mistakes--edge-cases)
 
 
 ## 1. Scenario Overview
@@ -107,7 +107,7 @@ This is the first line of `/etc/passwd`.
 | Query timing | Sporadic | **Burst pattern** |
 
 
-## 3. Pre-Quiz — Answers & Rationale
+## 3. Pre-Quiz — Answers and Rationale
 
 ### Question 1
 > **"What is the maximum length of a single DNS subdomain label?"**
@@ -232,7 +232,7 @@ The attacker:
 Tag the suspicious packets and note the domain `exfil-c2.net` and the decoded content.
 
 
-## 6. Flags — What to Submit & Why
+## 6. Flags — What to Submit and Why
 
 ### Flag 1: Suspicious Domain (30 points)
 
@@ -262,7 +262,7 @@ Tag the suspicious packets and note the domain `exfil-c2.net` and the decoded co
 **Why:** Determining **what data was stolen** is the ultimate goal. The attacker exfiltrated the `/etc/passwd` file, which contains system account information.
 
 
-## 7. Hints & Their Cost
+## 7. Hints and Their Cost
 
 | Tier | Cost | Text | What it reveals |
 |------|------|------|----------------|
@@ -311,7 +311,7 @@ This is the **main view** for this scenario. Verify:
 - Should show: **"Select a file in the Explorer first"**
 
 
-## 10. Post-Quiz — Answers & Rationale
+## 10. Post-Quiz — Answers and Rationale
 
 ### Question 1
 > **"How do DNS tunneling tools like iodine and dnscat2 implement data exfiltration?"**
@@ -348,7 +348,7 @@ Verify the debriefing shows:
 - **Further Reading:** iodine, dnscat2, Cobalt Strike beaconing, Zeek, passive DNS, RFC 1035
 
 
-## 12. Common Mistakes & Edge Cases
+## 12. Common Mistakes and Edge Cases
 
 ### Testing Edge Cases
 

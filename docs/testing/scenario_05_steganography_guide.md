@@ -1,6 +1,6 @@
 # Scenario 05 — Hidden in Plain Sight
 
-## Full Testing & Solution Guide
+## Full Testing and Solution Guide
 
 > **Domain:** Steganography — LSB Detection  
 > **Difficulty:** ★★★★☆ (4/5)  
@@ -12,16 +12,16 @@
 
 1. [Scenario Overview](#1-scenario-overview)
 2. [The Theory Behind It](#2-the-theory-behind-it)
-3. [Pre-Quiz — Answers & Rationale](#3-pre-quiz--answers--rationale)
+3. [Pre-Quiz — Answers and Rationale](#3-pre-quiz--answers--rationale)
 4. [Filesystem Layout](#4-filesystem-layout)
 5. [Investigation Walkthrough](#5-investigation-walkthrough)
-6. [Flags — What to Submit & Why](#6-flags--what-to-submit--why)
-7. [Hints & Their Cost](#7-hints--their-cost)
+6. [Flags — What to Submit and Why](#6-flags--what-to-submit--why)
+7. [Hints and Their Cost](#7-hints--their-cost)
 8. [Scoring Breakdown](#8-scoring-breakdown)
 9. [Terminal Commands to Test](#9-terminal-commands-to-test)
-10. [Post-Quiz — Answers & Rationale](#10-post-quiz--answers--rationale)
+10. [Post-Quiz — Answers and Rationale](#10-post-quiz--answers--rationale)
 11. [Debriefing Verification](#11-debriefing-verification)
-12. [Common Mistakes & Edge Cases](#12-common-mistakes--edge-cases)
+12. [Common Mistakes and Edge Cases](#12-common-mistakes--edge-cases)
 
 
 ## 1. Scenario Overview
@@ -118,7 +118,7 @@ EXIF (Exchangeable Image File Format) stores metadata about how an image was tak
 3. Stripping EXIF also removes timestamps that could help trace when the image was modified
 
 
-## 3. Pre-Quiz — Answers & Rationale
+## 3. Pre-Quiz — Answers and Rationale
 
 ### Question 1
 > **"What is LSB steganography?"**
@@ -277,7 +277,7 @@ Steghide v0.5.1 — Execution Log
 | **Nov 6** | Competitor reveals suspiciously similar product |
 
 
-## 6. Flags — What to Submit & Why
+## 6. Flags — What to Submit and Why
 
 ### Flag 1: Anomalous Image (30 points)
 
@@ -307,7 +307,7 @@ Steghide v0.5.1 — Execution Log
 **Why:** Identifying the **specific payload** (product_designs_v4.zip containing CAD files) proves what data was being exfiltrated.
 
 
-## 7. Hints & Their Cost
+## 7. Hints and Their Cost
 
 | Tier | Cost | Text | What it reveals |
 |------|------|------|----------------|
@@ -352,7 +352,7 @@ Steghide v0.5.1 — Execution Log
 **Expected:** \$SI and \$FN timestamps. Note that \$SI modified (2024-11-05 20:48:12) differs from \$FN created (2024-11-03 09:10:45), showing the file was re-saved.
 
 
-## 10. Post-Quiz — Answers & Rationale
+## 10. Post-Quiz — Answers and Rationale
 
 ### Question 1
 > **"What statistical test is commonly used to detect LSB steganography?"**
@@ -389,7 +389,7 @@ Verify the debriefing shows:
 - **Further Reading:** zsteg, Steghide, chi-square steganalysis, RS analysis, PNG structure, EXIF forensics
 
 
-## 12. Common Mistakes & Edge Cases
+## 12. Common Mistakes and Edge Cases
 
 ### Testing Edge Cases
 

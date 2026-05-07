@@ -1,6 +1,6 @@
 # Scenario 03 — Ghost in the Machine
 
-## Full Testing & Solution Guide
+## Full Testing and Solution Guide
 
 > **Domain:** RAM / OS Forensics — Process Injection Detection  
 > **Difficulty:** ★★★☆☆ (3/5)  
@@ -12,16 +12,16 @@
 
 1. [Scenario Overview](#1-scenario-overview)
 2. [The Theory Behind It](#2-the-theory-behind-it)
-3. [Pre-Quiz — Answers & Rationale](#3-pre-quiz--answers--rationale)
+3. [Pre-Quiz — Answers and Rationale](#3-pre-quiz--answers--rationale)
 4. [RAM Dump Layout](#4-ram-dump-layout)
 5. [Investigation Walkthrough](#5-investigation-walkthrough)
-6. [Flags — What to Submit & Why](#6-flags--what-to-submit--why)
-7. [Hints & Their Cost](#7-hints--their-cost)
+6. [Flags — What to Submit and Why](#6-flags--what-to-submit--why)
+7. [Hints and Their Cost](#7-hints--their-cost)
 8. [Scoring Breakdown](#8-scoring-breakdown)
 9. [Views to Test](#9-views-to-test)
-10. [Post-Quiz — Answers & Rationale](#10-post-quiz--answers--rationale)
+10. [Post-Quiz — Answers and Rationale](#10-post-quiz--answers--rationale)
 11. [Debriefing Verification](#11-debriefing-verification)
-12. [Common Mistakes & Edge Cases](#12-common-mistakes--edge-cases)
+12. [Common Mistakes and Edge Cases](#12-common-mistakes--edge-cases)
 
 
 ## 1. Scenario Overview
@@ -101,7 +101,7 @@ Process injection is when malicious code is inserted into the address space of a
 Windows uses pool tags (`Proc`, `Thre`, `File`, etc.) to label kernel memory allocations. Volatility's `psscan` searches for the `Proc` tag in raw memory, then validates the surrounding data as an EPROCESS structure.
 
 
-## 3. Pre-Quiz — Answers & Rationale
+## 3. Pre-Quiz — Answers and Rationale
 
 ### Question 1
 > **"What is the difference between Volatility's pslist and psscan plugins?"**
@@ -235,7 +235,7 @@ The `malfind_output` section shows:
 Tag the suspicious processes and the malfind results in your notebook.
 
 
-## 6. Flags — What to Submit & Why
+## 6. Flags — What to Submit and Why
 
 ### Flag 1: Hidden Process (30 points)
 
@@ -265,7 +265,7 @@ Tag the suspicious processes and the malfind results in your notebook.
 **Why:** The malfind evidence (MZ header in RWX memory) proves that the hidden process isn't just hiding — it's running **injected malicious code**.
 
 
-## 7. Hints & Their Cost
+## 7. Hints and Their Cost
 
 | Tier | Cost | Text | What it reveals |
 |------|------|------|----------------|
@@ -313,7 +313,7 @@ This is the **primary view** for this scenario. Verify:
 - Should show: **"Select a file in the Explorer first"**
 
 
-## 10. Post-Quiz — Answers & Rationale
+## 10. Post-Quiz — Answers and Rationale
 
 ### Question 1
 > **"What is DKOM (Direct Kernel Object Manipulation)?"**
@@ -350,7 +350,7 @@ Verify the debriefing shows:
 - **Further Reading:** psxview, DKOM techniques, EPROCESS internals, pool tags, malfind methodology
 
 
-## 12. Common Mistakes & Edge Cases
+## 12. Common Mistakes and Edge Cases
 
 ### Testing Edge Cases
 

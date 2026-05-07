@@ -32,7 +32,7 @@ const STEPS = [
   },
   {
     icon: Flag,
-    title: 'Flags & Scoring',
+    title: 'Flags and Scoring',
     color: 'var(--red-alert)',
     description: 'Each scenario has hidden flags — tampered files, suspicious processes, covert channels. Find all flags to complete the investigation. Wrong submissions cost 5 points. Your base score starts at 100.',
   },

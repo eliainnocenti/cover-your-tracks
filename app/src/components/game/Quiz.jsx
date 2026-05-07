@@ -72,7 +72,7 @@ export default function Quiz({ type }) {
         >
           <ChevronRight size={13} />
           {allAnswered
-            ? (type === 'pre' ? '▶ Submit & Begin Investigation' : '▶ Submit & View Results')
+            ? (type === 'pre' ? '▶ Submit and Begin Investigation' : '▶ Submit and View Results')
             : `Answer all ${questions.length} questions to continue`}
         </button>
       )}
@@ -82,7 +82,7 @@ export default function Quiz({ type }) {
 
 function QuestionCard({ question, index, selected, submitted, onChange }) {
   const isCorrect = submitted && selected === question.correct
-  const isWrong   = submitted && selected !== undefined && selected !== question.correct
+  const isWrong = submitted && selected !== undefined && selected !== question.correct
 
   return (
     <div style={{
@@ -99,7 +99,7 @@ function QuestionCard({ question, index, selected, submitted, onChange }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {question.options.map((opt, oi) => {
           const isSelected = selected === oi
-          const isAnswer   = question.correct === oi
+          const isAnswer = question.correct === oi
           let cls = ''
           if (submitted) {
             if (isAnswer) cls = 'correct'
@@ -118,8 +118,8 @@ function QuestionCard({ question, index, selected, submitted, onChange }) {
                   : submitted && isSelected && !isAnswer
                     ? <XCircle size={13} style={{ color: 'var(--red-alert)' }} />
                     : <span style={{ fontSize: '9px', border: '1px solid currentColor', borderRadius: 2, width: 14, height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {String.fromCharCode(65 + oi)}
-                      </span>
+                      {String.fromCharCode(65 + oi)}
+                    </span>
                 }
               </span>
               {opt}

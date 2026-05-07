@@ -1,4 +1,4 @@
-# 🕵️ Cover Your Tracks — Complete Testing & Solution Guide
+# 🕵️ Cover Your Tracks — Complete Testing and Solution Guide
 
 > **Forensics Serious Game — Full Walkthrough for All 6 Scenarios**
 
@@ -12,7 +12,7 @@ This directory contains one comprehensive guide per scenario. Each guide covers:
 - **Filesystem / RAM / Network layout** — Complete evidence map
 - **Step-by-step walkthrough** — Exactly what to inspect and why
 - **Flag solutions** — What to type, matching logic, and point values
-- **Hints & scoring** — Cost breakdown and perfect/worst-case calculations
+- **Hints and scoring** — Cost breakdown and perfect/worst-case calculations
 - **Terminal commands** — Commands to test and expected outputs
 - **Post-Quiz answers** — Correct options with full explanations
 - **Edge cases** — Common mistakes and boundary conditions to test
@@ -23,8 +23,8 @@ This directory contains one comprehensive guide per scenario. Each guide covers:
 | # | Guide | Domain | Difficulty | Flags | Key Technique |
 |---|-------|--------|-----------|-------|---------------|
 | 01 | [The Timestomper](scenario_01_timestomper_guide.md) | Filesystem | ★☆☆☆☆ | 3 | NTFS \$SI vs \$FN timestamp manipulation |
-| 02 | [Ghosts in the Sectors](scenario_02_slackspace_guide.md) | Filesystem | ★★☆☆☆ | 3 | Slack space data hiding & file carving |
-| 03 | [Ghost in the Machine](scenario_03_ram_injection_guide.md) | RAM/OS | ★★★☆☆ | 3 | DKOM process hiding & code injection |
+| 02 | [Ghosts in the Sectors](scenario_02_slackspace_guide.md) | Filesystem | ★★☆☆☆ | 3 | Slack space data hiding and file carving |
+| 03 | [Ghost in the Machine](scenario_03_ram_injection_guide.md) | RAM/OS | ★★★☆☆ | 3 | DKOM process hiding and code injection |
 | 04 | [The Whispering DNS](scenario_04_dns_tunnel_guide.md) | Network | ★★★☆☆ | 3 | DNS tunneling data exfiltration |
 | 05 | [Hidden in Plain Sight](scenario_05_steganography_guide.md) | Steganography | ★★★★☆ | 3 | LSB steganography detection |
 | 06 | [The Last Stand](scenario_06_boss_level_guide.md) | Combined | ★★★★★ | 4 | Log wiping + DKOM + ICMP tunneling |

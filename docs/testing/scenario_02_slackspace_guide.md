@@ -1,6 +1,6 @@
 # Scenario 02 — Ghosts in the Sectors
 
-## Full Testing & Solution Guide
+## Full Testing and Solution Guide
 
 > **Domain:** File System Forensics — Slack Space Exploitation  
 > **Difficulty:** ★★☆☆☆ (2/5)  
@@ -12,16 +12,16 @@
 
 1. [Scenario Overview](#1-scenario-overview)
 2. [The Theory Behind It](#2-the-theory-behind-it)
-3. [Pre-Quiz — Answers & Rationale](#3-pre-quiz--answers--rationale)
+3. [Pre-Quiz — Answers and Rationale](#3-pre-quiz--answers--rationale)
 4. [Filesystem Layout](#4-filesystem-layout)
 5. [Investigation Walkthrough](#5-investigation-walkthrough)
-6. [Flags — What to Submit & Why](#6-flags--what-to-submit--why)
-7. [Hints & Their Cost](#7-hints--their-cost)
+6. [Flags — What to Submit and Why](#6-flags--what-to-submit--why)
+7. [Hints and Their Cost](#7-hints--their-cost)
 8. [Scoring Breakdown](#8-scoring-breakdown)
 9. [Terminal Commands to Test](#9-terminal-commands-to-test)
-10. [Post-Quiz — Answers & Rationale](#10-post-quiz--answers--rationale)
+10. [Post-Quiz — Answers and Rationale](#10-post-quiz--answers--rationale)
 11. [Debriefing Verification](#11-debriefing-verification)
-12. [Common Mistakes & Edge Cases](#12-common-mistakes--edge-cases)
+12. [Common Mistakes and Edge Cases](#12-common-mistakes--edge-cases)
 
 
 ## 1. Scenario Overview
@@ -87,7 +87,7 @@ In FAT file systems, when a file is deleted:
 - This is why forensic tools can often recover the original filename (except the first character)
 
 
-## 3. Pre-Quiz — Answers & Rationale
+## 3. Pre-Quiz — Answers and Rationale
 
 ### Question 1
 > **"What is 'slack space' in a filesystem?"**
@@ -123,7 +123,7 @@ D:\
 │   ├── meeting_notes.docx    ← ✅ Normal (2,180B slack but no hidden data)
 │   └── budget_2024.xlsx      ← ✅ Normal (2,364B slack but no hidden data)
 ├── $Recycle.Bin/
-│   └── å5alary_export.csv    ← 🚩 Deleted file (0xE5 marker) (Flag 3)
+│   └── å5alary_export.csv   ← 🚩 Deleted file (0xE5 marker) (Flag 3)
 └── forensics_output/
     └── foremost_output.txt   ← 🔍 Carving results showing the hidden CSV (Flag 2)
 ```
@@ -223,7 +223,7 @@ Recovered fragment (foremost):
 | 2024-10-21 14:00 | Forensics analysis run (`foremost_output.txt` created) |
 
 
-## 6. Flags — What to Submit & Why
+## 6. Flags — What to Submit and Why
 
 ### Flag 1: file.pdf slack space (30 points)
 
@@ -253,7 +253,7 @@ Recovered fragment (foremost):
 **Why:** The deleted directory entry with the `0xE5` prefix confirms deliberate deletion of the sensitive file. Combined with the slack space evidence, it proves the data existed on this drive.
 
 
-## 7. Hints & Their Cost
+## 7. Hints and Their Cost
 
 | Tier | Cost | Text | What it reveals |
 |------|------|------|----------------|
@@ -301,7 +301,7 @@ Recovered fragment (foremost):
 **Expected:** Metadata for the deleted file, including the late-night timestamps.
 
 
-## 10. Post-Quiz — Answers & Rationale
+## 10. Post-Quiz — Answers and Rationale
 
 ### Question 1
 > **"Why can data persist in slack space even after a new file is written?"**
@@ -338,7 +338,7 @@ Verify the debriefing shows:
 - **Further Reading:** NTFS cluster allocation, FAT directory entries, foremost/scalpel file carving
 
 
-## 12. Common Mistakes & Edge Cases
+## 12. Common Mistakes and Edge Cases
 
 ### Testing Edge Cases
 

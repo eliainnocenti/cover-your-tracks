@@ -2,7 +2,7 @@
 
 ![polito-logo](resources/images/logo_polito.jpg)
 
-> A serious game for the **Computer Forensics & Cyber Crime Analysis** course at Politecnico di Torino.
+> A serious game for the **Computer Forensics and Cyber Crime Analysis** course at Politecnico di Torino.
 > Detect anti-forensic techniques across filesystem, memory, and network domains.
 
 ## Overview
@@ -75,15 +75,15 @@ npm run preview  # Preview the production build locally
 ## Project Structure
 
 ```
-cover-your-tracks/
+app/
 ├── index.html           # Entry point
-├── package.json         # Dependencies & scripts
+├── package.json         # Dependencies and scripts
 ├── vite.config.js       # Vite configuration
 ├── tailwind.config.js   # Tailwind CSS configuration
 ├── postcss.config.js    # PostCSS configuration
 └── src/
     ├── main.jsx         # React root
-    ├── App.jsx          # Game shell & phase router
+    ├── App.jsx          # Game shell and phase router
     ├── styles/
     │   └── index.css    # Design system (CSS variables, CRT theme)
     ├── components/
@@ -92,7 +92,7 @@ cover-your-tracks/
     │       ├── Landing.jsx                # Scenario selection screen
     │       ├── Leaderboard.jsx            # Local storage high scores
     │       ├── EvidenceNavigator.jsx      # File Explorer / Terminal / HEX / RAM / Network
-    │       ├── InvestigatorNotebook.jsx   # Evidence tagging & flag submission
+    │       ├── InvestigatorNotebook.jsx   # Evidence tagging and flag submission
     │       ├── CrossReference.jsx         # Evidence connection linking mechanic
     │       ├── Quiz.jsx                   # Pre/Post quiz with explanations
     │       ├── ChainOfCustody.jsx         # Investigation audit trail log
@@ -132,7 +132,7 @@ The game uses a **finite state machine** powered by React's `useReducer` + Conte
 
 ## License
 
-This project is developed for educational purposes as part of the Computer Forensics & Cyber Crime Analysis course at Politecnico di Torino.
+This project is developed for educational purposes as part of the Computer Forensics and Cyber Crime Analysis course at Politecnico di Torino.
 
 ## Author
 
@@ -142,4 +142,4 @@ This project is developed for educational purposes as part of the Computer Foren
 
 ---
 
-*Developed as part of the Computer Forensics & Cyber Crime Analysis course at Politecnico di Torino.*
+*Developed as part of the Computer Forensics and Cyber Crime Analysis course at Politecnico di Torino.*

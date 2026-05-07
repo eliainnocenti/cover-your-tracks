@@ -1,6 +1,6 @@
 # Scenario 01 — The Timestomper
 
-## Full Testing & Solution Guide
+## Full Testing and Solution Guide
 
 > **Domain:** File System Forensics — MAC Time Manipulation  
 > **Difficulty:** ★☆☆☆☆ (1/5)  
@@ -12,16 +12,16 @@
 
 1. [Scenario Overview](#1-scenario-overview)
 2. [The Theory Behind It](#2-the-theory-behind-it)
-3. [Pre-Quiz — Answers & Rationale](#3-pre-quiz--answers--rationale)
+3. [Pre-Quiz — Answers and Rationale](#3-pre-quiz--answers--rationale)
 4. [Filesystem Layout](#4-filesystem-layout)
 5. [Investigation Walkthrough](#5-investigation-walkthrough)
-6. [Flags — What to Submit & Why](#6-flags--what-to-submit--why)
-7. [Hints & Their Cost](#7-hints--their-cost)
+6. [Flags — What to Submit and Why](#6-flags--what-to-submit--why)
+7. [Hints and Their Cost](#7-hints--their-cost)
 8. [Scoring Breakdown](#8-scoring-breakdown)
 9. [Terminal Commands to Test](#9-terminal-commands-to-test)
-10. [Post-Quiz — Answers & Rationale](#10-post-quiz--answers--rationale)
+10. [Post-Quiz — Answers and Rationale](#10-post-quiz--answers--rationale)
 11. [Debriefing Verification](#11-debriefing-verification)
-12. [Common Mistakes & Edge Cases](#12-common-mistakes--edge-cases)
+12. [Common Mistakes and Edge Cases](#12-common-mistakes--edge-cases)
 
 
 ## 1. Scenario Overview
@@ -70,7 +70,7 @@ When a timestomping tool runs, it typically sets **all four** \$SI timestamps to
 - Access and MFT changes happen at different times during the file's lifecycle
 
 
-## 3. Pre-Quiz — Answers & Rationale
+## 3. Pre-Quiz — Answers and Rationale
 
 ### Question 1
 > **"In NTFS, which metadata attribute stores the timestamps visible in Windows Explorer?"**
@@ -215,7 +215,7 @@ Event 4647 - Logoff: kmartin at 2024-11-14 09:28:11
 - 09:28 — kmartin logs off
 
 
-## 6. Flags — What to Submit & Why
+## 6. Flags — What to Submit and Why
 
 The game uses a **text matching** system. Your submission must contain either the **target name** or the **finding keyword** from the flag definition.
 
@@ -252,7 +252,7 @@ The input is lowercased and checked if it **includes** the flag's `target` ("Q2_
 Finding the actual tool log is the strongest evidence. The tampered timestamps are circumstantial — the tool log is a **smoking gun** that proves deliberate intent.
 
 
-## 7. Hints & Their Cost
+## 7. Hints and Their Cost
 
 | Tier | Cost | Text | What it reveals |
 |------|------|------|----------------|
@@ -355,7 +355,7 @@ $FILE_NAME Attribute Values:
 - `unknowncmd` → "command not found"
 
 
-## 10. Post-Quiz — Answers & Rationale
+## 10. Post-Quiz — Answers and Rationale
 
 ### Question 1
 > **"Which NTFS attribute is most resistant to timestomping tools and why?"**
@@ -393,7 +393,7 @@ After completing the post-quiz, verify the debriefing screen shows:
 - **Further Reading:** NTFS MFT, Sleuth Kit istat, Event 4663/4664, Metasploit timestomp
 
 
-## 12. Common Mistakes & Edge Cases
+## 12. Common Mistakes and Edge Cases
 
 ### Testing Edge Cases
 

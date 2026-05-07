@@ -47,8 +47,8 @@ export default function Landing({ onStart }) {
         <p style={{ fontSize: '14px', color: 'var(--text-muted)', letterSpacing: '0.1em', margin: '0 0 8px' }}>
           Anti-Forensics Detection Lab
         </p>
-        <p style={{ fontSize: '12px', color: 'var(--text-ghost)', maxWidth: 440, lineHeight: 1.7, margin: '0 auto' }}>
-          A serious game for the Computer Forensics & Cyber Crime Analysis course.<br />
+        <p style={{ fontSize: '12px', color: 'var(--text-ghost)', maxWidth: 600, lineHeight: 1.7, margin: '0 auto' }}>
+          A serious game for the Computer Forensics and Cyber Crime Analysis course.<br />
           Detect anti-forensic techniques across filesystem, memory, and network domains.
         </p>
       </div>
@@ -150,7 +150,7 @@ function AboutModal({ onClose }) {
 
         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 24 }}>
           <p style={{ margin: '0 0 12px' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>Cover Your Tracks</strong> is an interactive serious game developed for the Computer Forensics & Cyber Crime Analysis course at Politecnico di Torino.
+            <strong style={{ color: 'var(--text-primary)' }}>Cover Your Tracks</strong> is an interactive serious game developed for the Computer Forensics and Cyber Crime Analysis course at Politecnico di Torino.
           </p>
           <p style={{ margin: 0 }}>
             It is designed to teach students how to identify advanced anti-forensic techniques through a simulated investigation environment.
@@ -160,15 +160,15 @@ function AboutModal({ onClose }) {
         <div style={{ borderTop: '1px solid var(--border-dim)', paddingTop: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Author</div>
           <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700 }}>Elia Innocenti</div>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-            <a href="mailto:elia.innocenti@studenti.polito.it" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '11px', fontFamily: 'var(--font-mono)' }} onMouseEnter={e => e.currentTarget.style.color='var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color='var(--text-secondary)'}>
+            <a href="mailto:elia.innocenti@studenti.polito.it" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '11px', fontFamily: 'var(--font-mono)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>
               <Mail size={12} /> elia.innocenti@studenti.polito.it
             </a>
-            <a href="https://github.com/eliainnocenti/cover-your-tracks" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '11px', fontFamily: 'var(--font-mono)' }} onMouseEnter={e => e.currentTarget.style.color='var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color='var(--text-secondary)'}>
+            <a href="https://github.com/eliainnocenti/" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '11px', fontFamily: 'var(--font-mono)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>
               <Github size={12} /> github.com/eliainnocenti
             </a>
-            <a href="https://www.linkedin.com/in/eliainnocenti/" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '11px', fontFamily: 'var(--font-mono)' }} onMouseEnter={e => e.currentTarget.style.color='var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color='var(--text-secondary)'}>
+            <a href="https://www.linkedin.com/in/eliainnocenti/" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '11px', fontFamily: 'var(--font-mono)' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>
               <Linkedin size={12} /> linkedin.com/in/eliainnocenti
             </a>
           </div>

@@ -1,6 +1,6 @@
 # Scenario 06 — The Last Stand (Boss Level)
 
-## Full Testing & Solution Guide
+## Full Testing and Solution Guide
 
 > **Domain:** Combined — Multi-Vector Anti-Forensics  
 > **Difficulty:** ★★★★★ (5/5)  
@@ -51,7 +51,7 @@ Same DKOM technique as Scenario 03 (EPROCESS unlinking), but with an added twist
 - Repeated bursts to the same destination
 
 
-## 3. Pre-Quiz — Answers & Rationale
+## 3. Pre-Quiz — Answers and Rationale
 
 ### Question 1
 > "How long does Windows retain security event logs by default?"
@@ -207,7 +207,7 @@ This scenario features cross-reference links where players can combine evidence 
 - **Evidence 2:** `ICMP to 185.220.101.47`
 - **Description:** Correlates the 4-hour event log gap (23:02–03:08) with the exact timeframe of the ICMP exfiltration (02:15).
 
-## 7. Flags — What to Submit & Why
+## 7. Flags — What to Submit and Why
 
 ### Flag 1: Log Wiping (25 points)
 
@@ -240,7 +240,7 @@ This scenario features cross-reference links where players can combine evidence 
 > **Note:** This is a **bonus flag** — students who identify the specific naming deception get extra points.
 
 
-## 8. Hints & Their Cost
+## 8. Hints and Their Cost
 
 | Tier | Cost | Text |
 |------|------|------|
@@ -278,7 +278,7 @@ This is the only scenario that uses **ALL THREE data sources** (filesystem + RAM
 - **HEX:** Should work when a file is selected in Explorer
 
 
-## 11. Post-Quiz — Answers & Rationale
+## 11. Post-Quiz — Answers and Rationale
 
 ### Question 1
 > "How can an attacker truncate Windows Event Logs without triggering Event ID 1102?"
@@ -301,7 +301,7 @@ This is the only scenario that uses **ALL THREE data sources** (filesystem + RAM
 | 3 | ICMP packets cannot be captured by sniffers | ❌ |
 
 
-## 12. Common Mistakes & Edge Cases
+## 12. Common Mistakes and Edge Cases
 
 | Test | Expected |
 |------|----------|
