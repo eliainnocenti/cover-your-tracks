@@ -1,0 +1,281 @@
+{
+  "id": "scenario_01",
+  "title": "The Timestomper",
+  "subtitle": "File System Forensics — MAC Time Manipulation",
+  "difficulty": 1,
+  "domain": "filesystem",
+  "estimatedMinutes": 15,
+  "narrative": "A corporate whistleblower claims that a disgruntled sysadmin deleted critical HR documents before resigning. The sysadmin's workstation has been imaged. Your job: find the tampered files and prove the timestamps were falsified.",
+  "learningObjective": "Understand how timestomping works by comparing $STANDARD_INFORMATION vs $FILE_NAME attributes in the NTFS Master File Table (MFT). Recognize that anti-forensic tools modify SI timestamps but often leave FN timestamps untouched.",
+  "preQuiz": [
+    {
+      "id": "pq1",
+      "question": "In NTFS, which metadata attribute stores the timestamps visible in Windows Explorer?",
+      "options": [
+        "$FILE_NAME ($FN)",
+        "$STANDARD_INFORMATION ($SI)",
+        "$DATA",
+        "$OBJECT_ID"
+      ],
+      "correct": 1,
+      "explanation": "$STANDARD_INFORMATION stores the timestamps shown in Windows Explorer and most forensic tools by default. This is also the attribute most commonly targeted by timestomping tools."
+    },
+    {
+      "id": "pq2",
+      "question": "What is 'timestomping'?",
+      "options": [
+        "Encrypting file timestamps with AES",
+        "Modifying MAC times to hide when a file was really created or accessed",
+        "Deleting the MFT entry for a file",
+        "Compressing timestamps to save disk space"
+      ],
+      "correct": 1,
+      "explanation": "Timestomping is the deliberate modification of a file's MAC (Modified, Accessed, Created) timestamps to mislead investigators about the true timeline of events."
+    }
+  ],
+  "filesystem": {
+    "root": {
+      "name": "C:\\",
+      "type": "directory",
+      "children": {
+        "Users": {
+          "name": "Users",
+          "type": "directory",
+          "children": {
+            "kmartin": {
+              "name": "kmartin",
+              "type": "directory",
+              "children": {
+                "Documents": {
+                  "name": "Documents",
+                  "type": "directory",
+                  "children": {
+                    "Q2_Report_FINAL.docx": {
+                      "name": "Q2_Report_FINAL.docx",
+                      "type": "file",
+                      "size": 48200,
+                      "extension": "docx",
+                      "magic_bytes": "504B0304",
+                      "metadata": {
+                        "si_created":  "2024-11-14 09:22:11",
+                        "si_modified": "2024-11-14 09:22:11",
+                        "si_accessed": "2024-11-14 09:22:11",
+                        "si_mft_changed": "2024-11-14 09:22:11",
+                        "fn_created":  "2024-09-03 14:47:32",
+                        "fn_modified": "2024-10-21 16:05:44",
+                        "fn_accessed": "2024-11-12 08:30:19",
+                        "fn_mft_changed": "2024-11-12 08:30:19",
+                        "permissions": "-rw-r--r--",
+                        "owner": "kmartin",
+                        "inode": 78234,
+                        "tampered": true,
+                        "tamper_note": "All four $SI timestamps are identical to the second — a classic sign of timestomping. $FN timestamps show the real lifecycle."
+                      },
+                      "content_preview": "[Word Document] Q2 Financial Summary — Project Helios\nAuthor: K. Martin | Last saved by: K. Martin\nRevision: 14 | Total editing time: 4h 22m\n\n[Metadata embedded]: Created 2024-09-03, last printed 2024-11-11"
+                    },
+                    "personal_notes.txt": {
+                      "name": "personal_notes.txt",
+                      "type": "file",
+                      "size": 1240,
+                      "extension": "txt",
+                      "magic_bytes": "EFBBBF",
+                      "metadata": {
+                        "si_created":  "2024-10-01 11:00:00",
+                        "si_modified": "2024-11-10 17:45:22",
+                        "si_accessed": "2024-11-10 17:45:22",
+                        "si_mft_changed": "2024-11-10 17:48:05",
+                        "fn_created":  "2024-10-01 11:00:00",
+                        "fn_modified": "2024-11-10 17:45:22",
+                        "fn_accessed": "2024-11-10 17:45:22",
+                        "fn_mft_changed": "2024-11-10 17:48:05",
+                        "permissions": "-rw-------",
+                        "owner": "kmartin",
+                        "inode": 78290,
+                        "tampered": false
+                      },
+                      "content_preview": "Reminder: submit PTO request before Dec\nLunch with Sarah - Tues 12pm\nCall back IT about the VPN issue"
+                    },
+                    "HR_Termination_Draft_v3.docx": {
+                      "name": "HR_Termination_Draft_v3.docx",
+                      "type": "file",
+                      "size": 29800,
+                      "extension": "docx",
+                      "magic_bytes": "504B0304",
+                      "metadata": {
+                        "si_created":  "2024-11-14 09:22:11",
+                        "si_modified": "2024-11-14 09:22:11",
+                        "si_accessed": "2024-11-14 09:22:11",
+                        "si_mft_changed": "2024-11-14 09:22:11",
+                        "fn_created":  "2024-10-28 10:12:05",
+                        "fn_modified": "2024-11-13 19:58:31",
+                        "fn_accessed": "2024-11-13 19:58:31",
+                        "fn_mft_changed": "2024-11-13 19:58:31",
+                        "permissions": "-rw-r--r--",
+                        "owner": "kmartin",
+                        "inode": 78301,
+                        "tampered": true,
+                        "tamper_note": "$SI timestamps are all set to 2024-11-14 09:22:11, which is after the user's last login. $FN shows it was last modified at 19:58 the previous evening — consistent with the whistleblower's account."
+                      },
+                      "content_preview": "[Word Document] CONFIDENTIAL — HR Action Plan\nSubject: K. Martin performance review and proposed termination\nDraft status: PENDING LEGAL REVIEW\n\n[Document properties redacted]"
+                    }
+                  }
+                },
+                "AppData": {
+                  "name": "AppData",
+                  "type": "directory",
+                  "children": {
+                    "Roaming": {
+                      "name": "Roaming",
+                      "type": "directory",
+                      "children": {
+                        "timestomp_log.tmp": {
+                          "name": "timestomp_log.tmp",
+                          "type": "file",
+                          "size": 312,
+                          "extension": "tmp",
+                          "magic_bytes": "54494D45",
+                          "metadata": {
+                            "si_created":  "2024-11-14 09:18:44",
+                            "si_modified": "2024-11-14 09:22:15",
+                            "si_accessed": "2024-11-14 09:22:15",
+                            "si_mft_changed": "2024-11-14 09:22:15",
+                            "fn_created":  "2024-11-14 09:18:44",
+                            "fn_modified": "2024-11-14 09:22:15",
+                            "fn_accessed": "2024-11-14 09:22:15",
+                            "fn_mft_changed": "2024-11-14 09:22:15",
+                            "permissions": "-rw-------",
+                            "owner": "kmartin",
+                            "inode": 78455,
+                            "tampered": false,
+                            "tamper_note": "This is the smoking gun: a leftover artifact from the timestomping tool itself. Its own timestamps are legitimate and show it ran at 09:18–09:22 on the 14th."
+                          },
+                          "content_preview": "[BINARY] TIMESTOMP v2.0 execution log\nTarget: C:\\Users\\kmartin\\Documents\\Q2_Report_FINAL.docx -> SET 2024-11-14 09:22:11\nTarget: C:\\Users\\kmartin\\Documents\\HR_Termination_Draft_v3.docx -> SET 2024-11-14 09:22:11\nStatus: COMPLETE"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Windows": {
+          "name": "Windows",
+          "type": "directory",
+          "children": {
+            "System32": {
+              "name": "System32",
+              "type": "directory",
+              "children": {
+                "winevt": {
+                  "name": "winevt",
+                  "type": "directory",
+                  "children": {
+                    "Security.evtx": {
+                      "name": "Security.evtx",
+                      "type": "file",
+                      "size": 20480000,
+                      "extension": "evtx",
+                      "magic_bytes": "456C6646",
+                      "metadata": {
+                        "si_created":  "2023-01-15 10:00:00",
+                        "si_modified": "2024-11-14 09:25:00",
+                        "si_accessed": "2024-11-14 09:25:00",
+                        "si_mft_changed": "2024-11-14 09:25:00",
+                        "fn_created":  "2023-01-15 10:00:00",
+                        "fn_modified": "2024-11-14 09:25:00",
+                        "fn_accessed": "2024-11-14 09:25:00",
+                        "fn_mft_changed": "2024-11-14 09:25:00",
+                        "permissions": "-rw-r--r--",
+                        "owner": "SYSTEM",
+                        "inode": 120,
+                        "tampered": false
+                      },
+                      "content_preview": "[Event Log Viewer]\nEvent 4624 - Logon: kmartin logged in at 2024-11-14 09:14:02 (Interactive)\nEvent 4663 - File accessed: Q2_Report_FINAL.docx at 2024-11-14 09:19:55\nEvent 4663 - File accessed: HR_Termination_Draft_v3.docx at 2024-11-14 09:21:03\nEvent 4647 - Logoff: kmartin at 2024-11-14 09:28:11"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "flags": [
+    {
+      "id": "flag_01",
+      "type": "file",
+      "target": "Q2_Report_FINAL.docx",
+      "finding": "timestomping",
+      "description": "$SI timestamps all identical (2024-11-14 09:22:11) — inconsistent with $FN timestamps and document internal metadata showing creation in September.",
+      "points": 30
+    },
+    {
+      "id": "flag_02",
+      "type": "file",
+      "target": "HR_Termination_Draft_v3.docx",
+      "finding": "timestomping",
+      "description": "$SI timestamps set after user last login — $FN shows legitimate modification the evening of Nov 13th.",
+      "points": 30
+    },
+    {
+      "id": "flag_03",
+      "type": "file",
+      "target": "timestomp_log.tmp",
+      "finding": "tool_artifact",
+      "description": "Timestomping tool leftover log found in AppData — confirms which files were targeted and exact execution time.",
+      "points": 40
+    }
+  ],
+  "hints": [
+    {
+      "tier": 1,
+      "cost": 10,
+      "text": "In NTFS, every file has two timestamp records. Most tools only show you one. Try comparing them."
+    },
+    {
+      "tier": 2,
+      "cost": 20,
+      "text": "Look at the Documents folder. Notice anything unusual about when the files were supposedly last modified?"
+    },
+    {
+      "tier": 3,
+      "cost": 30,
+      "text": "When all four MAC timestamps of a file are identical down to the second, that is almost always the fingerprint of a timestomping tool. Now find the tool itself."
+    }
+  ],
+  "debriefing": {
+    "title": "How Timestomping Works",
+    "concept": "NTFS stores two independent sets of timestamps per file: $STANDARD_INFORMATION ($SI) and $FILE_NAME ($FN). Timestomping tools like Timestomp.exe or Metasploit's timestamp module only modify the $SI attribute — because that is what Windows APIs expose. The $FN attribute, updated directly by the NTFS kernel driver, is much harder to forge and often retains the true timestamps. A mismatch between $SI and $FN is a red flag.",
+    "realWorldTool": "Tools like Autopsy, FTK Imager, and the Sleuth Kit's 'istat' command can display both $SI and $FN timestamps simultaneously. Analysts specifically look for this discrepancy.",
+    "caseConnection": "In this case, the $SI timestamps were all set to the exact same second — a telltale sign. The $FN timestamps, combined with the Security Event Log (Event 4663), confirmed the real timeline. The leftover .tmp file from the timestomping tool was the clincher.",
+    "furtherReading": "NTFS MFT structure, Sleuth Kit istat, Windows Event Log 4663/4664, Metasploit post/windows/manage/timestomp"
+  },
+  "postQuiz": [
+    {
+      "id": "postq1",
+      "question": "Which NTFS attribute is most resistant to timestomping tools and why?",
+      "options": [
+        "$DATA, because it stores the actual file content",
+        "$FILE_NAME, because it is updated by the NTFS kernel driver rather than user-space APIs",
+        "$STANDARD_INFORMATION, because it requires admin privileges to modify",
+        "$OBJECT_ID, because it is write-protected by default"
+      ],
+      "correct": 1,
+      "explanation": "$FILE_NAME timestamps are maintained directly by the NTFS driver and cannot be changed through standard Windows API calls. This makes them a reliable forensic reference point even after timestomping."
+    },
+    {
+      "id": "postq2",
+      "question": "What is a reliable indicator that timestomping has occurred?",
+      "options": [
+        "The file size is larger than expected",
+        "The file extension does not match its magic bytes",
+        "All four $SI timestamps are identical down to the second",
+        "The file has no owner assigned"
+      ],
+      "correct": 2,
+      "explanation": "When all four $SI timestamps (Created, Modified, Accessed, MFT Changed) are precisely the same, it strongly suggests they were set programmatically in a single operation — the hallmark of a timestomping tool."
+    }
+  ]
+}
