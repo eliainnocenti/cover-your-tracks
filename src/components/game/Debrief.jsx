@@ -1,6 +1,7 @@
 // Debrief.jsx
-import { BookOpen, TrendingUp, TrendingDown, Clock, Target, Lightbulb, Award, ChevronRight, Minus } from 'lucide-react'
+import { BookOpen, TrendingUp, TrendingDown, Clock, Target, Lightbulb, Award, ChevronRight, Minus, Link2 } from 'lucide-react'
 import { useEngine } from './ScenarioEngine'
+import ChainOfCustody from './ChainOfCustody'
 
 export default function Debrief({ onNext }) {
   const { state, metrics } = useEngine()
@@ -49,6 +50,33 @@ export default function Debrief({ onNext }) {
             value={metrics.wrongAttempts}
             valueColor={metrics.wrongAttempts === 0 ? 'var(--green-main)' : 'var(--red-alert)'}
           />
+        </div>
+      )}
+
+      {/* Chain of Custody audit trail */}
+      {metrics?.sessionLog && (
+        <ChainOfCustody
+          sessionLog={metrics.sessionLog}
+          startTime={state.startTime}
+        />
+      )}
+
+      {/* Cross-reference connections summary */}
+      {metrics?.connectionsFound > 0 && (
+        <div style={{
+          border: '1px solid rgba(0,229,204,0.2)', borderRadius: 'var(--radius-md)',
+          background: 'rgba(0,229,204,0.04)', padding: '12px 14px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            <Link2 size={12} style={{ color: 'var(--cyan-accent)' }} />
+            <span style={{ fontSize: '9px', color: 'var(--cyan-accent)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
+              Evidence Connections
+            </span>
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            You discovered <b style={{ color: 'var(--cyan-accent)' }}>{metrics.connectionsFound}/{metrics.totalConnections}</b> cross-evidence links,
+            demonstrating an ability to correlate findings across different forensic domains.
+          </div>
         </div>
       )}
 

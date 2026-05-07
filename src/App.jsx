@@ -31,7 +31,7 @@ const ALL_SCENARIOS = {
 export default function App() {
   return (
     <ScenarioProvider>
-      <div className="min-h-screen bg-gray-950 text-gray-300" style={{ fontFamily: "var(--font-mono)" }}>
+      <div className="h-screen bg-gray-950 text-gray-300 flex flex-col overflow-hidden" style={{ fontFamily: "var(--font-mono)" }}>
         <GameRouter />
       </div>
     </ScenarioProvider>
@@ -113,7 +113,7 @@ function GameRouter() {
 // ─── Screen components ────────────────────────────────────────────────────────
 function QuizScreen({ type }) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-full flex flex-col">
       <TopBar />
       <div className="flex-1 overflow-auto">
         <Quiz type={type} />
@@ -125,7 +125,7 @@ function QuizScreen({ type }) {
 function DebriefScreen() {
   const { dispatch } = useEngine();
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-full flex flex-col">
       <TopBar />
       <div className="flex-1 overflow-auto">
         <Debrief onNext={() => dispatch({ type: 'COMPLETE' })} />
@@ -139,7 +139,7 @@ function InvestigationScreen() {
   const { scenario } = state;
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-full">
       <TopBar />
 
       {/* Scenario brief strip */}
@@ -176,7 +176,7 @@ function InvestigationScreen() {
 function CompleteScreen() {
   const { dispatch } = useEngine();
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center h-full">
       <div className="text-center font-mono space-y-4">
         <div className="text-5xl">🔍</div>
         <h1 className="text-green-400 text-xl font-bold">Case Closed</h1>
@@ -194,7 +194,7 @@ function CompleteScreen() {
 
 function LoadingScreen() {
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center h-full">
       <p className="text-green-600 font-mono text-sm animate-pulse">Loading case file...</p>
     </div>
   );
