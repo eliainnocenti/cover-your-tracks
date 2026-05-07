@@ -1,5 +1,7 @@
 // Landing.jsx
 import { Shield, ChevronRight, Clock, Target, Layers } from 'lucide-react'
+import { useEngine } from './ScenarioEngine'
+import Leaderboard from './Leaderboard'
 
 const SCENARIOS_META = [
   { id: 'scenario_01', title: 'The Timestomper', subtitle: 'Filesystem — MAC Time Manipulation', domain: 'filesystem', difficulty: 1, minutes: 15 },
@@ -19,6 +21,7 @@ const DOMAIN_COLORS = {
 }
 
 export default function Landing({ onStart }) {
+  const { loadLeaderboard } = useEngine()
   return (
     <div style={{ height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px' }}>
       {/* Hero */}
@@ -104,6 +107,9 @@ export default function Landing({ onStart }) {
           )
         })}
       </div>
+
+      {/* Leaderboard */}
+      <Leaderboard loadLeaderboard={loadLeaderboard} />
     </div>
   )
 }
