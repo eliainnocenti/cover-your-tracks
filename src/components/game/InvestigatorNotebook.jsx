@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { BookOpen, Tag, X, CheckCircle, XCircle, Lightbulb, Send, Target } from 'lucide-react'
 import { useEngine } from './ScenarioEngine'
+import CrossReference from './CrossReference'
 
 export default function InvestigatorNotebook() {
   const { state, untagEvidence, useHint, submitFlag, wrongSubmission } = useEngine()
@@ -121,6 +122,9 @@ export default function InvestigatorNotebook() {
             })}
           </div>
         )}
+
+        {/* Cross-reference evidence */}
+        <CrossReference />
 
         {/* Submit */}
         <div>

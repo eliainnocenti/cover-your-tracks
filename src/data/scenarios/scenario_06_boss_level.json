@@ -198,6 +198,29 @@
       "points": 15
     }
   ],
+  "connections": [
+    {
+      "id": "conn_01",
+      "evidence1": "wevtutil_clear.bat",
+      "evidence2": "Security.evtx",
+      "description": "The batch script ran wevtutil cl at 03:14 AM — exactly matching the Security.evtx last-modified timestamp. This confirms deliberate log wiping by admin_svc.",
+      "points": 15
+    },
+    {
+      "id": "conn_02",
+      "evidence1": "winlogon_helper.exe",
+      "evidence2": "ICMP to 185.220.101.47",
+      "description": "The DKOM-hidden rootkit (winlogon_helper.exe) is the likely source of the ICMP tunneling exfiltration — both run as SYSTEM and were active during the same 02:15–03:14 window.",
+      "points": 15
+    },
+    {
+      "id": "conn_03",
+      "evidence1": "Security.evtx",
+      "evidence2": "ICMP to 185.220.101.47",
+      "description": "The 4-hour event log gap (23:02–03:08) covers the exact timeframe of the ICMP exfiltration traffic (02:15). The attacker wiped the logs to hide the network activity from the audit trail.",
+      "points": 15
+    }
+  ],
   "hints": [
     {
       "tier": 1,
