@@ -1,0 +1,143 @@
+{
+  "id": "scenario_03",
+  "title": "Ghost in the Machine",
+  "subtitle": "RAM / OS Forensics — Process Injection Detection",
+  "difficulty": 3,
+  "domain": "ram",
+  "estimatedMinutes": 20,
+  "narrative": "A production server at Nexus Financial behaved erratically for 45 minutes before being powered down by the SOC team. A memory dump was captured with LiME during incident response. The initial pslist output looks normal — standard Windows services. But the IR lead has a hunch: run psscan and compare. Your job: find the ghost process that's hiding from the kernel.",
+  "learningObjective": "Understand the difference between pslist (walks the kernel's active process list doubly-linked list) and psscan (carves EPROCESS structures from raw memory). Learn how DKOM (Direct Kernel Object Manipulation) rootkits unlink processes from the active list to hide them, and how memory forensics tools detect this.",
+  "preQuiz": [
+    {
+      "id": "s3_pq1",
+      "question": "What is the difference between Volatility's pslist and psscan plugins?",
+      "options": [
+        "pslist shows running processes; psscan shows terminated processes",
+        "pslist walks the kernel's ActiveProcessLinks list; psscan scans raw memory for EPROCESS structures",
+        "pslist shows user-mode processes; psscan shows kernel-mode processes",
+        "They are identical but psscan is the newer version"
+      ],
+      "correct": 1,
+      "explanation": "pslist traverses the doubly-linked list (ActiveProcessLinks) maintained by the Windows kernel. psscan performs a brute-force scan of physical memory looking for EPROCESS pool tags. If a rootkit unlinks a process from the kernel list, pslist will miss it — but psscan will still find the EPROCESS structure in memory."
+    },
+    {
+      "id": "s3_pq2",
+      "question": "What is the EPROCESS structure in Windows?",
+      "options": [
+        "A user-space data structure that tracks DLL loads",
+        "A kernel data structure representing a process, containing PID, token, and linked-list pointers",
+        "An encrypted process descriptor stored in the registry",
+        "A structure used only by anti-virus software"
+      ],
+      "correct": 1,
+      "explanation": "EPROCESS is the kernel's representation of a process. It contains the process ID, security token, handle table, memory management info, and — critically — the ActiveProcessLinks pointers that chain all processes together. DKOM rootkits modify these pointers to 'unlink' a process from the chain."
+    }
+  ],
+  "ram_dump": [
+    { "pid": 4, "ppid": 0, "name": "System", "offset": "0x823c8830", "threads": 104, "suspicious": false },
+    { "pid": 372, "ppid": 4, "name": "smss.exe", "offset": "0x824a0020", "threads": 2, "suspicious": false },
+    { "pid": 444, "ppid": 372, "name": "csrss.exe", "offset": "0x824b8a00", "threads": 10, "suspicious": false },
+    { "pid": 480, "ppid": 372, "name": "wininit.exe", "offset": "0x82530300", "threads": 3, "suspicious": false },
+    { "pid": 508, "ppid": 480, "name": "services.exe", "offset": "0x82548da0", "threads": 8, "suspicious": false },
+    { "pid": 520, "ppid": 480, "name": "lsass.exe", "offset": "0x82560120", "threads": 7, "suspicious": false },
+    { "pid": 620, "ppid": 508, "name": "svchost.exe", "offset": "0x825d0440", "threads": 12, "suspicious": false },
+    { "pid": 688, "ppid": 508, "name": "svchost.exe", "offset": "0x825f8200", "threads": 8, "suspicious": false },
+    { "pid": 784, "ppid": 508, "name": "svchost.exe", "offset": "0x82630100", "threads": 18, "suspicious": false },
+    { "pid": 860, "ppid": 508, "name": "svchost.exe", "offset": "0x82668a40", "threads": 14, "suspicious": false },
+    { "pid": 952, "ppid": 508, "name": "spoolsv.exe", "offset": "0x826a0780", "threads": 4, "suspicious": false },
+    { "pid": 1044, "ppid": 508, "name": "sqlservr.exe", "offset": "0x826d8300", "threads": 34, "suspicious": false },
+    { "pid": 1200, "ppid": 508, "name": "svchost.exe", "offset": "0x82710a80", "threads": 6, "suspicious": false },
+    { "pid": 1580, "ppid": 860, "name": "WmiPrvSE.exe", "offset": "0x82790040", "threads": 8, "suspicious": false },
+    { "pid": 2048, "ppid": 1044, "name": "sqlwriter.exe", "offset": "0x82870100", "threads": 2, "suspicious": false },
+    { "pid": 2200, "ppid": 508, "name": "msdtc.exe", "offset": "0x828e0600", "threads": 4, "suspicious": false },
+    { "pid": 4812, "ppid": 3021, "name": "svchost.exe", "offset": "0x83a10200", "threads": 3, "suspicious": true, "pslist_visible": false, "psscan_visible": true, "notes": "HIDDEN from pslist — only found via psscan. PPID 3021 points to a process no longer in the active list. DKOM rootkit has unlinked this EPROCESS from ActiveProcessLinks." },
+    { "pid": 3021, "ppid": 508, "name": "—", "offset": "0x83c40000", "threads": 0, "suspicious": true, "pslist_visible": false, "psscan_visible": true, "notes": "Parent of hidden PID 4812. Process has been terminated and partially overwritten. Pool tag still present in memory." }
+  ],
+  "malfind_output": [
+    {
+      "pid": 4812,
+      "process": "svchost.exe",
+      "address": "0x00400000",
+      "protection": "PAGE_EXECUTE_READWRITE",
+      "size": "0x1000",
+      "header": "4D 5A 90 00 03 00 00 00 04 00 00 00 FF FF 00 00",
+      "notes": "MZ header (PE executable) found in RWX memory region — classic code injection signature. Legitimate svchost.exe does not have RWX regions with PE headers."
+    }
+  ],
+  "flags": [
+    {
+      "id": "s3_flag_01",
+      "type": "process",
+      "target": "svchost.exe PID 4812",
+      "finding": "hidden process",
+      "description": "svchost.exe (PID 4812) appears in psscan but NOT in pslist — it has been hidden from the kernel's active process list via DKOM.",
+      "points": 30
+    },
+    {
+      "id": "s3_flag_02",
+      "type": "technique",
+      "target": "DKOM",
+      "finding": "EPROCESS unlinking",
+      "description": "The rootkit used Direct Kernel Object Manipulation (DKOM) to unlink PID 4812's EPROCESS structure from the ActiveProcessLinks doubly-linked list.",
+      "points": 35
+    },
+    {
+      "id": "s3_flag_03",
+      "type": "artifact",
+      "target": "RWX memory region",
+      "finding": "PE header injection",
+      "description": "malfind detected a PAGE_EXECUTE_READWRITE region at 0x00400000 in PID 4812 containing a PE header (MZ signature) — evidence of code injection.",
+      "points": 35
+    }
+  ],
+  "hints": [
+    {
+      "tier": 1,
+      "cost": 10,
+      "text": "Compare the RAM process table carefully. Some processes might appear in one scan method but not another."
+    },
+    {
+      "tier": 2,
+      "cost": 20,
+      "text": "Look for a process that exists in psscan output but is hidden from pslist. Check if its parent PID points to a terminated process."
+    },
+    {
+      "tier": 3,
+      "cost": 30,
+      "text": "PID 4812 (svchost.exe) is hidden via DKOM. Its PPID 3021 is a ghost. Run malfind on 4812 — the RWX region with an MZ header proves code injection."
+    }
+  ],
+  "debriefing": {
+    "title": "How DKOM Rootkits Hide Processes",
+    "concept": "Windows tracks running processes using a doubly-linked list called ActiveProcessLinks, stored in each process's EPROCESS kernel structure. The standard API (NtQuerySystemInformation) walks this list — which is what Task Manager, pslist, and most tools use. A DKOM rootkit modifies the Flink/Blink pointers of the target process's EPROCESS, effectively unlinking it from the chain. The process continues to run (the scheduler uses a different structure), but it becomes invisible to anything walking the list. Volatility's psscan bypasses this by scanning raw memory for EPROCESS pool tags (Proc) — finding processes regardless of their linked-list status.",
+    "realWorldTool": "Volatility Framework plugins: pslist, psscan, psxview (cross-references multiple methods), malfind (detects injected code). The FuTo rootkit by Jamie Butler was one of the first published DKOM implementations. Modern EDR solutions use kernel callbacks rather than list walking to detect processes.",
+    "caseConnection": "In this case, PID 4812 was running as svchost.exe — a common process name that blends in. The rootkit unlinked it from ActiveProcessLinks so pslist wouldn't show it. The parent process (PID 3021) was already terminated, another red flag. malfind confirmed code injection via the RWX memory region containing a PE header.",
+    "furtherReading": "Volatility psxview plugin, DKOM techniques, EPROCESS structure internals, Windows kernel pool tags, malfind analysis methodology, Jamie Butler's FuTo rootkit"
+  },
+  "postQuiz": [
+    {
+      "id": "s3_postq1",
+      "question": "What is DKOM (Direct Kernel Object Manipulation)?",
+      "options": [
+        "A technique that encrypts kernel memory to prevent forensic analysis",
+        "A rootkit technique that modifies kernel data structures (like process linked lists) to hide malicious activity",
+        "A Windows API for managing device driver objects",
+        "A memory compression algorithm used by the Windows kernel"
+      ],
+      "correct": 1,
+      "explanation": "DKOM involves directly modifying kernel objects in memory — such as unlinking an EPROCESS structure from the ActiveProcessLinks doubly-linked list — to hide processes, drivers, or other objects from standard enumeration methods."
+    },
+    {
+      "id": "s3_postq2",
+      "question": "Why does Volatility's psscan find processes that pslist misses?",
+      "options": [
+        "psscan has higher privileges than pslist",
+        "psscan uses the Windows API while pslist reads raw memory",
+        "psscan scans raw memory for EPROCESS pool tags instead of walking the kernel's linked list",
+        "psscan only works on Linux memory dumps"
+      ],
+      "correct": 2,
+      "explanation": "psscan performs a brute-force scan of physical memory looking for the 'Proc' pool tag that marks EPROCESS structures. Since it doesn't rely on the ActiveProcessLinks chain, it finds processes even when a DKOM rootkit has unlinked them from that chain."
+    }
+  ]
+}

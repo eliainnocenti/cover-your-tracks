@@ -1,0 +1,251 @@
+{
+  "id": "scenario_06",
+  "title": "The Last Stand",
+  "subtitle": "Combined — Multi-Vector Anti-Forensics",
+  "difficulty": 5,
+  "domain": "combined",
+  "estimatedMinutes": 35,
+  "narrative": "Apex Technologies suffered a breach of unknown duration. The attacker was meticulous. The IR team found anomalies across every layer: the Windows Event Log is suspiciously short, the memory dump shows extra processes, and network captures reveal unusual ICMP traffic. Three attack vectors. Three layers of anti-forensics. One attacker. Your job: peel back each layer, identify every technique, and reconstruct the full kill chain.",
+  "learningObjective": "Combine filesystem, memory, and network forensics skills to analyze a multi-vector attack. Detect log wiping (truncated event logs), rootkit activity (DKOM-hidden processes with typosquatting names), and covert network exfiltration (oversized ICMP payloads to known Tor exit nodes).",
+  "preQuiz": [
+    {
+      "id": "s6_pq1",
+      "question": "How long does Windows retain security event logs by default?",
+      "options": [
+        "7 days",
+        "30 days",
+        "90 days (or until the log file reaches its maximum size)",
+        "Indefinitely"
+      ],
+      "correct": 2,
+      "explanation": "Windows Security event logs are retained based on the configured maximum log size and overwrite policy. The default retention is typically configured for 90 days or when the log file reaches 20 MB. If an attacker truncates the log, gaps in the timeline are a red flag."
+    },
+    {
+      "id": "s6_pq2",
+      "question": "What is ICMP primarily used for?",
+      "options": [
+        "Transferring files between servers",
+        "Sending diagnostic messages like ping (echo request/reply) and error reports",
+        "Encrypting network traffic",
+        "Managing DNS records"
+      ],
+      "correct": 1,
+      "explanation": "ICMP (Internet Control Message Protocol) is used for network diagnostic and error reporting — most commonly the 'ping' command (echo request/reply). Normal ICMP echo payloads are small (32 bytes). Attackers abuse ICMP by stuffing large data payloads into echo packets for covert exfiltration — a technique called ICMP tunneling."
+    }
+  ],
+  "filesystem": {
+    "root": {
+      "name": "C:\\",
+      "type": "directory",
+      "children": {
+        "Windows": {
+          "name": "Windows",
+          "type": "directory",
+          "children": {
+            "System32": {
+              "name": "System32",
+              "type": "directory",
+              "children": {
+                "winevt": {
+                  "name": "winevt",
+                  "type": "directory",
+                  "children": {
+                    "Security.evtx": {
+                      "name": "Security.evtx",
+                      "type": "file",
+                      "size": 524288,
+                      "extension": "evtx",
+                      "magic_bytes": "456C6646",
+                      "metadata": {
+                        "si_created": "2023-06-15 10:00:00",
+                        "si_modified": "2024-12-01 03:14:22",
+                        "si_accessed": "2024-12-01 07:30:00",
+                        "si_mft_changed": "2024-12-01 03:14:22",
+                        "fn_created": "2023-06-15 10:00:00",
+                        "fn_modified": "2024-12-01 03:14:22",
+                        "fn_accessed": "2024-12-01 07:30:00",
+                        "fn_mft_changed": "2024-12-01 03:14:22",
+                        "permissions": "-rw-r--r--",
+                        "owner": "SYSTEM",
+                        "inode": 200,
+                        "tampered": true,
+                        "tamper_note": "Security.evtx was modified at 03:14 AM — outside business hours. The file is only 512 KB despite a 90-day retention policy (should be ~18 MB). Only 3 days of logs remain. A 4-hour gap exists between Event IDs 4624 and 4647."
+                      },
+                      "content_preview": "[Event Log — TRUNCATED]\nRetention policy: 90 days | Actual coverage: 3 days only\nFile size: 512 KB (expected: ~18 MB for 90 days)\nLast modified: 2024-12-01 03:14:22 (outside business hours)\n\nEvent 4624 — Logon: admin_svc at 2024-11-30 23:02:14\n[!] GAP — No events for 4 hours (23:02 to 03:08)\nEvent 4647 — Logoff: admin_svc at 2024-12-01 03:08:55\nEvent 4624 — Logon: jdoe at 2024-12-01 07:30:01\nEvent 4634 — Logoff: jdoe at 2024-12-01 17:45:00"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Users": {
+          "name": "Users",
+          "type": "directory",
+          "children": {
+            "admin_svc": {
+              "name": "admin_svc",
+              "type": "directory",
+              "children": {
+                "AppData": {
+                  "name": "AppData",
+                  "type": "directory",
+                  "children": {
+                    "wevtutil_clear.bat": {
+                      "name": "wevtutil_clear.bat",
+                      "type": "file",
+                      "size": 186,
+                      "extension": "bat",
+                      "magic_bytes": "4045",
+                      "metadata": {
+                        "si_created": "2024-12-01 03:10:00",
+                        "si_modified": "2024-12-01 03:14:18",
+                        "si_accessed": "2024-12-01 03:14:18",
+                        "si_mft_changed": "2024-12-01 03:14:18",
+                        "fn_created": "2024-12-01 03:10:00",
+                        "fn_modified": "2024-12-01 03:14:18",
+                        "fn_accessed": "2024-12-01 03:14:18",
+                        "fn_mft_changed": "2024-12-01 03:14:18",
+                        "permissions": "-rwx------",
+                        "owner": "admin_svc",
+                        "inode": 8830,
+                        "tampered": false,
+                        "tamper_note": "Batch script used to clear the Security event log. Ran at 03:14 AM."
+                      },
+                      "content_preview": "@echo off\nREM Clear Security event log — operational maintenance\nwevtutil cl Security\nwevtutil cl System\nwevtutil cl Application\necho Logs cleared at %DATE% %TIME% >> clear.log\ndel /f /q \"%~f0\"\nREM Self-deleting script (but timestamps remain)"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "ram_dump": [
+    { "pid": 4, "ppid": 0, "name": "System", "offset": "0x823c8830", "threads": 98, "suspicious": false },
+    { "pid": 372, "ppid": 4, "name": "smss.exe", "offset": "0x824a0020", "threads": 2, "suspicious": false },
+    { "pid": 444, "ppid": 372, "name": "csrss.exe", "offset": "0x824b8a00", "threads": 10, "suspicious": false },
+    { "pid": 480, "ppid": 372, "name": "wininit.exe", "offset": "0x82530300", "threads": 3, "suspicious": false },
+    { "pid": 508, "ppid": 480, "name": "services.exe", "offset": "0x82548da0", "threads": 9, "suspicious": false },
+    { "pid": 520, "ppid": 480, "name": "lsass.exe", "offset": "0x82560120", "threads": 7, "suspicious": false },
+    { "pid": 620, "ppid": 508, "name": "svchost.exe", "offset": "0x825d0440", "threads": 15, "suspicious": false },
+    { "pid": 688, "ppid": 508, "name": "svchost.exe", "offset": "0x825f8200", "threads": 8, "suspicious": false },
+    { "pid": 784, "ppid": 508, "name": "svchost.exe", "offset": "0x82630100", "threads": 20, "suspicious": false },
+    { "pid": 860, "ppid": 508, "name": "svchost.exe", "offset": "0x82668a40", "threads": 14, "suspicious": false },
+    { "pid": 952, "ppid": 508, "name": "spoolsv.exe", "offset": "0x826a0780", "threads": 4, "suspicious": false },
+    { "pid": 1044, "ppid": 508, "name": "svchost.exe", "offset": "0x826d8300", "threads": 6, "suspicious": false },
+    { "pid": 1200, "ppid": 508, "name": "svchost.exe", "offset": "0x82710a80", "threads": 5, "suspicious": false },
+    { "pid": 1400, "ppid": 508, "name": "taskhost.exe", "offset": "0x82750100", "threads": 8, "suspicious": false },
+    { "pid": 1580, "ppid": 860, "name": "WmiPrvSE.exe", "offset": "0x82790040", "threads": 6, "suspicious": false },
+    { "pid": 1820, "ppid": 508, "name": "msdtc.exe", "offset": "0x827e0200", "threads": 4, "suspicious": false },
+    { "pid": 2100, "ppid": 444, "name": "conhost.exe", "offset": "0x82850100", "threads": 2, "suspicious": false },
+    { "pid": 2340, "ppid": 508, "name": "SearchIndexer.exe", "offset": "0x82890300", "threads": 12, "suspicious": false },
+    { "pid": 2600, "ppid": 508, "name": "wuauserv.exe", "offset": "0x828d0100", "threads": 4, "suspicious": false },
+    { "pid": 2800, "ppid": 1400, "name": "explorer.exe", "offset": "0x82910500", "threads": 18, "suspicious": false },
+    { "pid": 3020, "ppid": 2800, "name": "chrome.exe", "offset": "0x82960200", "threads": 22, "suspicious": false },
+    { "pid": 3200, "ppid": 2800, "name": "notepad.exe", "offset": "0x829a0100", "threads": 1, "suspicious": false },
+    { "pid": 3580, "ppid": 0, "name": "winlogon_helper.exe", "offset": "0x83b20400", "threads": 4, "suspicious": true, "pslist_visible": false, "psscan_visible": true, "notes": "HIDDEN from pslist. Typosquatting — mimics 'winlogon.exe' but with '_helper' suffix. No visible parent (PPID 0 is invalid for user processes). Running as SYSTEM." },
+    { "pid": 3744, "ppid": 0, "name": "cmd.exe", "offset": "0x83d60100", "threads": 1, "suspicious": true, "pslist_visible": false, "psscan_visible": true, "notes": "HIDDEN from pslist. cmd.exe running as SYSTEM with no visible parent. Likely spawned by the rootkit for command execution." }
+  ],
+  "network_log": [
+    { "time": "02:15:01.100", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes (normal: 32 bytes)", "suspicious": true },
+    { "time": "02:15:01.340", "src": "185.220.101.47", "dst": "10.1.1.50", "protocol": "ICMP", "info": "Echo reply, payload=1400 bytes", "suspicious": true },
+    { "time": "02:15:02.200", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes — contains printable ASCII", "suspicious": true },
+    { "time": "02:15:02.450", "src": "185.220.101.47", "dst": "10.1.1.50", "protocol": "ICMP", "info": "Echo reply, payload=1400 bytes", "suspicious": true },
+    { "time": "02:15:03.100", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes — printable ASCII", "suspicious": true },
+    { "time": "02:15:03.880", "src": "10.1.1.50", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: www.google.com", "suspicious": false },
+    { "time": "02:15:04.010", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes", "suspicious": true },
+    { "time": "02:15:05.200", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes", "suspicious": true },
+    { "time": "02:15:06.440", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes", "suspicious": true },
+    { "time": "02:15:07.100", "src": "10.1.1.50", "dst": "10.1.1.1", "protocol": "ARP", "info": "Who has 10.1.1.1?", "suspicious": false },
+    { "time": "02:15:08.500", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes — known Tor exit node", "suspicious": true },
+    { "time": "02:15:10.100", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes", "suspicious": true },
+    { "time": "02:15:12.300", "src": "10.1.1.50", "dst": "10.1.1.20", "protocol": "TCP", "info": "443 → 54221 [SYN, ACK] (normal HTTPS)", "suspicious": false }
+  ],
+  "flags": [
+    {
+      "id": "s6_flag_01",
+      "type": "artifact",
+      "target": "Security.evtx",
+      "finding": "log wiping",
+      "description": "Security.evtx has been truncated — only 3 days of logs remain despite a 90-day retention policy. Modified at 03:14 AM (outside business hours). A 4-hour event gap confirms deliberate clearing.",
+      "points": 25
+    },
+    {
+      "id": "s6_flag_02",
+      "type": "process",
+      "target": "winlogon_helper.exe",
+      "finding": "rootkit",
+      "description": "winlogon_helper.exe (PID 3580) is hidden from pslist via DKOM. Typosquatting the legitimate 'winlogon.exe' name. Running as SYSTEM with no valid parent.",
+      "points": 30
+    },
+    {
+      "id": "s6_flag_03",
+      "type": "network",
+      "target": "ICMP to 185.220.101.47",
+      "finding": "ICMP exfiltration",
+      "description": "Oversized ICMP echo requests (1400-byte payloads vs normal 32 bytes) to 185.220.101.47 — a known Tor exit node. Payloads contain printable ASCII data. This is ICMP tunneling for covert exfiltration.",
+      "points": 30
+    },
+    {
+      "id": "s6_flag_04",
+      "type": "bonus",
+      "target": "winlogon_helper",
+      "finding": "typosquatting",
+      "description": "BONUS: The hidden process uses typosquatting — 'winlogon_helper.exe' mimics the legitimate Windows process 'winlogon.exe' to evade casual inspection.",
+      "points": 15
+    }
+  ],
+  "hints": [
+    {
+      "tier": 1,
+      "cost": 10,
+      "text": "This scenario has three layers. Start with the filesystem: check the event log file. How many days of logs should there be vs. how many are actually there?"
+    },
+    {
+      "tier": 2,
+      "cost": 20,
+      "text": "Layer 2 — RAM: pslist shows 22 processes, but psscan shows 24. Find the two hidden ones. One has a name that's very similar to a real Windows process."
+    },
+    {
+      "tier": 3,
+      "cost": 30,
+      "text": "Layer 3 — Network: Look at the ICMP traffic. Normal ping payloads are 32 bytes. These are 1400 bytes each, going to a known Tor exit node. That's ICMP tunneling."
+    }
+  ],
+  "debriefing": {
+    "title": "Multi-Vector Anti-Forensics: The Full Kill Chain",
+    "concept": "Sophisticated attackers layer multiple anti-forensic techniques to cover their tracks:\n\n1. LOG WIPING: Using wevtutil or direct manipulation to clear Windows Event Logs. The truncated log file and timestamp gaps are telltale signs.\n\n2. ROOTKIT (DKOM): Hiding malicious processes by unlinking their EPROCESS structures from the kernel's active process list. Typosquatting process names adds another layer of deception.\n\n3. ICMP TUNNELING: Embedding exfiltrated data in ICMP echo request payloads. Since ICMP is rarely inspected and often allowed through firewalls, oversized payloads to suspicious destinations can go unnoticed. Using Tor exit nodes as destinations adds anonymity.",
+    "realWorldTool": "Detection stack: Windows Event Log analysis (LogParser, Sigma rules for Event ID 1102 — log cleared), Volatility psxview for process comparison, Wireshark/Zeek for ICMP payload analysis. Tor exit node lists are publicly maintained and can be used for network IOC matching.",
+    "caseConnection": "The attacker logged in at 23:02 as admin_svc, spent 4 hours conducting operations (hidden by the log gap), ran ICMP exfiltration to a Tor exit node, deployed a DKOM rootkit with two hidden processes, and cleared the logs at 03:14 before the batch script attempted to self-delete. The three-layer approach shows a skilled adversary — but each layer left forensic artifacts.",
+    "furtherReading": "wevtutil log manipulation, Event ID 1102 (log cleared), DKOM rootkits, process typosquatting, ICMP tunneling (icmpsh, Hans), Tor exit node detection, multi-vector incident response methodology"
+  },
+  "postQuiz": [
+    {
+      "id": "s6_postq1",
+      "question": "How can an attacker truncate Windows Event Logs without triggering Event ID 1102 (audit log cleared)?",
+      "options": [
+        "They cannot — 1102 is always generated",
+        "By using wevtutil cl with the /q (quiet) flag",
+        "By directly manipulating the .evtx file on disk while the service is stopped, or by corrupting the log file structure",
+        "By deleting the Security.evtx file and restarting the Event Log service"
+      ],
+      "correct": 2,
+      "explanation": "While wevtutil cl generates Event ID 1102, attackers can bypass this by stopping the Event Log service and directly editing/truncating the .evtx file on disk, or by using tools like Invoke-Phant0m to kill the Event Log service threads. Direct file manipulation can avoid generating the clearing event."
+    },
+    {
+      "id": "s6_postq2",
+      "question": "What makes ICMP tunneling effective for covert exfiltration?",
+      "options": [
+        "ICMP is encrypted by default",
+        "ICMP traffic is rarely inspected by firewalls and IDS, and the protocol allows arbitrary payload data in echo requests",
+        "ICMP has no maximum payload size limit",
+        "ICMP packets cannot be captured by packet sniffers"
+      ],
+      "correct": 1,
+      "explanation": "ICMP is a diagnostic protocol that most firewalls allow by default (for ping). The protocol permits arbitrary data in the payload field of echo requests/replies. Since most security tools don't inspect ICMP payload content or size, attackers can embed exfiltrated data in oversized payloads without triggering alerts."
+    }
+  ]
+}

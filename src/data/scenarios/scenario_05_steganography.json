@@ -1,0 +1,247 @@
+{
+  "id": "scenario_05",
+  "title": "Hidden in Plain Sight",
+  "subtitle": "Steganography — LSB Detection",
+  "difficulty": 4,
+  "domain": "steganography",
+  "estimatedMinutes": 25,
+  "narrative": "An insider at Prism Design Inc. is suspected of leaking product designs to a competitor. The DLP system caught nothing — no suspicious attachments, no cloud uploads. But a sharp-eyed analyst noticed that the suspect sent three 'cat photos' to an external email address the night before a competitor unveiled a suspiciously similar product. All three PNGs look innocent. Your job: find the one that's hiding something.",
+  "learningObjective": "Understand LSB (Least Significant Bit) steganography — how data can be hidden in the least significant bits of pixel color values without visually altering an image. Learn to identify steganographic images through statistical analysis, file size anomalies, and EXIF metadata inconsistencies.",
+  "preQuiz": [
+    {
+      "id": "s5_pq1",
+      "question": "What is LSB steganography?",
+      "options": [
+        "Encrypting an image file with a password",
+        "Hiding data by modifying the least significant bits of pixel color values",
+        "Compressing image metadata to reduce file size",
+        "Embedding a watermark in the image header"
+      ],
+      "correct": 1,
+      "explanation": "LSB steganography hides data by replacing the least significant bit of each color channel (R, G, B) in a pixel. Since changing the LSB only alters the color value by 1 (e.g., from 200 to 201), the visual difference is imperceptible to the human eye — but the bits can encode arbitrary data."
+    },
+    {
+      "id": "s5_pq2",
+      "question": "How does pixel color depth work in a standard 24-bit PNG image?",
+      "options": [
+        "Each pixel has one 24-bit value for brightness",
+        "Each pixel has three 8-bit channels (R, G, B), with each channel ranging from 0 to 255",
+        "Each pixel stores 24 separate color entries",
+        "Color depth only applies to JPEG, not PNG"
+      ],
+      "correct": 1,
+      "explanation": "In a 24-bit PNG, each pixel has three color channels (Red, Green, Blue), each represented by 8 bits (0-255). This means each pixel carries 24 bits of color data — and an LSB steganography tool can hide 3 bits of secret data per pixel (one bit per channel)."
+    }
+  ],
+  "filesystem": {
+    "root": {
+      "name": "Evidence\\",
+      "type": "directory",
+      "children": {
+        "Outbox": {
+          "name": "Outbox",
+          "type": "directory",
+          "children": {
+            "cat_01.png": {
+              "name": "cat_01.png",
+              "type": "file",
+              "size": 245780,
+              "extension": "png",
+              "magic_bytes": "89504E47",
+              "metadata": {
+                "si_created": "2024-11-01 18:22:10",
+                "si_modified": "2024-11-01 18:22:10",
+                "si_accessed": "2024-11-05 21:15:00",
+                "si_mft_changed": "2024-11-01 18:22:10",
+                "fn_created": "2024-11-01 18:22:10",
+                "fn_modified": "2024-11-01 18:22:10",
+                "fn_accessed": "2024-11-05 21:15:00",
+                "fn_mft_changed": "2024-11-01 18:22:10",
+                "permissions": "-rw-r--r--",
+                "owner": "dchen",
+                "inode": 91001,
+                "tampered": false,
+                "image_width": 1920,
+                "image_height": 1080,
+                "exif_camera": "iPhone 15 Pro",
+                "exif_date": "2024-11-01 18:22:08",
+                "exif_gps": "37.7749, -122.4194",
+                "lsb_chi_square": 0.92,
+                "lsb_entropy": 7.12,
+                "lsb_notes": "Normal statistical distribution. Chi-square value close to 1.0 indicates natural image."
+              },
+              "content_preview": "[PNG Image] 1920x1080 — Orange tabby cat on a windowsill\nEXIF: iPhone 15 Pro, 2024-11-01 18:22:08\nGPS: 37.7749, -122.4194 (San Francisco)\nFile size: 245,780 bytes — consistent with resolution\nLSB analysis: chi-square = 0.92 (natural)"
+            },
+            "cat_02.png": {
+              "name": "cat_02.png",
+              "type": "file",
+              "size": 251200,
+              "extension": "png",
+              "magic_bytes": "89504E47",
+              "metadata": {
+                "si_created": "2024-11-02 12:45:33",
+                "si_modified": "2024-11-02 12:45:33",
+                "si_accessed": "2024-11-05 21:15:02",
+                "si_mft_changed": "2024-11-02 12:45:33",
+                "fn_created": "2024-11-02 12:45:33",
+                "fn_modified": "2024-11-02 12:45:33",
+                "fn_accessed": "2024-11-05 21:15:02",
+                "fn_mft_changed": "2024-11-02 12:45:33",
+                "permissions": "-rw-r--r--",
+                "owner": "dchen",
+                "inode": 91002,
+                "tampered": false,
+                "image_width": 1920,
+                "image_height": 1080,
+                "exif_camera": "iPhone 15 Pro",
+                "exif_date": "2024-11-02 12:45:30",
+                "exif_gps": "37.7749, -122.4194",
+                "lsb_chi_square": 0.89,
+                "lsb_entropy": 7.08,
+                "lsb_notes": "Normal statistical distribution."
+              },
+              "content_preview": "[PNG Image] 1920x1080 — Gray cat sleeping on keyboard\nEXIF: iPhone 15 Pro, 2024-11-02 12:45:30\nGPS: 37.7749, -122.4194 (San Francisco)\nFile size: 251,200 bytes — consistent with resolution\nLSB analysis: chi-square = 0.89 (natural)"
+            },
+            "cat_03.png": {
+              "name": "cat_03.png",
+              "type": "file",
+              "size": 286450,
+              "extension": "png",
+              "magic_bytes": "89504E47",
+              "metadata": {
+                "si_created": "2024-11-03 09:10:45",
+                "si_modified": "2024-11-05 20:48:12",
+                "si_accessed": "2024-11-05 21:15:05",
+                "si_mft_changed": "2024-11-05 20:48:12",
+                "fn_created": "2024-11-03 09:10:45",
+                "fn_modified": "2024-11-05 20:48:12",
+                "fn_accessed": "2024-11-05 21:15:05",
+                "fn_mft_changed": "2024-11-05 20:48:12",
+                "permissions": "-rw-r--r--",
+                "owner": "dchen",
+                "inode": 91003,
+                "tampered": true,
+                "image_width": 1920,
+                "image_height": 1080,
+                "exif_camera": null,
+                "exif_date": null,
+                "exif_gps": null,
+                "exif_stripped": true,
+                "lsb_chi_square": 0.48,
+                "lsb_entropy": 7.98,
+                "lsb_notes": "ANOMALOUS — Chi-square value significantly below expected (0.48 vs ~0.9 for natural images). LSB entropy near maximum (7.98/8.0) indicates non-random, structured data in LSBs. EXIF metadata stripped — inconsistent with other images from same device.",
+                "tamper_note": "This image is 14% larger than expected for its visual content (286KB vs ~250KB average for 1920x1080 cat photos). EXIF stripped. LSB chi-square anomaly. Steganographic payload detected."
+              },
+              "content_preview": "[PNG Image] 1920x1080 — Black cat on a bookshelf\nEXIF: *** STRIPPED *** (no camera, date, or GPS data)\nFile size: 286,450 bytes — 14% LARGER than expected\nLSB analysis: chi-square = 0.48 (ANOMALOUS)\nLSB entropy: 7.98 (near-maximum — structured data detected)\n\nzsteg output:\n  b1,rgb,lsb,xy: file: Zip archive data, at least v2.0 to extract\n  Embedded payload: product_designs_v4.zip (approx 38KB)\n  Archive contents: CAD files, specification PDFs"
+            }
+          }
+        },
+        "Tools": {
+          "name": "Tools",
+          "type": "directory",
+          "children": {
+            "steghide_history.log": {
+              "name": "steghide_history.log",
+              "type": "file",
+              "size": 420,
+              "extension": "log",
+              "magic_bytes": "5374656768696465",
+              "metadata": {
+                "si_created": "2024-11-05 20:45:00",
+                "si_modified": "2024-11-05 20:48:10",
+                "si_accessed": "2024-11-05 20:48:10",
+                "si_mft_changed": "2024-11-05 20:48:10",
+                "fn_created": "2024-11-05 20:45:00",
+                "fn_modified": "2024-11-05 20:48:10",
+                "fn_accessed": "2024-11-05 20:48:10",
+                "fn_mft_changed": "2024-11-05 20:48:10",
+                "permissions": "-rw-------",
+                "owner": "dchen",
+                "inode": 91050,
+                "tampered": false,
+                "tamper_note": "Steghide tool usage log — proves the suspect used steganography software."
+              },
+              "content_preview": "Steghide v0.5.1 — Execution Log\n[2024-11-05 20:47:33] Embedding file: product_designs_v4.zip\n[2024-11-05 20:47:33] Cover image: cat_03.png\n[2024-11-05 20:47:33] Algorithm: LSB replacement, RGB channels\n[2024-11-05 20:48:10] Embedding complete. Output size: 286,450 bytes\n[2024-11-05 20:48:10] EXIF metadata stripped from output."
+            }
+          }
+        }
+      }
+    }
+  },
+  "flags": [
+    {
+      "id": "s5_flag_01",
+      "type": "file",
+      "target": "cat_03.png",
+      "finding": "anomalous image",
+      "description": "cat_03.png is 14% larger than expected (286KB vs ~250KB), has stripped EXIF metadata (unlike the other two images), and anomalous LSB statistics.",
+      "points": 30
+    },
+    {
+      "id": "s5_flag_02",
+      "type": "technique",
+      "target": "LSB steganography",
+      "finding": "steganography",
+      "description": "The image uses LSB (Least Significant Bit) steganography to hide data in the least significant bits of pixel color channels.",
+      "points": 35
+    },
+    {
+      "id": "s5_flag_03",
+      "type": "content",
+      "target": "zip archive",
+      "finding": "embedded payload",
+      "description": "zsteg reveals an embedded Zip archive (product_designs_v4.zip, ~38KB) containing CAD files and specification PDFs — the stolen product designs.",
+      "points": 35
+    }
+  ],
+  "hints": [
+    {
+      "tier": 1,
+      "cost": 10,
+      "text": "All three images are the same resolution (1920x1080). Compare their file sizes — one is noticeably larger than the others. Why?"
+    },
+    {
+      "tier": 2,
+      "cost": 20,
+      "text": "cat_03.png is 14% larger AND its EXIF metadata has been stripped (the other two have normal EXIF). This is suspicious — stripping EXIF prevents metadata analysis."
+    },
+    {
+      "tier": 3,
+      "cost": 30,
+      "text": "The LSB chi-square analysis confirms it: cat_03.png has a chi-square of 0.48 (natural images are ~0.9). Run zsteg — there's a zip archive embedded via LSB steganography."
+    }
+  ],
+  "debriefing": {
+    "title": "How LSB Steganography Works",
+    "concept": "In a 24-bit color image, each pixel has three 8-bit color channels (R, G, B). The least significant bit of each channel contributes the least to the visible color — changing it alters the value by just 1 out of 256. LSB steganography replaces these bits with secret data bits. A 1920×1080 image has ~6.2 million pixels × 3 channels = ~18.6 million bits available, enough to hide ~2.3 MB of data. The visual change is imperceptible, but statistical analysis can detect it: natural images have randomly distributed LSBs (chi-square ≈ 1.0), while stego images show structured patterns (chi-square < 0.7).",
+    "realWorldTool": "Detection tools: zsteg (for PNG), StegDetect, StegExpose, and chi-square statistical tests. StegHide and OpenStego are common embedding tools. RS analysis and chi-square analysis are the primary statistical detection methods.",
+    "caseConnection": "In this case, three clues pointed to cat_03.png: (1) file size 14% larger than expected, (2) EXIF stripped while the other images retained metadata, and (3) LSB chi-square of 0.48 (far below the natural ~0.9). zsteg confirmed a zip archive payload. The steghide log in the Tools folder was the smoking gun.",
+    "furtherReading": "zsteg, StegHide, chi-square analysis for steganalysis, RS analysis, PNG structure and color channels, EXIF metadata forensics"
+  },
+  "postQuiz": [
+    {
+      "id": "s5_postq1",
+      "question": "What statistical test is commonly used to detect LSB steganography?",
+      "options": [
+        "SHA-256 hash comparison",
+        "Chi-square analysis of LSB distribution",
+        "CRC32 checksum verification",
+        "Entropy measurement of file headers"
+      ],
+      "correct": 1,
+      "explanation": "Chi-square analysis compares the observed distribution of LSB values against the expected distribution in a natural image. Natural images have near-random LSB patterns (chi-square ≈ 1.0), while LSB steganography creates structured patterns that lower the chi-square value significantly."
+    },
+    {
+      "id": "s5_postq2",
+      "question": "Why is it suspicious when an image has its EXIF metadata stripped?",
+      "options": [
+        "EXIF removal always indicates steganography",
+        "It may indicate the image was processed to remove identifying metadata before embedding hidden data",
+        "EXIF can only be removed using forensic tools",
+        "Stripped EXIF means the image file is corrupted"
+      ],
+      "correct": 1,
+      "explanation": "While there are legitimate reasons to strip EXIF (privacy), in a forensic context it's suspicious — especially when other images from the same device retain their EXIF. Stripping EXIF removes timestamps, camera info, and GPS that could help trace the image's origin, and some steganography tools automatically strip it."
+    }
+  ]
+}

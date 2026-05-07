@@ -1,0 +1,138 @@
+{
+  "id": "scenario_04",
+  "title": "The Whispering DNS",
+  "subtitle": "Network Forensics — DNS Tunneling Exfiltration",
+  "difficulty": 3,
+  "domain": "network",
+  "estimatedMinutes": 20,
+  "narrative": "The egress filter analyst at Cobalt Industries flagged an alert: unusually high DNS query volume from a single workstation over a 4-minute window. The PCAP has been extracted from the border router. At first glance, it looks like normal DNS traffic — but the query patterns are anything but normal. Your job: analyze the packet capture, identify the exfiltration channel, and determine what data was stolen.",
+  "learningObjective": "Understand how DNS tunneling works for data exfiltration — encoding data in DNS subdomain labels and TXT record responses. Learn to identify DNS tunneling by recognizing anomalous query patterns: high volume, long random-looking subdomains, queries to a single external domain, and response sizes near protocol limits.",
+  "preQuiz": [
+    {
+      "id": "s4_pq1",
+      "question": "What is the maximum length of a single DNS subdomain label?",
+      "options": [
+        "63 characters",
+        "128 characters",
+        "253 characters",
+        "255 characters"
+      ],
+      "correct": 0,
+      "explanation": "A single DNS label (the part between dots) can be at most 63 characters. The total domain name (all labels combined) can be up to 253 characters. DNS tunneling tools pack as much data as possible into these labels."
+    },
+    {
+      "id": "s4_pq2",
+      "question": "What is the primary purpose of the DNS protocol?",
+      "options": [
+        "Encrypting web traffic between browser and server",
+        "Translating human-readable domain names into IP addresses",
+        "Managing email routing between servers",
+        "Authenticating users on a corporate network"
+      ],
+      "correct": 1,
+      "explanation": "DNS (Domain Name System) resolves domain names to IP addresses. Because DNS traffic is rarely blocked by firewalls and often not inspected, attackers abuse it as a covert channel for command-and-control communication and data exfiltration."
+    }
+  ],
+  "network_log": [
+    { "time": "14:22:01.103", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: mail.google.com", "suspicious": false },
+    { "time": "14:22:01.248", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "A response: 142.250.80.5", "suspicious": false },
+    { "time": "14:22:03.410", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: cm9vdDp4OjA6MDpyb290Oi9yb290Oi9iaW4v.exfil-c2.net", "suspicious": true },
+    { "time": "14:22:03.512", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "TXT response: [64 bytes encoded payload]", "suspicious": true },
+    { "time": "14:22:03.780", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: YmFzaDpkYWVtb246L3Vzci9iaW4vbm9sb2dpbg.exfil-c2.net", "suspicious": true },
+    { "time": "14:22:03.891", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "TXT response: [64 bytes encoded payload]", "suspicious": true },
+    { "time": "14:22:04.110", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: c3luYzp4OjU6MDpzeW5jOi9zYmluOi9iaW4v.exfil-c2.net", "suspicious": true },
+    { "time": "14:22:04.220", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "TXT response: [64 bytes encoded payload]", "suspicious": true },
+    { "time": "14:22:04.501", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: bWFuOng6NjoxMjptYW46L3Zhci9jYWNoZS9tYW4.exfil-c2.net", "suspicious": true },
+    { "time": "14:22:04.612", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "TXT response: [64 bytes encoded payload]", "suspicious": true },
+    { "time": "14:22:05.003", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: bHA6eDo3Ojc6bHA6L3Zhci9zcG9vbC9scGQ6.exfil-c2.net", "suspicious": true },
+    { "time": "14:22:05.890", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: d3d3LWRhdGE6eDozMzozMzp3d3ctZGF0YTov.exfil-c2.net", "suspicious": true },
+    { "time": "14:22:06.210", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: bm9ib2R5Ong6NjU1MzQ6NjU1MzQ6bm9ib2R5.exfil-c2.net", "suspicious": true },
+    { "time": "14:22:06.890", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: c3lzdGVtZC1yZXNvbHZlOng6MTAxOjEwMzpz.exfil-c2.net", "suspicious": true },
+    { "time": "14:22:07.330", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: ...847 total queries to *.exfil-c2.net (showing sample)", "suspicious": true },
+    { "time": "14:22:14.550", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: www.microsoft.com", "suspicious": false },
+    { "time": "14:22:14.680", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "A response: 20.70.246.20", "suspicious": false },
+    { "time": "14:26:01.020", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: RU9GCg.exfil-c2.net (final chunk)", "suspicious": true }
+  ],
+  "decoded_subdomains": [
+    { "encoded": "cm9vdDp4OjA6MDpyb290Oi9yb290Oi9iaW4v", "decoded": "root:x:0:0:root:/root:/bin/" },
+    { "encoded": "YmFzaDpkYWVtb246L3Vzci9iaW4vbm9sb2dpbg", "decoded": "bash:daemon:/usr/bin/nologin" },
+    { "encoded": "c3luYzp4OjU6MDpzeW5jOi9zYmluOi9iaW4v", "decoded": "sync:x:5:0:sync:/sbin:/bin/" },
+    { "encoded": "RU9GCg", "decoded": "EOF (end of exfiltrated file)" }
+  ],
+  "flags": [
+    {
+      "id": "s4_flag_01",
+      "type": "domain",
+      "target": "exfil-c2.net",
+      "finding": "suspicious domain",
+      "description": "847 DNS queries to *.exfil-c2.net in 4 minutes — all with long base64-encoded subdomains. This is the C2/exfiltration domain.",
+      "points": 30
+    },
+    {
+      "id": "s4_flag_02",
+      "type": "technique",
+      "target": "DNS tunneling",
+      "finding": "data exfiltration",
+      "description": "Data is being exfiltrated via DNS queries — each subdomain label is a base64-encoded chunk of the stolen file, sent as seemingly normal DNS lookups.",
+      "points": 35
+    },
+    {
+      "id": "s4_flag_03",
+      "type": "content",
+      "target": "passwd file",
+      "finding": "/etc/passwd",
+      "description": "Decoding the base64 subdomains reveals fragments of the Unix /etc/passwd file — the attacker is exfiltrating system account information.",
+      "points": 35
+    }
+  ],
+  "hints": [
+    {
+      "tier": 1,
+      "cost": 10,
+      "text": "Look at the network log. Most DNS queries are to normal domains — but one domain appears hundreds of times. What's unusual about it?"
+    },
+    {
+      "tier": 2,
+      "cost": 20,
+      "text": "The subdomains in the queries to exfil-c2.net look like random characters — but they're actually base64-encoded data. Try decoding one."
+    },
+    {
+      "tier": 3,
+      "cost": 30,
+      "text": "Decode 'cm9vdDp4OjA6MDpyb290' from base64. It's 'root:x:0:0:root' — the first line of /etc/passwd. The attacker is tunneling file contents through DNS queries."
+    }
+  ],
+  "debriefing": {
+    "title": "How DNS Tunneling Works",
+    "concept": "DNS tunneling abuses the DNS protocol to create a covert communication channel. The attacker sets up a DNS server for a domain they control (e.g., exfil-c2.net). To exfiltrate data, the malware encodes chunks of the stolen data as base64 subdomain labels (e.g., 'cm9vdDp4OjA6MDpyb290.exfil-c2.net') and sends DNS queries. The queries traverse the corporate firewall (since DNS is almost never blocked), reach the attacker's authoritative DNS server, which extracts and reassembles the data. Response data can be sent back via TXT records. Tools like iodine, dnscat2, and Cobalt Strike use this technique.",
+    "realWorldTool": "Detection tools include Zeek (Bro) DNS analytics, passive DNS monitoring, and statistical analysis of query patterns. Key indicators: high query volume to a single domain, long random-looking subdomains, queries near the 253-byte limit, and TXT record responses. Corporate networks should inspect and log DNS traffic.",
+    "caseConnection": "In this case, 847 queries in 4 minutes to a single domain, each with ~40-character base64 subdomains, was a clear anomaly. Normal DNS has short, human-readable subdomains. Decoding the base64 revealed /etc/passwd contents, confirming data exfiltration.",
+    "furtherReading": "iodine DNS tunnel, dnscat2, Cobalt Strike DNS beaconing, Zeek DNS analyzer, passive DNS, DNS query length analysis, RFC 1035 DNS specifications"
+  },
+  "postQuiz": [
+    {
+      "id": "s4_postq1",
+      "question": "How do DNS tunneling tools like iodine and dnscat2 implement data exfiltration?",
+      "options": [
+        "They encrypt DNS responses with TLS",
+        "They encode data as subdomain labels in DNS queries and receive responses via TXT records",
+        "They replace DNS packets with TCP packets at the network layer",
+        "They use DNS over HTTPS (DoH) to hide traffic"
+      ],
+      "correct": 1,
+      "explanation": "DNS tunneling tools encode outbound data as subdomain labels in DNS queries (e.g., base64 chunks as subdomains of an attacker-controlled domain). Inbound data comes back as DNS TXT record responses. This works because DNS traffic is rarely blocked or deeply inspected."
+    },
+    {
+      "id": "s4_postq2",
+      "question": "Which of the following is the strongest indicator of DNS tunneling?",
+      "options": [
+        "DNS queries using TCP instead of UDP",
+        "A high volume of queries with long, random-looking subdomains to a single external domain",
+        "DNS responses with NXDOMAIN (not found) errors",
+        "DNS queries from multiple source IP addresses"
+      ],
+      "correct": 1,
+      "explanation": "The hallmark of DNS tunneling is many queries to one domain with unusually long, high-entropy subdomains (base64 or hex-encoded data). Normal DNS subdomains are short and human-readable (e.g., 'www', 'mail', 'api')."
+    }
+  ]
+}

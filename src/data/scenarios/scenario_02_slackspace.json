@@ -1,0 +1,259 @@
+{
+  "id": "scenario_02",
+  "title": "Ghosts in the Sectors",
+  "subtitle": "File System Forensics — Slack Space Exploitation",
+  "difficulty": 2,
+  "domain": "filesystem",
+  "estimatedMinutes": 20,
+  "narrative": "An employee at Meridian Corp is suspected of exfiltrating trade secrets before jumping to a competitor. The IT team imaged her workstation. The filesystem looks clean — all files appear normal. But a junior analyst noticed something odd: some file sizes don't match their cluster allocations. Your job: investigate the slack space and find what's hiding between the sectors.",
+  "learningObjective": "Understand how slack space works in FAT/NTFS filesystems, how data can persist in unallocated cluster space after a file is written, and how forensic tools like foremost perform file carving to recover hidden content.",
+  "preQuiz": [
+    {
+      "id": "s2_pq1",
+      "question": "What is 'slack space' in a filesystem?",
+      "options": [
+        "Unused space at the end of a disk partition",
+        "The difference between a file's logical size and the space actually allocated to it on disk",
+        "A reserved area for the operating system swap file",
+        "Empty space between directory entries in the MFT"
+      ],
+      "correct": 1,
+      "explanation": "Slack space is the difference between the end of a file's actual data and the end of the last cluster allocated to that file. Since filesystems allocate space in fixed-size clusters, a file rarely fills its last cluster completely — the leftover bytes are slack space."
+    },
+    {
+      "id": "s2_pq2",
+      "question": "In a FAT directory entry, what does the byte value 0xE5 at the start of a filename indicate?",
+      "options": [
+        "The file is encrypted",
+        "The file is a system file",
+        "The file has been deleted (but data may still be on disk)",
+        "The file is compressed"
+      ],
+      "correct": 2,
+      "explanation": "When a file is deleted in FAT, the first byte of its directory entry is replaced with 0xE5. The actual data clusters are marked as available but are NOT overwritten — they remain intact until a new file claims them. This is why forensic tools can often recover 'deleted' files."
+    }
+  ],
+  "filesystem": {
+    "root": {
+      "name": "D:\\",
+      "type": "directory",
+      "children": {
+        "Projects": {
+          "name": "Projects",
+          "type": "directory",
+          "children": {
+            "file.pdf": {
+              "name": "file.pdf",
+              "type": "file",
+              "size": 2400,
+              "extension": "pdf",
+              "magic_bytes": "25504446",
+              "cluster_size": 4096,
+              "allocated_size": 4096,
+              "slack_bytes": 1696,
+              "metadata": {
+                "si_created": "2024-08-15 10:32:17",
+                "si_modified": "2024-10-02 14:18:45",
+                "si_accessed": "2024-10-20 09:01:33",
+                "si_mft_changed": "2024-10-02 14:18:45",
+                "fn_created": "2024-08-15 10:32:17",
+                "fn_modified": "2024-10-02 14:18:45",
+                "fn_accessed": "2024-10-20 09:01:33",
+                "fn_mft_changed": "2024-10-02 14:18:45",
+                "permissions": "-rw-r--r--",
+                "owner": "ajiang",
+                "inode": 44102,
+                "tampered": false,
+                "tamper_note": "File itself is not tampered, but its slack space contains hidden data. 2,400 bytes used of a 4,096-byte cluster = 1,696 bytes of slack."
+              },
+              "content_preview": "[PDF Document] Project Helios — Phase 2 Status Report\nAuthor: A. Jiang | Pages: 3\nContent: Quarterly review of R&D milestones..."
+            },
+            "meeting_notes.docx": {
+              "name": "meeting_notes.docx",
+              "type": "file",
+              "size": 18300,
+              "extension": "docx",
+              "magic_bytes": "504B0304",
+              "cluster_size": 4096,
+              "allocated_size": 20480,
+              "slack_bytes": 2180,
+              "metadata": {
+                "si_created": "2024-09-12 11:20:00",
+                "si_modified": "2024-10-18 16:45:22",
+                "si_accessed": "2024-10-20 09:05:10",
+                "si_mft_changed": "2024-10-18 16:45:22",
+                "fn_created": "2024-09-12 11:20:00",
+                "fn_modified": "2024-10-18 16:45:22",
+                "fn_accessed": "2024-10-20 09:05:10",
+                "fn_mft_changed": "2024-10-18 16:45:22",
+                "permissions": "-rw-r--r--",
+                "owner": "ajiang",
+                "inode": 44108,
+                "tampered": false
+              },
+              "content_preview": "[Word Document] Weekly Team Sync — Oct 18\nAttendees: A. Jiang, M. Torres, R. Patel\nTopics: Sprint review, Q4 planning, budget allocation"
+            },
+            "budget_2024.xlsx": {
+              "name": "budget_2024.xlsx",
+              "type": "file",
+              "size": 34500,
+              "extension": "xlsx",
+              "magic_bytes": "504B0304",
+              "cluster_size": 4096,
+              "allocated_size": 36864,
+              "slack_bytes": 2364,
+              "metadata": {
+                "si_created": "2024-01-10 09:00:00",
+                "si_modified": "2024-10-15 13:30:00",
+                "si_accessed": "2024-10-20 08:55:00",
+                "si_mft_changed": "2024-10-15 13:30:00",
+                "fn_created": "2024-01-10 09:00:00",
+                "fn_modified": "2024-10-15 13:30:00",
+                "fn_accessed": "2024-10-20 08:55:00",
+                "fn_mft_changed": "2024-10-15 13:30:00",
+                "permissions": "-rw-r--r--",
+                "owner": "ajiang",
+                "inode": 44115,
+                "tampered": false
+              },
+              "content_preview": "[Excel Workbook] Meridian Corp — 2024 Budget\nSheets: Summary, Q1-Q4 Breakdown, Capital Expenditures\nNormal budget document — no anomalies detected"
+            }
+          }
+        },
+        "Recycle": {
+          "name": "$Recycle.Bin",
+          "type": "directory",
+          "children": {
+            "deleted_entry": {
+              "name": "å5alary_export.csv",
+              "type": "file",
+              "size": 0,
+              "extension": "csv",
+              "magic_bytes": "E5",
+              "metadata": {
+                "si_created": "2024-10-19 22:14:33",
+                "si_modified": "2024-10-19 22:14:33",
+                "si_accessed": "2024-10-19 22:15:01",
+                "si_mft_changed": "2024-10-19 22:15:01",
+                "fn_created": "2024-10-19 22:14:33",
+                "fn_modified": "2024-10-19 22:14:33",
+                "fn_accessed": "2024-10-19 22:15:01",
+                "fn_mft_changed": "2024-10-19 22:15:01",
+                "permissions": "-rw-------",
+                "owner": "ajiang",
+                "inode": 44200,
+                "tampered": false,
+                "tamper_note": "Directory entry starts with 0xE5 — file has been deleted. Original name was likely 'salary_export.csv'. Data clusters may still be recoverable."
+              },
+              "content_preview": "[DELETED FILE] Directory entry prefix: 0xE5\nOriginal first byte replaced — file marked as deleted\nFAT cluster chain: UNLINKED but data at clusters 8820-8823 still intact\n\nRecovered fragment (foremost):\n\"Employee,Department,Base Salary,Bonus,Total\"\n\"A. Jiang,R&D,145000,28000,173000\"\n\"M. Torres,Engineering,138000,22000,160000\"\n\"R. Patel,Product,155000,35000,190000\""
+            }
+          }
+        },
+        "SlackAnalysis": {
+          "name": "forensics_output",
+          "type": "directory",
+          "children": {
+            "foremost_output.txt": {
+              "name": "foremost_output.txt",
+              "type": "file",
+              "size": 890,
+              "extension": "txt",
+              "magic_bytes": "666F7265",
+              "metadata": {
+                "si_created": "2024-10-21 14:00:00",
+                "si_modified": "2024-10-21 14:02:15",
+                "si_accessed": "2024-10-21 14:02:15",
+                "si_mft_changed": "2024-10-21 14:02:15",
+                "fn_created": "2024-10-21 14:00:00",
+                "fn_modified": "2024-10-21 14:02:15",
+                "fn_accessed": "2024-10-21 14:02:15",
+                "fn_mft_changed": "2024-10-21 14:02:15",
+                "permissions": "-rw-r--r--",
+                "owner": "analyst",
+                "inode": 55001,
+                "tampered": false
+              },
+              "content_preview": "foremost v1.5.7 — Carving Results\nInput: D:\\Projects\\file.pdf (slack space region, offset 2400-4096)\n\nCarved artifacts:\n  1. CSV fragment (1,696 bytes) at offset 0x960\n     Content: salary/compensation data\n     Header: \"Employee,Department,Base Salary,Bonus,Total\"\n     Rows: 14 employee records\n\nConclusion: Slack space of file.pdf contains remnants of a previously deleted CSV file with sensitive compensation data."
+            }
+          }
+        }
+      }
+    }
+  },
+  "flags": [
+    {
+      "id": "s2_flag_01",
+      "type": "anomaly",
+      "target": "file.pdf",
+      "finding": "slack space",
+      "description": "file.pdf is 2,400 bytes but occupies a 4,096-byte cluster — 1,696 bytes of slack space contain fragments of hidden salary data.",
+      "points": 30
+    },
+    {
+      "id": "s2_flag_02",
+      "type": "content",
+      "target": "CSV fragment",
+      "finding": "salary data",
+      "description": "Slack space contains a CSV fragment with employee salary/compensation data — evidence of data exfiltration staging.",
+      "points": 35
+    },
+    {
+      "id": "s2_flag_03",
+      "type": "artifact",
+      "target": "salary_export.csv",
+      "finding": "0xE5 deletion",
+      "description": "Deleted directory entry (0xE5 prefix) for 'salary_export.csv' — file was deleted but data clusters remain intact on disk.",
+      "points": 35
+    }
+  ],
+  "hints": [
+    {
+      "tier": 1,
+      "cost": 10,
+      "text": "Look at the file sizes vs. their allocated cluster sizes. When a file doesn't fill its last cluster, what's in the remaining space?"
+    },
+    {
+      "tier": 2,
+      "cost": 20,
+      "text": "One file in the Projects folder has a suspiciously large gap between its logical size and its allocated size. Check the slack space of file.pdf."
+    },
+    {
+      "tier": 3,
+      "cost": 30,
+      "text": "The slack space contains a CSV fragment. Now check the Recycle Bin — notice the filename starting with 0xE5? That's a deleted file marker. The two are connected."
+    }
+  ],
+  "debriefing": {
+    "title": "How Slack Space Hides Data",
+    "concept": "When a file is written to disk, the filesystem allocates space in fixed-size units called clusters (typically 4,096 bytes in NTFS). If a file is 2,400 bytes, it still occupies one full 4,096-byte cluster — leaving 1,696 bytes of 'slack space.' This slack can contain remnants of previously deleted files, because the OS only overwrites the bytes needed for the new file. Attackers can also deliberately write data into slack space to hide it from casual inspection.",
+    "realWorldTool": "Tools like Sleuth Kit's 'blkls' and 'foremost' can carve data from slack space and unallocated areas. EnCase and FTK have built-in slack space analysis. The 'slacker' tool can deliberately write data into slack space.",
+    "caseConnection": "In this case, the employee deleted a salary export CSV and then wrote a smaller PDF over the same clusters. The PDF's slack space retained fragments of the deleted CSV — proving the salary data existed on this drive. The 0xE5 directory entry confirmed deliberate deletion.",
+    "furtherReading": "NTFS cluster allocation, FAT directory entries, foremost/scalpel file carving, slack space analysis, EnCase slack space viewer"
+  },
+  "postQuiz": [
+    {
+      "id": "s2_postq1",
+      "question": "Why can data persist in slack space even after a new file is written?",
+      "options": [
+        "The filesystem encrypts old data before overwriting",
+        "The OS only writes the bytes needed for the new file, leaving the remainder of the cluster untouched",
+        "Slack space is in a protected partition that cannot be overwritten",
+        "The MFT prevents cluster reuse for 30 days"
+      ],
+      "correct": 1,
+      "explanation": "The operating system writes only the exact number of bytes needed for the new file. The remaining bytes in the last cluster (the slack space) retain whatever data was there before — often from a previously deleted file."
+    },
+    {
+      "id": "s2_postq2",
+      "question": "What forensic technique is used to recover files or fragments from unallocated disk space?",
+      "options": [
+        "Timestomping",
+        "File carving (e.g., using foremost or scalpel)",
+        "Registry analysis",
+        "Memory dump analysis"
+      ],
+      "correct": 1,
+      "explanation": "File carving scans raw disk data for known file signatures (magic bytes) to reconstruct files, even when the filesystem metadata has been deleted. Tools like foremost, scalpel, and PhotoRec are commonly used."
+    }
+  ]
+}
