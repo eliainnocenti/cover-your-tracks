@@ -4,10 +4,23 @@ import { BookOpen, Tag, X, CheckCircle, XCircle, Lightbulb, Send, Target } from 
 import { useEngine } from './ScenarioEngine'
 import CrossReference from './CrossReference'
 
+const MASTER_TAXONOMY = [
+  "0xE5 Deletion", "Anomalous Image", "ARP Poisoning", "Buffer Overflow",
+  "Command Injection", "Cross-Site Scripting (XSS)", "Data Exfiltration",
+  "Data Hiding", "DKOM", "DLL Hijacking", "DNS Tunneling", "Embedded Payload",
+  "Hidden Process", "ICMP Exfiltration", "Keylogger", "Log Wiping",
+  "LSB Steganography", "MAC Spoofing", "Memory Dump", "Pass-the-Hash",
+  "PE Header Injection", "Phishing", "Privilege Escalation", "Ransomware Payload",
+  "Registry Persistence", "Reverse Shell", "Rootkit", "Salary Data",
+  "Scheduled Task", "Slack Space", "SQL Injection", "Suspicious Domain",
+  "Timestomping", "Tool Artifact", "Typosquatting", "Zero-Day Exploit", "/etc/passwd"
+].sort()
+
 export default function InvestigatorNotebook() {
   const { state, untagEvidence, useHint, submitFlag, wrongSubmission } = useEngine()
   const { scenario, taggedEvidence, hintsUsed, score, flagsFound } = state
-  const [input, setInput]       = useState('')
+  const [selectedEvidenceId, setSelectedEvidenceId] = useState('')
+  const [techniqueInput, setTechniqueInput] = useState('')
   const [lastResult, setResult] = useState(null)
   const [hintsOpen, setHintsOpen] = useState(false)
 
@@ -18,24 +31,43 @@ export default function InvestigatorNotebook() {
   const progress   = Math.round((found / totalFlags) * 100)
 
   const handleSubmit = () => {
-    if (!input.trim()) return
-    const q = input.toLowerCase()
+    if (!selectedEvidenceId) {
+      setResult({ ok: false, msg: '✗ Please select a piece of tagged evidence first.' })
+      return
+    }
+    if (!techniqueInput.trim()) {
+      setResult({ ok: false, msg: '✗ Please enter a finding or technique.' })
+      return
+    }
+
+    const evidence = taggedEvidence.find(e => e.id === selectedEvidenceId)
+    if (!evidence) return
+
+    const sanitize = s => (s || '').toLowerCase().replace(/[\s_\-]/g, '')
+    const q = sanitize(techniqueInput)
     const match = scenario.flags.find(f => {
       if (flagsFound.find(ff => ff.flagId === f.id)) return false
-      return (
-        q.includes(f.target?.toLowerCase() ?? '') ||
-        q.includes(f.finding?.toLowerCase() ?? '') ||
-        q.includes(f.id)
-      )
+      
+      // 1. Evidence must match the flag's target (bi-directional check)
+      const targetMatch = evidence.name.toLowerCase().includes(f.target?.toLowerCase() ?? '') || 
+                          (f.target?.toLowerCase() ?? '').includes(evidence.name.toLowerCase())
+      
+      if (!targetMatch) return false
+      
+      // 2. Technique must match the finding
+      const fFinding = sanitize(f.finding)
+      return q.includes(fFinding) || (fFinding.includes(q) && q.length > 3)
     })
+
     if (match) {
       submitFlag(match.id)
       setResult({ ok: true, msg: `✓ Confirmed: ${match.description}` })
+      setTechniqueInput('')
+      setSelectedEvidenceId('')
     } else {
       wrongSubmission()
-      setResult({ ok: false, msg: '✗ No matching finding. Re-examine your evidence.' })
+      setResult({ ok: false, msg: '✗ Incorrect evidence or technique. Re-examine your findings.' })
     }
-    setInput('')
   }
 
   return (
@@ -132,13 +164,24 @@ export default function InvestigatorNotebook() {
             Submit Finding
           </div>
           <p style={{ fontSize: '10px', color: 'var(--text-ghost)', marginBottom: 6, lineHeight: 1.5 }}>
-            Identify the tampered artifact and the technique.<br />
-            e.g. "Q2_Report_FINAL.docx — timestomping"
+            Select the suspicious artifact and identify the technique.
           </p>
-          <textarea rows={3} value={input} onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit() } }}
-            placeholder="Describe your finding..."
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <EvidenceDropdown 
+              value={selectedEvidenceId} 
+              options={taggedEvidence} 
+              onChange={setSelectedEvidenceId} 
+              placeholder="-- Select Tagged Evidence --" 
+            />
+            
+            <CustomAutocomplete 
+              value={techniqueInput} 
+              options={MASTER_TAXONOMY} 
+              onChange={setTechniqueInput} 
+              onEnter={handleSubmit} 
+              placeholder="e.g. Timestomping..." 
+            />
+          </div>
           <button className="btn-submit" style={{ marginTop: 6 }} onClick={handleSubmit}>
             <Send size={11} /> Submit Finding
           </button>
@@ -202,6 +245,124 @@ export default function InvestigatorNotebook() {
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+function CustomAutocomplete({ value, options, onChange, placeholder, onEnter }) {
+  const [open, setOpen] = useState(false)
+  const [inputValue, setInputValue] = useState(value)
+
+  // Keep internal state synced if cleared from parent
+  if (value === '' && inputValue !== '') setInputValue('')
+
+  const filtered = options.filter(o => o.toLowerCase().includes(inputValue.toLowerCase()))
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <input 
+        value={inputValue}
+        onChange={e => {
+          setInputValue(e.target.value)
+          onChange(e.target.value)
+          setOpen(true)
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 200)}
+        onKeyDown={e => { if (e.key === 'Enter') { setOpen(false); onEnter && onEnter() } }}
+        placeholder={placeholder}
+        style={{
+          fontFamily: 'var(--font-mono)', fontSize: '11px',
+          background: 'var(--bg-raised)', color: 'var(--text-primary)',
+          border: '1px solid var(--border-dim)', borderRadius: 'var(--radius-sm)',
+          padding: '6px 8px', outline: 'none', width: '100%'
+        }}
+      />
+      {open && filtered.length > 0 && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
+          background: 'var(--bg-surface)', border: '1px solid var(--green-dim)', 
+          borderTop: 'none', maxHeight: '150px', overflowY: 'auto',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.5)', borderBottomLeftRadius: 'var(--radius-sm)', borderBottomRightRadius: 'var(--radius-sm)'
+        }}>
+          {filtered.map(o => (
+            <div 
+              key={o}
+              onClick={() => { 
+                setInputValue(o); 
+                onChange(o); 
+                setOpen(false) 
+              }}
+              style={{
+                padding: '6px 8px', fontSize: '11px', fontFamily: 'var(--font-mono)',
+                color: 'var(--text-primary)', cursor: 'pointer',
+                borderBottom: '1px solid var(--border-dim)'
+              }}
+              onMouseEnter={e => { e.target.style.background = 'rgba(0,200,100,0.1)'; e.target.style.color = 'var(--green-main)' }}
+              onMouseLeave={e => { e.target.style.background = 'transparent'; e.target.style.color = 'var(--text-primary)' }}
+            >
+              {o}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EvidenceDropdown({ value, options, onChange, placeholder }) {
+  const [open, setOpen] = useState(false)
+  const selected = options.find(o => o.id === value)
+  return (
+    <div 
+      style={{ position: 'relative', outline: 'none' }}
+      tabIndex={0}
+      onBlur={() => setTimeout(() => setOpen(false), 200)}
+    >
+      <div 
+        onClick={() => setOpen(!open)}
+        style={{
+          fontFamily: 'var(--font-mono)', fontSize: '11px',
+          background: 'var(--bg-raised)', color: selected ? 'var(--text-primary)' : 'var(--text-ghost)',
+          border: '1px solid var(--border-dim)', borderRadius: 'var(--radius-sm)',
+          padding: '6px 8px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {selected ? selected.name : placeholder}
+        </span>
+        <span style={{ fontSize: '8px' }}>▼</span>
+      </div>
+      {open && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
+          background: 'var(--bg-surface)', border: '1px solid var(--green-dim)', 
+          borderTop: 'none', maxHeight: '150px', overflowY: 'auto',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.5)', borderBottomLeftRadius: 'var(--radius-sm)', borderBottomRightRadius: 'var(--radius-sm)'
+        }}>
+          {options.length === 0 ? (
+            <div style={{ padding: '6px 8px', fontSize: '10px', color: 'var(--text-ghost)', fontStyle: 'italic' }}>
+              No tagged evidence
+            </div>
+          ) : options.map(o => (
+            <div 
+              key={o.id}
+              onClick={() => { onChange(o.id); setOpen(false) }}
+              style={{
+                padding: '6px 8px', fontSize: '11px', fontFamily: 'var(--font-mono)',
+                color: 'var(--text-primary)', cursor: 'pointer',
+                borderBottom: '1px solid var(--border-dim)',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+              }}
+              onMouseEnter={e => { e.target.style.background = 'rgba(0,200,100,0.1)'; e.target.style.color = 'var(--green-main)' }}
+              onMouseLeave={e => { e.target.style.background = 'transparent'; e.target.style.color = 'var(--text-primary)' }}
+            >
+              {o.name}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -88,7 +88,7 @@ export default function CrossReference() {
 
       {/* Body */}
       {open && (
-        <div style={{ padding: '0 10px 10px' }}>
+        <div style={{ padding: '0 10px 10px', maxHeight: '250px', overflowY: 'auto' }}>
           <p style={{ fontSize: '9px', color: 'var(--text-ghost)', lineHeight: 1.6, marginBottom: 8, marginTop: 0 }}>
             Select two tagged evidence items to cross-reference them.
             Finding hidden connections earns bonus points.
