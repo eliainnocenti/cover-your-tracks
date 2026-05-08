@@ -27,7 +27,7 @@
 ## 1. Scenario Overview
 
 **Narrative:**  
-A corporate whistleblower claims a disgruntled sysadmin (kmartin) deleted critical HR documents before resigning. You're analyzing the imaged workstation to find tampered files and prove timestamps were falsified.
+A corporate whistleblower claims a disgruntled sysadmin (kmartin) tampered with critical HR documents and financial reports to cover their tracks before resigning. You're analyzing the imaged workstation to find tampered files and prove timestamps were falsified.
 
 **Learning Objective:**  
 Understand how timestomping works by comparing `$STANDARD_INFORMATION` vs `$FILE_NAME` attributes in the NTFS Master File Table (MFT). Recognize that anti-forensic tools modify \$SI timestamps but often leave \$FN timestamps untouched.
@@ -68,6 +68,8 @@ Each attribute (\$SI and \$FN) stores four timestamps:
 When a timestomping tool runs, it typically sets **all four** \$SI timestamps to the same value in a single API call. In normal file usage, it is **virtually impossible** for all four timestamps to be identical down to the second, because:
 - Creation precedes modification
 - Access and MFT changes happen at different times during the file's lifecycle
+
+> **Note:** While identical timestamps are a classic timestomping fingerprint, they can occasionally happen during legitimate system processes like file extraction from a ZIP archive. This is why corroborating evidence (like high document revision counts, event logs, or tool artifacts) is necessary.
 
 
 ## 3. Pre-Quiz — Answers and Rationale
@@ -217,36 +219,22 @@ Event 4647 - Logoff: kmartin at 2024-11-14 09:28:11
 
 ## 6. Flags — What to Submit and Why
 
-The game uses a **text matching** system. Your submission must contain either the **target name** or the **finding keyword** from the flag definition.
+The new submission UI requires a structured match. Students must select the tagged file from their notebook dropdown and match it with the correct technique from the master list.
 
 ### Flag 1: Q2_Report_FINAL.docx (30 points)
 
-**What to type:**
-- `Q2_Report_FINAL.docx — timestomping` ✅
-- `Q2_Report_FINAL.docx` ✅ (matches target)
-- `timestomping` ✅ (matches finding — but could match Flag 2 first)
-
-**Matching logic** (from `InvestigatorNotebook.jsx`):
-```javascript
-q.includes(f.target?.toLowerCase()) || q.includes(f.finding?.toLowerCase()) || q.includes(f.id)
-```
-The input is lowercased and checked if it **includes** the flag's `target` ("Q2_Report_FINAL.docx") or `finding` ("timestomping").
-
-> **⚠️ Note:** Since both Flag 1 and Flag 2 share `finding: "timestomping"`, typing just "timestomping" will match whichever unfound flag comes first in the array. To be precise, include the filename.
+**Target:** `Q2_Report_FINAL.docx`  
+**Technique:** Timestomping
 
 ### Flag 2: HR_Termination_Draft_v3.docx (30 points)
 
-**What to type:**
-- `HR_Termination_Draft_v3.docx — timestomping` ✅
-- `HR_Termination_Draft_v3.docx` ✅
-- `timestomping` ✅ (if Flag 1 already found)
+**Target:** `HR_Termination_Draft_v3.docx`  
+**Technique:** Timestomping
 
 ### Flag 3: timestomp_log.tmp (40 points — highest!)
 
-**What to type:**
-- `timestomp_log.tmp — tool artifact` ✅
-- `timestomp_log.tmp` ✅
-- `tool_artifact` ✅ (matches finding)
+**Target:** `timestomp_log.tmp`  
+**Technique:** Tool Artifact
 
 **Why this is worth the most:**
 Finding the actual tool log is the strongest evidence. The tampered timestamps are circumstantial — the tool log is a **smoking gun** that proves deliberate intent.
@@ -333,6 +321,12 @@ $FILE_NAME Attribute Values:
 ### `istat 78290` (inode for personal_notes.txt)
 **Expected:** No anomaly warning (timestamps match).
 
+### `istat 78455` (inode for timestomp_log.tmp)
+**Expected:** Normal output, no anomaly warning (timestamps match). This file has legitimate timestamps from when the tool was executed.
+
+### `istat 120` (inode for Security.evtx)
+**Expected:** Normal output, no anomaly warning.
+
 ### `cat timestomp_log.tmp`
 **Expected:** Should display the TIMESTOMP v2.0 execution log content.
 
@@ -402,9 +396,6 @@ After completing the post-quiz, verify the debriefing screen shows:
 | Submit same flag twice | Should be ignored (deduplicated) |
 | Submit flag after all flags found | Phase should already be `post_quiz` |
 | Use all hints then find all flags | Score = 100 − 60 + 100 = 140 + post-quiz bonus |
-| Submit empty string | Should do nothing (`if (!input.trim()) return`) |
-| Type only "timestomping" | Matches first unfound flag with `finding: "timestomping"` |
-| Type flag ID directly (e.g., "flag_01") | Should match (`q.includes(f.id)`) |
 
 ### Common Student Mistakes
 

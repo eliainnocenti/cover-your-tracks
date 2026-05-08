@@ -5,7 +5,7 @@
   "difficulty": 1,
   "domain": "filesystem",
   "estimatedMinutes": 15,
-  "narrative": "A corporate whistleblower claims that a disgruntled sysadmin deleted critical HR documents before resigning. The sysadmin's workstation has been imaged. Your job: find the tampered files and prove the timestamps were falsified.",
+  "narrative": "A corporate whistleblower claims that a disgruntled sysadmin tampered with critical HR documents and financial reports to cover their tracks before resigning. The sysadmin's workstation has been imaged. Your job: find the tampered files and prove the timestamps were falsified.",
   "learningObjective": "Understand how timestomping works by comparing $STANDARD_INFORMATION vs $FILE_NAME attributes in the NTFS Master File Table (MFT). Recognize that anti-forensic tools modify SI timestamps but often leave FN timestamps untouched.",
   "preQuiz": [
     {
@@ -114,7 +114,7 @@
                         "owner": "kmartin",
                         "inode": 78301,
                         "tampered": true,
-                        "tamper_note": "$SI timestamps are all set to 2024-11-14 09:22:11, which is after the user's last login. $FN shows it was last modified at 19:58 the previous evening — consistent with the whistleblower's account."
+                        "tamper_note": "$SI timestamps are all set to 2024-11-14 09:22:11, which is during the user's final active session. $FN shows it was last modified at 19:58 the previous evening — consistent with the whistleblower's account."
                       },
                       "content_preview": "[Word Document] CONFIDENTIAL — HR Action Plan\nSubject: K. Martin performance review and proposed termination\nDraft status: PENDING LEGAL REVIEW\n\n[Document properties redacted]"
                     }
@@ -216,7 +216,7 @@
       "type": "file",
       "target": "HR_Termination_Draft_v3.docx",
       "finding": "timestomping",
-      "description": "$SI timestamps set after user last login — $FN shows legitimate modification the evening of Nov 13th.",
+      "description": "$SI timestamps set during the user's final active session — $FN shows legitimate modification the evening of Nov 13th.",
       "points": 30
     },
     {
