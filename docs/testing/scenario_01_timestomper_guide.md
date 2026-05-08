@@ -3,9 +3,9 @@
 ## Full Testing and Solution Guide
 
 > **Domain:** File System Forensics — MAC Time Manipulation  
-> **Difficulty:** ★☆☆☆☆ (1/5)  
+> **Difficulty:** ★★☆☆☆ (2/5)  
 > **Estimated Time:** 15 minutes  
-> **Max Possible Score:** 200 pts (100 base + 100 from flags + post-quiz bonus)
+> **Max Possible Score:** 220 pts (100 base + 100 from flags + post-quiz bonus)
 
 
 ## Table of Contents
@@ -246,7 +246,7 @@ Finding the actual tool log is the strongest evidence. The tampered timestamps a
 |------|------|------|----------------|
 | 1 | −10 pts | "In NTFS, every file has two timestamp records. Most tools only show you one. Try comparing them." | Points toward \$SI vs \$FN comparison |
 | 2 | −20 pts | "Look at the Documents folder. Notice anything unusual about when the files were supposedly last modified?" | Narrows focus to Documents folder |
-| 3 | −30 pts | "When all four MAC timestamps of a file are identical down to the second, that is almost always the fingerprint of a timestomping tool. Now find the tool itself." | Explains the all-identical pattern and tells you to find the tool |
+| 3 | −30 pts | "When all four MAC timestamps of a file are identical down to the second, that is almost always the fingerprint of a timestomping tool. Ask yourself: if a user-space tool did this, where might it leave artifacts in the user's profile?" | Explains the all-identical pattern and nudges toward tool artifacts |
 
 **Total hint cost: −60 pts** (if all three used)
 
@@ -259,7 +259,7 @@ Finding the actual tool log is the strongest evidence. The tampered timestamps a
 | Flag 1 (Q2_Report) | +30 | |
 | Flag 2 (HR_Termination) | +30 | |
 | Flag 3 (timestomp_log) | +40 | |
-| Wrong submissions | −5 each | `Math.max(0, score - 5)` |
+| Wrong submissions | −5 each (only after a hint is used) | Penalty is deferred until the first hint is taken |
 | Hint Tier 1 | −10 | |
 | Hint Tier 2 | −20 | |
 | Hint Tier 3 | −30 | |
@@ -333,8 +333,8 @@ $FILE_NAME Attribute Values:
 ### `strings timestomp_log.tmp`
 **Expected:** Should display timestomping tool signatures.
 
-### `cat Security.evtx`
-**Expected:** Event log entries showing the login/access timeline.
+### `strings Security.evtx`
+**Expected:** Printable event log entries showing the login/access timeline.
 
 ### `xxd Q2_Report_FINAL.docx`
 **Expected:** Hex dump showing magic bytes `504B0304` (ZIP/DOCX container).
@@ -346,6 +346,7 @@ $FILE_NAME Attribute Values:
 - `stat nonexistent.txt` → "cannot stat: No such file"
 - `istat 99999` → "inode not found"
 - `cat` (no argument) → "Usage: cat <filename>"
+- `cat Security.evtx` → "Binary event log. Try 'strings Security.evtx' instead."
 - `unknowncmd` → "command not found"
 
 
@@ -385,24 +386,6 @@ After completing the post-quiz, verify the debriefing screen shows:
 - **Real-World Tools:** Autopsy, FTK Imager, Sleuth Kit `istat`
 - **Case Connection:** Mentions the all-same-second pattern, \$FN + Event Log corroboration, and the `.tmp` tool artifact
 - **Further Reading:** NTFS MFT, Sleuth Kit istat, Event 4663/4664, Metasploit timestomp
-
-
-## 12. Common Mistakes and Edge Cases
-
-### Testing Edge Cases
-
-| Test | Expected Behavior |
-|------|-------------------|
-| Submit same flag twice | Should be ignored (deduplicated) |
-| Submit flag after all flags found | Phase should already be `post_quiz` |
-| Use all hints then find all flags | Score = 100 − 60 + 100 = 140 + post-quiz bonus |
-
-### Common Student Mistakes
-
-1. **Ignoring `personal_notes.txt`** — Students should verify it as a control; it proves the anomaly is specific to certain files, not a system-wide issue.
-2. **Not checking AppData** — The timestomp_log.tmp is hidden in `AppData/Roaming`, which students may not think to explore.
-3. **Confusing \$SI and \$FN** — The pre-quiz tests this knowledge, but students may still mix them up during investigation.
-4. **Missing the Event Log correlation** — The Security.evtx file corroborates the timeline but is not a flag itself.
 
 
 ## Quick Reference Card

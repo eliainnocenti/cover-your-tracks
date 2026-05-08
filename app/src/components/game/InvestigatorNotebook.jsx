@@ -212,6 +212,9 @@ export default function InvestigatorNotebook() {
             <Lightbulb size={11} />
             Hints ({hintsUsed.length}/{scenario.hints.length} used)
           </button>
+          <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: 6 }}>
+            Wrong submissions are penalized only if you later use a hint.
+          </div>
           {hintsOpen && (
             <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {scenario.hints.map(hint => {

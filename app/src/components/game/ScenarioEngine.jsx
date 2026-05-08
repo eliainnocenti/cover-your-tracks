@@ -44,6 +44,7 @@ const initialState = {
   startTime: null,
   endTime: null,
   wrongAttempts: 0,
+  pendingWrongPenalty: 0,
   sessionLog: [],          // append-only audit trail for professor dashboard
   foundConnections: [],    // [connectionId] — cross-referenced evidence links
 }
@@ -123,13 +124,16 @@ function engineReducer(state, action) {
       const tier = action.payload
       const hint = state.scenario.hints.find(h => h.tier === tier)
       if (!hint || state.hintsUsed.includes(tier)) return state
-      const newScore = Math.max(0, state.score - hint.cost)
+      const queuedPenalty = state.pendingWrongPenalty * 5
+      const newScore = Math.max(0, state.score - hint.cost - queuedPenalty)
       return {
         ...state,
         hintsUsed: [...state.hintsUsed, tier],
         score: newScore,
+        pendingWrongPenalty: 0,
         sessionLog: [...state.sessionLog,
           logEntry('HINT_USED', `Requested Tier ${tier} hint (cost: −${hint.cost} pts, score: ${newScore})`, { tier, cost: hint.cost }),
+          ...(queuedPenalty > 0 ? [logEntry('WRONG_ATTEMPT_PENALTY', `Deferred wrong answers applied (−${queuedPenalty} pts)`, { penalty: queuedPenalty })] : []),
         ],
       }
     }
@@ -153,12 +157,22 @@ function engineReducer(state, action) {
     }
 
     case 'WRONG_SUBMISSION':
+      if (state.hintsUsed.length > 0) {
+        return {
+          ...state,
+          wrongAttempts: state.wrongAttempts + 1,
+          score: Math.max(0, state.score - 5),
+          sessionLog: [...state.sessionLog,
+            logEntry('WRONG_ATTEMPT', `✗ Incorrect submission (attempt #${state.wrongAttempts + 1}, −5 pts)`),
+          ],
+        }
+      }
       return {
         ...state,
         wrongAttempts: state.wrongAttempts + 1,
-        score: Math.max(0, state.score - 5),
+        pendingWrongPenalty: state.pendingWrongPenalty + 1,
         sessionLog: [...state.sessionLog,
-          logEntry('WRONG_ATTEMPT', `✗ Incorrect submission (attempt #${state.wrongAttempts + 1}, −5 pts)`),
+          logEntry('WRONG_ATTEMPT', `✗ Incorrect submission (attempt #${state.wrongAttempts + 1}, penalty deferred)`),
         ],
       }
 

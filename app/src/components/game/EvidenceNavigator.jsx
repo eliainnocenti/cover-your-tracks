@@ -426,6 +426,15 @@ function TerminalView() {
     else if (base === 'strings') {
       const target = args[0]
       if (!target) { push({ text: 'Usage: strings <filename>', type: 'error' }); return }
+      if (scenario?.filesystem) {
+        const found = findFileByName(scenario.filesystem.root, target)
+        if (found?.extension === 'evtx' && found.content_preview) {
+          found.content_preview.split('\n').forEach(line => push(line))
+          push({ text: '[!] Printable strings extracted from binary event log', type: 'warn' })
+          setInput('')
+          return
+        }
+      }
       if (target.includes('timestomp')) {
         push(
           'TIMESTOMP v2.0',
@@ -443,7 +452,9 @@ function TerminalView() {
       if (!target) { push({ text: 'Usage: cat <filename>', type: 'error' }); return }
       if (scenario?.filesystem) {
         const found = findFileByName(scenario.filesystem.root, target)
-        if (found?.content_preview) {
+        if (found?.extension === 'evtx') {
+          push({ text: `cat: ${target}: Binary event log. Try 'strings ${target}' instead.`, type: 'error' })
+        } else if (found?.content_preview) {
           found.content_preview.split('\n').forEach(line => push(line))
         } else {
           push({ text: `cat: ${target}: Is a binary file or file not found`, type: 'error' })

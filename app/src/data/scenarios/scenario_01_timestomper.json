@@ -2,7 +2,7 @@
   "id": "scenario_01",
   "title": "The Timestomper",
   "subtitle": "File System Forensics — MAC Time Manipulation",
-  "difficulty": 1,
+  "difficulty": 2,
   "domain": "filesystem",
   "estimatedMinutes": 15,
   "narrative": "A corporate whistleblower claims that a disgruntled sysadmin tampered with critical HR documents and financial reports to cover their tracks before resigning. The sysadmin's workstation has been imaged. Your job: find the tampered files and prove the timestamps were falsified.",
@@ -242,7 +242,7 @@
     {
       "tier": 3,
       "cost": 30,
-      "text": "When all four MAC timestamps of a file are identical down to the second, that is almost always the fingerprint of a timestomping tool. Now find the tool itself."
+      "text": "When all four MAC timestamps of a file are identical down to the second, that is almost always the fingerprint of a timestomping tool. Ask yourself: if a user-space tool did this, where might it leave artifacts in the user's profile?"
     }
   ],
   "debriefing": {

@@ -4,7 +4,7 @@ import { useEngine } from './ScenarioEngine'
 import Leaderboard from './Leaderboard'
 
 const SCENARIOS_META = [
-  { id: 'scenario_01', title: 'The Timestomper', subtitle: 'Filesystem — MAC Time Manipulation', domain: 'filesystem', difficulty: 1, minutes: 15 },
+  { id: 'scenario_01', title: 'The Timestomper', subtitle: 'Filesystem — MAC Time Manipulation', domain: 'filesystem', difficulty: 2, minutes: 15 },
   { id: 'scenario_02', title: 'Ghosts in the Sectors', subtitle: 'Filesystem — Slack Space Exploitation', domain: 'filesystem', difficulty: 2, minutes: 20 },
   { id: 'scenario_03', title: 'Ghost in the Machine', subtitle: 'RAM — Process Injection Detection', domain: 'ram', difficulty: 3, minutes: 20 },
   { id: 'scenario_04', title: 'The Whispering DNS', subtitle: 'Network — DNS Tunneling Exfiltration', domain: 'network', difficulty: 3, minutes: 20 },

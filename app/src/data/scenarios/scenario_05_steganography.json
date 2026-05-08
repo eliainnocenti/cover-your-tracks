@@ -5,7 +5,7 @@
   "difficulty": 4,
   "domain": "steganography",
   "estimatedMinutes": 25,
-  "narrative": "An insider at Prism Design Inc. is suspected of leaking product designs to a competitor. The DLP system caught nothing — no suspicious attachments, no cloud uploads. But a sharp-eyed analyst noticed that the suspect sent three 'cat photos' to an external email address the night before a competitor unveiled a suspiciously similar product. All three PNGs look innocent. Your job: find the one that's hiding something.",
+  "narrative": "After the DNS tunnel was shut down, an insider at Prism Design Inc. is suspected of switching to a quieter channel to leak product designs. The DLP system caught nothing — no suspicious attachments, no cloud uploads. But a sharp-eyed analyst noticed that the suspect sent three 'cat photos' to an external email address the night before a competitor unveiled a suspiciously similar product. All three PNGs look innocent. Your job: find the one that's hiding something.",
   "learningObjective": "Understand LSB (Least Significant Bit) steganography — how data can be hidden in the least significant bits of pixel color values without visually altering an image. Learn to identify steganographic images through statistical analysis, file size anomalies, and EXIF metadata inconsistencies.",
   "preQuiz": [
     {
