@@ -124,45 +124,345 @@
     }
   },
   "ram_dump": [
-    { "pid": 4, "ppid": 0, "name": "System", "offset": "0x823c8830", "threads": 98, "suspicious": false },
-    { "pid": 372, "ppid": 4, "name": "smss.exe", "offset": "0x824a0020", "threads": 2, "suspicious": false },
-    { "pid": 444, "ppid": 372, "name": "csrss.exe", "offset": "0x824b8a00", "threads": 10, "suspicious": false },
-    { "pid": 480, "ppid": 372, "name": "wininit.exe", "offset": "0x82530300", "threads": 3, "suspicious": false },
-    { "pid": 508, "ppid": 480, "name": "services.exe", "offset": "0x82548da0", "threads": 9, "suspicious": false },
-    { "pid": 520, "ppid": 480, "name": "lsass.exe", "offset": "0x82560120", "threads": 7, "suspicious": false },
-    { "pid": 620, "ppid": 508, "name": "svchost.exe", "offset": "0x825d0440", "threads": 15, "suspicious": false },
-    { "pid": 688, "ppid": 508, "name": "svchost.exe", "offset": "0x825f8200", "threads": 8, "suspicious": false },
-    { "pid": 784, "ppid": 508, "name": "svchost.exe", "offset": "0x82630100", "threads": 20, "suspicious": false },
-    { "pid": 860, "ppid": 508, "name": "svchost.exe", "offset": "0x82668a40", "threads": 14, "suspicious": false },
-    { "pid": 952, "ppid": 508, "name": "spoolsv.exe", "offset": "0x826a0780", "threads": 4, "suspicious": false },
-    { "pid": 1044, "ppid": 508, "name": "svchost.exe", "offset": "0x826d8300", "threads": 6, "suspicious": false },
-    { "pid": 1200, "ppid": 508, "name": "svchost.exe", "offset": "0x82710a80", "threads": 5, "suspicious": false },
-    { "pid": 1400, "ppid": 508, "name": "taskhost.exe", "offset": "0x82750100", "threads": 8, "suspicious": false },
-    { "pid": 1580, "ppid": 860, "name": "WmiPrvSE.exe", "offset": "0x82790040", "threads": 6, "suspicious": false },
-    { "pid": 1820, "ppid": 508, "name": "msdtc.exe", "offset": "0x827e0200", "threads": 4, "suspicious": false },
-    { "pid": 2100, "ppid": 444, "name": "conhost.exe", "offset": "0x82850100", "threads": 2, "suspicious": false },
-    { "pid": 2340, "ppid": 508, "name": "SearchIndexer.exe", "offset": "0x82890300", "threads": 12, "suspicious": false },
-    { "pid": 2600, "ppid": 508, "name": "wuauserv.exe", "offset": "0x828d0100", "threads": 4, "suspicious": false },
-    { "pid": 2800, "ppid": 1400, "name": "explorer.exe", "offset": "0x82910500", "threads": 18, "suspicious": false },
-    { "pid": 3020, "ppid": 2800, "name": "chrome.exe", "offset": "0x82960200", "threads": 22, "suspicious": false },
-    { "pid": 3200, "ppid": 2800, "name": "notepad.exe", "offset": "0x829a0100", "threads": 1, "suspicious": false },
-    { "pid": 3580, "ppid": 0, "name": "winlogon_helper.exe", "offset": "0x83b20400", "threads": 4, "suspicious": true, "pslist_visible": false, "psscan_visible": true, "notes": "HIDDEN from pslist. Typosquatting — mimics 'winlogon.exe' but with '_helper' suffix. No visible parent (PPID 0 is invalid for user processes). Running as SYSTEM." },
-    { "pid": 3744, "ppid": 0, "name": "cmd.exe", "offset": "0x83d60100", "threads": 1, "suspicious": true, "pslist_visible": false, "psscan_visible": true, "notes": "HIDDEN from pslist. cmd.exe running as SYSTEM with no visible parent. Likely spawned by the rootkit for command execution." }
+    {
+      "pid": 4,
+      "ppid": 0,
+      "name": "System",
+      "offset": "0x823c8830",
+      "threads": 98,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 372,
+      "ppid": 4,
+      "name": "smss.exe",
+      "offset": "0x824a0020",
+      "threads": 2,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 444,
+      "ppid": 372,
+      "name": "csrss.exe",
+      "offset": "0x824b8a00",
+      "threads": 10,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 480,
+      "ppid": 372,
+      "name": "wininit.exe",
+      "offset": "0x82530300",
+      "threads": 3,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 508,
+      "ppid": 480,
+      "name": "services.exe",
+      "offset": "0x82548da0",
+      "threads": 9,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 520,
+      "ppid": 480,
+      "name": "lsass.exe",
+      "offset": "0x82560120",
+      "threads": 7,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 620,
+      "ppid": 508,
+      "name": "svchost.exe",
+      "offset": "0x825d0440",
+      "threads": 15,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 688,
+      "ppid": 508,
+      "name": "svchost.exe",
+      "offset": "0x825f8200",
+      "threads": 8,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 784,
+      "ppid": 508,
+      "name": "svchost.exe",
+      "offset": "0x82630100",
+      "threads": 20,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 860,
+      "ppid": 508,
+      "name": "svchost.exe",
+      "offset": "0x82668a40",
+      "threads": 14,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 952,
+      "ppid": 508,
+      "name": "spoolsv.exe",
+      "offset": "0x826a0780",
+      "threads": 4,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 1044,
+      "ppid": 508,
+      "name": "svchost.exe",
+      "offset": "0x826d8300",
+      "threads": 6,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 1200,
+      "ppid": 508,
+      "name": "svchost.exe",
+      "offset": "0x82710a80",
+      "threads": 5,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 1400,
+      "ppid": 508,
+      "name": "taskhost.exe",
+      "offset": "0x82750100",
+      "threads": 8,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 1580,
+      "ppid": 860,
+      "name": "WmiPrvSE.exe",
+      "offset": "0x82790040",
+      "threads": 6,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 1820,
+      "ppid": 508,
+      "name": "msdtc.exe",
+      "offset": "0x827e0200",
+      "threads": 4,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 2100,
+      "ppid": 444,
+      "name": "conhost.exe",
+      "offset": "0x82850100",
+      "threads": 2,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 2340,
+      "ppid": 508,
+      "name": "SearchIndexer.exe",
+      "offset": "0x82890300",
+      "threads": 12,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 2600,
+      "ppid": 508,
+      "name": "wuauserv.exe",
+      "offset": "0x828d0100",
+      "threads": 4,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 2800,
+      "ppid": 1400,
+      "name": "explorer.exe",
+      "offset": "0x82910500",
+      "threads": 18,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 3020,
+      "ppid": 2800,
+      "name": "chrome.exe",
+      "offset": "0x82960200",
+      "threads": 22,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 3200,
+      "ppid": 2800,
+      "name": "notepad.exe",
+      "offset": "0x829a0100",
+      "threads": 1,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 3580,
+      "ppid": 0,
+      "name": "winlogon_helper.exe",
+      "offset": "0x83b20400",
+      "threads": 4,
+      "suspicious": true,
+      "pslist_visible": false,
+      "psscan_visible": true,
+      "notes": "HIDDEN from pslist. Typosquatting — mimics 'winlogon.exe' but with '_helper' suffix. No visible parent (PPID 0 is invalid for user processes). Running as SYSTEM."
+    },
+    {
+      "pid": 3744,
+      "ppid": 0,
+      "name": "cmd.exe",
+      "offset": "0x83d60100",
+      "threads": 1,
+      "suspicious": true,
+      "pslist_visible": false,
+      "psscan_visible": true,
+      "notes": "HIDDEN from pslist. cmd.exe running as SYSTEM with no visible parent. Likely spawned by the rootkit for command execution."
+    }
   ],
   "network_log": [
-    { "time": "02:15:01.100", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes (normal: 32 bytes)", "suspicious": true },
-    { "time": "02:15:01.340", "src": "185.220.101.47", "dst": "10.1.1.50", "protocol": "ICMP", "info": "Echo reply, payload=1400 bytes", "suspicious": true },
-    { "time": "02:15:02.200", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes — contains printable ASCII", "suspicious": true },
-    { "time": "02:15:02.450", "src": "185.220.101.47", "dst": "10.1.1.50", "protocol": "ICMP", "info": "Echo reply, payload=1400 bytes", "suspicious": true },
-    { "time": "02:15:03.100", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes — printable ASCII", "suspicious": true },
-    { "time": "02:15:03.880", "src": "10.1.1.50", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: www.google.com", "suspicious": false },
-    { "time": "02:15:04.010", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes", "suspicious": true },
-    { "time": "02:15:05.200", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes", "suspicious": true },
-    { "time": "02:15:06.440", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes", "suspicious": true },
-    { "time": "02:15:07.100", "src": "10.1.1.50", "dst": "10.1.1.1", "protocol": "ARP", "info": "Who has 10.1.1.1?", "suspicious": false },
-    { "time": "02:15:08.500", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes — known Tor exit node", "suspicious": true },
-    { "time": "02:15:10.100", "src": "10.1.1.50", "dst": "185.220.101.47", "protocol": "ICMP", "info": "Echo request, payload=1400 bytes", "suspicious": true },
-    { "time": "02:15:12.300", "src": "10.1.1.50", "dst": "10.1.1.20", "protocol": "TCP", "info": "443 → 54221 [SYN, ACK] (normal HTTPS)", "suspicious": false }
+    {
+      "id": "pkt_01",
+      "time": "02:15:01.100",
+      "src": "10.1.1.50",
+      "dst": "185.220.101.47",
+      "protocol": "ICMP",
+      "info": "Echo request, payload=1400 bytes (normal: 32 bytes)",
+      "suspicious": true
+    },
+    {
+      "id": "pkt_02",
+      "time": "02:15:01.340",
+      "src": "185.220.101.47",
+      "dst": "10.1.1.50",
+      "protocol": "ICMP",
+      "info": "Echo reply, payload=1400 bytes",
+      "suspicious": true
+    },
+    {
+      "id": "pkt_03",
+      "time": "02:15:02.200",
+      "src": "10.1.1.50",
+      "dst": "185.220.101.47",
+      "protocol": "ICMP",
+      "info": "Echo request, payload=1400 bytes — contains printable ASCII",
+      "suspicious": true
+    },
+    {
+      "id": "pkt_04",
+      "time": "02:15:02.450",
+      "src": "185.220.101.47",
+      "dst": "10.1.1.50",
+      "protocol": "ICMP",
+      "info": "Echo reply, payload=1400 bytes",
+      "suspicious": true
+    },
+    {
+      "id": "pkt_05",
+      "time": "02:15:03.100",
+      "src": "10.1.1.50",
+      "dst": "185.220.101.47",
+      "protocol": "ICMP",
+      "info": "Echo request, payload=1400 bytes — printable ASCII",
+      "suspicious": true
+    },
+    {
+      "id": "pkt_06",
+      "time": "02:15:03.880",
+      "src": "10.1.1.50",
+      "dst": "8.8.8.8",
+      "protocol": "DNS",
+      "info": "A query: www.google.com",
+      "suspicious": false
+    },
+    {
+      "id": "pkt_07",
+      "time": "02:15:04.010",
+      "src": "10.1.1.50",
+      "dst": "185.220.101.47",
+      "protocol": "ICMP",
+      "info": "Echo request, payload=1400 bytes",
+      "suspicious": true
+    },
+    {
+      "id": "pkt_08",
+      "time": "02:15:05.200",
+      "src": "10.1.1.50",
+      "dst": "185.220.101.47",
+      "protocol": "ICMP",
+      "info": "Echo request, payload=1400 bytes",
+      "suspicious": true
+    },
+    {
+      "id": "pkt_09",
+      "time": "02:15:06.440",
+      "src": "10.1.1.50",
+      "dst": "185.220.101.47",
+      "protocol": "ICMP",
+      "info": "Echo request, payload=1400 bytes",
+      "suspicious": true
+    },
+    {
+      "id": "pkt_10",
+      "time": "02:15:07.100",
+      "src": "10.1.1.50",
+      "dst": "10.1.1.1",
+      "protocol": "ARP",
+      "info": "Who has 10.1.1.1?",
+      "suspicious": false
+    },
+    {
+      "id": "pkt_11",
+      "time": "02:15:08.500",
+      "src": "10.1.1.50",
+      "dst": "185.220.101.47",
+      "protocol": "ICMP",
+      "info": "Echo request, payload=1400 bytes — known Tor exit node",
+      "suspicious": true
+    },
+    {
+      "id": "pkt_12",
+      "time": "02:15:10.100",
+      "src": "10.1.1.50",
+      "dst": "185.220.101.47",
+      "protocol": "ICMP",
+      "info": "Echo request, payload=1400 bytes",
+      "suspicious": true
+    },
+    {
+      "id": "pkt_13",
+      "time": "02:15:12.300",
+      "src": "10.1.1.50",
+      "dst": "10.1.1.20",
+      "protocol": "TCP",
+      "info": "443 → 54221 [SYN, ACK] (normal HTTPS)",
+      "suspicious": false
+    }
   ],
   "flags": [
     {
@@ -171,7 +471,8 @@
       "target": "Security.evtx",
       "finding": "log wiping",
       "description": "Security.evtx has been truncated — only 3 days of logs remain despite a 90-day retention policy. Modified at 03:14 AM (outside business hours). A 4-hour event gap confirms deliberate clearing.",
-      "points": 25
+      "points": 25,
+      "required": true
     },
     {
       "id": "s6_flag_02",
@@ -179,15 +480,17 @@
       "target": "winlogon_helper.exe",
       "finding": "rootkit",
       "description": "winlogon_helper.exe (PID 3580) is hidden from pslist via DKOM. Typosquatting the legitimate 'winlogon.exe' name. Running as SYSTEM with no valid parent.",
-      "points": 30
+      "points": 30,
+      "required": true
     },
     {
       "id": "s6_flag_03",
       "type": "network",
-      "target": "ICMP to 185.220.101.47",
+      "target": "ICMP 185.220.101.47",
       "finding": "ICMP exfiltration",
       "description": "Oversized ICMP echo requests (1400-byte payloads vs normal 32 bytes) to 185.220.101.47 — a known Tor exit node. Payloads contain printable ASCII data. This is ICMP tunneling for covert exfiltration.",
-      "points": 30
+      "points": 30,
+      "required": true
     },
     {
       "id": "s6_flag_04",
@@ -195,7 +498,8 @@
       "target": "winlogon_helper",
       "finding": "typosquatting",
       "description": "BONUS: The hidden process uses typosquatting — 'winlogon_helper.exe' mimics the legitimate Windows process 'winlogon.exe' to evade casual inspection.",
-      "points": 15
+      "points": 15,
+      "required": false
     }
   ],
   "connections": [
@@ -209,14 +513,14 @@
     {
       "id": "conn_02",
       "evidence1": "winlogon_helper.exe",
-      "evidence2": "ICMP to 185.220.101.47",
+      "evidence2": "185.220.101.47",
       "description": "The DKOM-hidden rootkit (winlogon_helper.exe) is the likely source of the ICMP tunneling exfiltration — both run as SYSTEM and were active during the same 02:15–03:14 window.",
       "points": 15
     },
     {
       "id": "conn_03",
       "evidence1": "Security.evtx",
-      "evidence2": "ICMP to 185.220.101.47",
+      "evidence2": "185.220.101.47",
       "description": "The 4-hour event log gap (23:02–03:08) covers the exact timeframe of the ICMP exfiltration traffic (02:15). The attacker wiped the logs to hide the network activity from the audit trail.",
       "points": 15
     }
@@ -225,17 +529,17 @@
     {
       "tier": 1,
       "cost": 10,
-      "text": "This scenario has three layers. Start with the filesystem: check the event log file. How many days of logs should there be vs. how many are actually there?"
+      "text": "This scenario has three layers. Start with the filesystem: check the event log file. A 90-day retention policy should produce a file of a certain size — compare that expectation against what you actually see."
     },
     {
       "tier": 2,
       "cost": 20,
-      "text": "Layer 2 — RAM: pslist shows 22 processes, but psscan shows 24. Find the two hidden ones. One has a name that's very similar to a real Windows process."
+      "text": "Layer 2 — RAM: switch between the two scan methods and count the processes each one returns. A discrepancy means something is being hidden from the kernel's normal view. What makes a process name look trustworthy at first glance?"
     },
     {
       "tier": 3,
       "cost": 30,
-      "text": "Layer 3 — Network: Look at the ICMP traffic. Normal ping payloads are 32 bytes. These are 1400 bytes each, going to a known Tor exit node. That's ICMP tunneling."
+      "text": "Layer 3 — Network: a normal ping (ICMP echo request) carries a small, fixed payload. Look at the payload sizes in the capture and ask yourself: why would a diagnostic protocol need to carry kilobytes of printable data to a destination outside the corporate network?"
     }
   ],
   "debriefing": {

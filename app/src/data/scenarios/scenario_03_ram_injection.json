@@ -34,24 +34,172 @@
     }
   ],
   "ram_dump": [
-    { "pid": 4, "ppid": 0, "name": "System", "offset": "0x823c8830", "threads": 104, "suspicious": false },
-    { "pid": 372, "ppid": 4, "name": "smss.exe", "offset": "0x824a0020", "threads": 2, "suspicious": false },
-    { "pid": 444, "ppid": 372, "name": "csrss.exe", "offset": "0x824b8a00", "threads": 10, "suspicious": false },
-    { "pid": 480, "ppid": 372, "name": "wininit.exe", "offset": "0x82530300", "threads": 3, "suspicious": false },
-    { "pid": 508, "ppid": 480, "name": "services.exe", "offset": "0x82548da0", "threads": 8, "suspicious": false },
-    { "pid": 520, "ppid": 480, "name": "lsass.exe", "offset": "0x82560120", "threads": 7, "suspicious": false },
-    { "pid": 620, "ppid": 508, "name": "svchost.exe", "offset": "0x825d0440", "threads": 12, "suspicious": false },
-    { "pid": 688, "ppid": 508, "name": "svchost.exe", "offset": "0x825f8200", "threads": 8, "suspicious": false },
-    { "pid": 784, "ppid": 508, "name": "svchost.exe", "offset": "0x82630100", "threads": 18, "suspicious": false },
-    { "pid": 860, "ppid": 508, "name": "svchost.exe", "offset": "0x82668a40", "threads": 14, "suspicious": false },
-    { "pid": 952, "ppid": 508, "name": "spoolsv.exe", "offset": "0x826a0780", "threads": 4, "suspicious": false },
-    { "pid": 1044, "ppid": 508, "name": "sqlservr.exe", "offset": "0x826d8300", "threads": 34, "suspicious": false },
-    { "pid": 1200, "ppid": 508, "name": "svchost.exe", "offset": "0x82710a80", "threads": 6, "suspicious": false },
-    { "pid": 1580, "ppid": 860, "name": "WmiPrvSE.exe", "offset": "0x82790040", "threads": 8, "suspicious": false },
-    { "pid": 2048, "ppid": 1044, "name": "sqlwriter.exe", "offset": "0x82870100", "threads": 2, "suspicious": false },
-    { "pid": 2200, "ppid": 508, "name": "msdtc.exe", "offset": "0x828e0600", "threads": 4, "suspicious": false },
-    { "pid": 4812, "ppid": 3021, "name": "svchost.exe", "offset": "0x83a10200", "threads": 3, "suspicious": true, "pslist_visible": false, "psscan_visible": true, "notes": "HIDDEN from pslist — only found via psscan. PPID 3021 points to a process no longer in the active list. DKOM rootkit has unlinked this EPROCESS from ActiveProcessLinks." },
-    { "pid": 3021, "ppid": 508, "name": "—", "offset": "0x83c40000", "threads": 0, "suspicious": true, "pslist_visible": false, "psscan_visible": true, "notes": "Parent of hidden PID 4812. Process has been terminated and partially overwritten. Pool tag still present in memory." }
+    {
+      "pid": 4,
+      "ppid": 0,
+      "name": "System",
+      "offset": "0x823c8830",
+      "threads": 104,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 372,
+      "ppid": 4,
+      "name": "smss.exe",
+      "offset": "0x824a0020",
+      "threads": 2,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 444,
+      "ppid": 372,
+      "name": "csrss.exe",
+      "offset": "0x824b8a00",
+      "threads": 10,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 480,
+      "ppid": 372,
+      "name": "wininit.exe",
+      "offset": "0x82530300",
+      "threads": 3,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 508,
+      "ppid": 480,
+      "name": "services.exe",
+      "offset": "0x82548da0",
+      "threads": 8,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 520,
+      "ppid": 480,
+      "name": "lsass.exe",
+      "offset": "0x82560120",
+      "threads": 7,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 620,
+      "ppid": 508,
+      "name": "svchost.exe",
+      "offset": "0x825d0440",
+      "threads": 12,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 688,
+      "ppid": 508,
+      "name": "svchost.exe",
+      "offset": "0x825f8200",
+      "threads": 8,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 784,
+      "ppid": 508,
+      "name": "svchost.exe",
+      "offset": "0x82630100",
+      "threads": 18,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 860,
+      "ppid": 508,
+      "name": "svchost.exe",
+      "offset": "0x82668a40",
+      "threads": 14,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 952,
+      "ppid": 508,
+      "name": "spoolsv.exe",
+      "offset": "0x826a0780",
+      "threads": 4,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 1044,
+      "ppid": 508,
+      "name": "sqlservr.exe",
+      "offset": "0x826d8300",
+      "threads": 34,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 1200,
+      "ppid": 508,
+      "name": "svchost.exe",
+      "offset": "0x82710a80",
+      "threads": 6,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 1580,
+      "ppid": 860,
+      "name": "WmiPrvSE.exe",
+      "offset": "0x82790040",
+      "threads": 8,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 2048,
+      "ppid": 1044,
+      "name": "sqlwriter.exe",
+      "offset": "0x82870100",
+      "threads": 2,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 2200,
+      "ppid": 508,
+      "name": "msdtc.exe",
+      "offset": "0x828e0600",
+      "threads": 4,
+      "suspicious": false,
+      "pslist_visible": true
+    },
+    {
+      "pid": 4812,
+      "ppid": 3021,
+      "name": "svchost.exe",
+      "offset": "0x83a10200",
+      "threads": 3,
+      "suspicious": true,
+      "pslist_visible": false,
+      "psscan_visible": true,
+      "notes": "HIDDEN from pslist — only found via psscan. PPID 3021 points to a process no longer in the active list. DKOM rootkit has unlinked this EPROCESS from ActiveProcessLinks."
+    },
+    {
+      "pid": 3021,
+      "ppid": 508,
+      "name": "—",
+      "offset": "0x83c40000",
+      "threads": 0,
+      "suspicious": true,
+      "pslist_visible": false,
+      "psscan_visible": true,
+      "notes": "Parent of hidden PID 4812. Process has been terminated and partially overwritten. Pool tag still present in memory."
+    }
   ],
   "malfind_output": [
     {
@@ -94,17 +242,17 @@
     {
       "tier": 1,
       "cost": 10,
-      "text": "Compare the RAM process table carefully. Some processes might appear in one scan method but not another."
+      "text": "Compare the RAM process table carefully. Switch between the two scan methods — do they show the same number of processes?"
     },
     {
       "tier": 2,
       "cost": 20,
-      "text": "Look for a process that exists in psscan output but is hidden from pslist. Check if its parent PID points to a terminated process."
+      "text": "One process appears in the psscan results but is missing from pslist. When a process has no visible parent (PPID pointing to nothing), what might that suggest about how it was hidden?"
     },
     {
       "tier": 3,
       "cost": 30,
-      "text": "PID 4812 (svchost.exe) is hidden via DKOM. Its PPID 3021 is a ghost. Run malfind on 4812 — the RWX region with an MZ header proves code injection."
+      "text": "A rootkit that hides processes often also injects code into them. A legitimate Windows service process should not have memory regions that are simultaneously writable and executable — that combination is a strong indicator of injected code. Which Volatility plugin looks for exactly this pattern?"
     }
   ],
   "debriefing": {
