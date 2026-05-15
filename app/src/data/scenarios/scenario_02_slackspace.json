@@ -31,6 +31,30 @@
       ],
       "correct": 2,
       "explanation": "When a file is deleted in FAT, the first byte of its directory entry is replaced with 0xE5. The actual data clusters are marked as available but are NOT overwritten — they remain intact until a new file claims them. This is why forensic tools can often recover 'deleted' files."
+    },
+    {
+      "id": "s2_pq3",
+      "question": "If a 3,000-byte file is stored on a filesystem with 4,096-byte clusters, how many bytes of slack space exist?",
+      "options": [
+        "0 bytes",
+        "1,000 bytes",
+        "1,096 bytes",
+        "4,096 bytes"
+      ],
+      "correct": 2,
+      "explanation": "Slack space = cluster size − file size = 4,096 − 3,000 = 1,096 bytes. This space may contain remnants of previously stored data."
+    },
+    {
+      "id": "s2_pq4",
+      "question": "What happens to the actual data on disk when a file is deleted in FAT or NTFS?",
+      "options": [
+        "The data is immediately overwritten with zeros",
+        "The data is encrypted and marked as unreadable",
+        "The data remains on disk until another file overwrites those clusters",
+        "The data is moved to a hidden recovery partition"
+      ],
+      "correct": 2,
+      "explanation": "Deleting a file only modifies the directory entry and marks the clusters as available. The actual data bytes remain on disk until they are overwritten by new data."
     }
   ],
   "filesystem": {
@@ -215,7 +239,7 @@
     {
       "tier": 2,
       "cost": 20,
-      "text": "One file in the Projects folder has a suspiciously large gap between its logical size and its allocated size. Check the slack space of file.pdf."
+      "text": "One file in the Projects folder has a much larger gap between its logical and allocated size than the others. Compare the three files — which one has the most slack relative to its content?"
     },
     {
       "tier": 3,
@@ -254,6 +278,30 @@
       ],
       "correct": 1,
       "explanation": "File carving scans raw disk data for known file signatures (magic bytes) to reconstruct files, even when the filesystem metadata has been deleted. Tools like foremost, scalpel, and PhotoRec are commonly used."
+    },
+    {
+      "id": "s2_postq3",
+      "question": "In this scenario, how was the deleted salary_export.csv identified in the filesystem?",
+      "options": [
+        "It appeared in the Recycle Bin with its full original name",
+        "Its directory entry had the first byte replaced with 0xE5, the FAT deletion marker",
+        "It was listed in the Windows event logs as a deleted file",
+        "The MFT entry was completely removed from disk"
+      ],
+      "correct": 1,
+      "explanation": "In FAT, the first byte of a deleted file's directory entry is replaced with 0xE5. The rest of the entry (including timestamps and cluster chain) remains intact, allowing forensic recovery."
+    },
+    {
+      "id": "s2_postq4",
+      "question": "What connected the slack space data in file.pdf to the deleted salary_export.csv?",
+      "options": [
+        "They had the same file hash",
+        "The foremost carving output showed the CSV fragment matched the deleted file's header structure",
+        "They were in the same directory",
+        "The slack space contained a pointer to the deleted file's inode"
+      ],
+      "correct": 1,
+      "explanation": "The foremost tool carved a CSV fragment from file.pdf's slack space whose header ('Employee,Department,Base Salary...') matched the structure of the deleted salary_export.csv — proving the same data existed in both locations."
     }
   ]
 }

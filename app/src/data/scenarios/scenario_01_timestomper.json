@@ -31,6 +31,30 @@
       ],
       "correct": 1,
       "explanation": "Timestomping is the deliberate modification of a file's MAC (Modified, Accessed, Created) timestamps to mislead investigators about the true timeline of events."
+    },
+    {
+      "id": "pq3",
+      "question": "How many distinct timestamps does NTFS store for each file in the $STANDARD_INFORMATION attribute?",
+      "options": [
+        "1 (Last Modified only)",
+        "2 (Created and Modified)",
+        "3 (Created, Modified, Accessed)",
+        "4 (Created, Modified, Accessed, MFT Changed)"
+      ],
+      "correct": 3,
+      "explanation": "NTFS stores four timestamps in $SI: Created, Modified, Accessed, and MFT Changed. Each captures a different aspect of the file's lifecycle."
+    },
+    {
+      "id": "pq4",
+      "question": "Which Windows API call is commonly used by timestomping tools to alter file timestamps?",
+      "options": [
+        "CreateFile()",
+        "SetFileTime()",
+        "ReadFile()",
+        "DeleteFile()"
+      ],
+      "correct": 1,
+      "explanation": "SetFileTime() allows user-space programs to set the Created, Modified, and Accessed timestamps of a file. Timestomping tools call this API to falsify $SI timestamps."
     }
   ],
   "filesystem": {
@@ -276,6 +300,30 @@
       ],
       "correct": 2,
       "explanation": "When all four $SI timestamps (Created, Modified, Accessed, MFT Changed) are precisely the same, it strongly suggests they were set programmatically in a single operation — the hallmark of a timestomping tool."
+    },
+    {
+      "id": "postq3",
+      "question": "In this investigation, what corroborating evidence confirmed the timestamps were deliberately altered?",
+      "options": [
+        "The files had mismatched magic bytes",
+        "A tool artifact (timestomp_log.tmp) was found in AppData",
+        "The files were encrypted with a suspicious key",
+        "The Windows registry showed anti-forensic software installed"
+      ],
+      "correct": 1,
+      "explanation": "The timestomp_log.tmp file in the user's AppData folder was a leftover from the timestomping tool itself. It named both tampered files and the exact timestamp applied — the strongest evidence of deliberate manipulation."
+    },
+    {
+      "id": "postq4",
+      "question": "Why were all four $SI timestamps on the tampered files set to the exact same second?",
+      "options": [
+        "The file was copied from a USB drive, which strips timestamp variation",
+        "Windows sets all timestamps to the current time when a file is accessed",
+        "The timestomping tool used a single SetFileTime() call that applies the same value to all four fields",
+        "NTFS automatically synchronizes timestamps for files modified by administrators"
+      ],
+      "correct": 2,
+      "explanation": "Timestomping tools typically use one API call to set all four $SI timestamps simultaneously. This creates the 'all-identical' pattern that's virtually impossible during normal file operations."
     }
   ]
 }

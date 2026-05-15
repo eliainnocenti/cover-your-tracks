@@ -113,6 +113,30 @@ In FAT file systems, when a file is deleted:
 
 **Why:** `0xE5` is the FAT deletion marker. It replaces the first byte of the filename, but the actual data clusters remain intact until overwritten by a new file.
 
+### Question 3
+> **"If a 3,000-byte file is stored on a filesystem with 4,096-byte clusters, how many bytes of slack space exist?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | 0 bytes | ❌ |
+| 1 | 1,000 bytes | ❌ |
+| **2** | **1,096 bytes** | **✅** |
+| 3 | 4,096 bytes | ❌ |
+
+**Why:** Slack space = cluster size − file size = 4,096 − 3,000 = 1,096 bytes. This space may contain remnants of previously stored data.
+
+### Question 4
+> **"What happens to the actual data on disk when a file is deleted in FAT or NTFS?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | The data is immediately overwritten with zeros | ❌ |
+| 1 | The data is encrypted and marked as unreadable | ❌ |
+| **2** | **The data remains on disk until another file overwrites those clusters** | **✅** |
+| 3 | The data is moved to a hidden recovery partition | ❌ |
+
+**Why:** Deleting a file only modifies the directory entry and marks the clusters as available. The actual data bytes remain on disk until they are overwritten by new data.
+
 
 ## 4. Filesystem Layout
 
@@ -327,6 +351,30 @@ Recovered fragment (foremost):
 
 **Why:** File carving scans raw bytes for known file signatures (magic bytes / headers / footers) to reconstruct file fragments. It works independently of the filesystem metadata.
 
+### Question 3
+> **"In this scenario, how was the deleted salary_export.csv identified in the filesystem?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | It appeared in the Recycle Bin with its full original name | ❌ |
+| **1** | **Its directory entry had the first byte replaced with 0xE5, the FAT deletion marker** | **✅** |
+| 2 | It was listed in the Windows event logs as a deleted file | ❌ |
+| 3 | The MFT entry was completely removed from disk | ❌ |
+
+**Why:** In FAT, the first byte of a deleted file's directory entry is replaced with `0xE5`. The rest of the entry (including timestamps and cluster chain) remains intact, allowing forensic recovery.
+
+### Question 4
+> **"What connected the slack space data in file.pdf to the deleted salary_export.csv?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | They had the same file hash | ❌ |
+| **1** | **The foremost carving output showed the CSV fragment matched the deleted file's header structure** | **✅** |
+| 2 | They were in the same directory | ❌ |
+| 3 | The slack space contained a pointer to the deleted file's inode | ❌ |
+
+**Why:** The `foremost` tool carved a CSV fragment from `file.pdf`'s slack space whose header ('Employee,Department,Base Salary...') matched the structure of the deleted `salary_export.csv` — proving the same data existed in both locations.
+
 
 ## 11. Debriefing Verification
 
@@ -371,7 +419,7 @@ Verify the debriefing shows:
 │  Smoking Gun: CSV salary data in slack space    │
 │  Deleted File: salary_export.csv (0xE5 prefix)  │
 │                                                 │
-│  Pre-Quiz: 1→B, 2→C                             │
-│  Post-Quiz: 1→B, 2→B                            │
+│  Pre-Quiz: 1→B, 2→C, 3→C, 4→C                           │
+│  Post-Quiz: 1→B, 2→B, 3→B, 4→B                          │
 └─────────────────────────────────────────────────┘
 ```

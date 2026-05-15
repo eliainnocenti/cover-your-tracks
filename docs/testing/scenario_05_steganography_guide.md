@@ -142,7 +142,31 @@ EXIF (Exchangeable Image File Format) stores metadata about how an image was tak
 | 2 | Each pixel stores 24 separate color entries | ❌ |
 | 3 | Color depth only applies to JPEG, not PNG | ❌ |
 
-**Why:** In 24-bit color, each pixel has three independent channels (Red, Green, Blue), each 8 bits wide (0-255). This gives 16.7 million possible colors and provides 3 bits per pixel for LSB embedding.
+**Why:** In a 24-bit PNG, each pixel has three color channels (Red, Green, Blue), each represented by 8 bits (0-255). This means each pixel carries 24 bits of color data — and an LSB steganography tool can hide 3 bits of secret data per pixel (one bit per channel).
+
+### Question 3
+> **"Approximately how much data can be hidden in a 1920×1080 image using single-bit LSB steganography across all three color channels?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | About 8 KB | ❌ |
+| 1 | About 80 KB | ❌ |
+| **2** | **About 760 KB** | **✅** |
+| 3 | About 6 MB | ❌ |
+
+**Why:** A 1920×1080 image has 2,073,600 pixels × 3 channels = 6,220,800 available LSBs. At 1 bit each: 6,220,800 / 8 = 777,600 bytes ≈ 760 KB.
+
+### Question 4
+> **"What is EXIF metadata in a digital image?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | The raw pixel data stored in the file | ❌ |
+| **1** | **Embedded information about the camera, date, GPS location, and capture settings** | **✅** |
+| 2 | A digital signature proving the image has not been modified | ❌ |
+| 3 | The compression algorithm used to reduce file size | ❌ |
+
+**Why:** EXIF (Exchangeable Image File Format) metadata records information like camera model, capture date/time, GPS coordinates, and exposure settings. Its absence or inconsistency can be a forensic clue.
 
 
 ## 4. Filesystem Layout
@@ -378,6 +402,30 @@ Steghide v0.5.1 — Execution Log
 
 **Why:** While EXIF stripping has legitimate uses (privacy), in a forensic context it's suspicious — especially when compared to similar images that retain their EXIF. Some steganography tools automatically strip EXIF.
 
+### Question 3
+> **"Why did cat_03.png have its EXIF metadata stripped while cat_01 and cat_02 retained theirs?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | The image was uploaded to social media, which strips EXIF automatically | ❌ |
+| **1** | **The steganography embedding tool (Steghide) stripped EXIF during the embedding process** | **✅** |
+| 2 | The camera malfunctioned when taking the third photo | ❌ |
+| 3 | EXIF is only stored in JPEG files, not PNG | ❌ |
+
+**Why:** Many steganography tools strip EXIF during embedding because the metadata can conflict with the modified pixel data. The steghide_history.log confirmed: 'EXIF metadata stripped from output.'
+
+### Question 4
+> **"Why did cat_03.png's LSB chi-square value (0.48) differ so significantly from cat_01 (0.92) and cat_02 (0.89)?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | cat_03 was taken with a lower-quality camera sensor | ❌ |
+| **1** | **The embedded zip archive replaced the natural LSB distribution with structured data, changing the statistical signature** | **✅** |
+| 2 | cat_03 used a different color space (CMYK instead of RGB) | ❌ |
+| 3 | PNG compression artifacts lowered the chi-square value | ❌ |
+
+**Why:** Natural images have semi-random LSBs (chi-square ≈ 1.0). When a compressed file (like a zip) replaces those LSBs, it introduces structured patterns that significantly lower the chi-square statistic.
+
 
 ## 11. Debriefing Verification
 
@@ -443,7 +491,7 @@ Chi-square test for LSB:
 │  Smoking Gun: steghide_history.log in Tools/     │
 │  Controls: cat_01 and cat_02 are clean           │
 │                                                  │
-│  Pre-Quiz: 1→B, 2→B                              │
-│  Post-Quiz: 1→B, 2→B                             │
+│  Pre-Quiz: 1→B, 2→B, 3→C, 4→B                    │
+│  Post-Quiz: 1→B, 2→B, 3→B, 4→B                   │
 └──────────────────────────────────────────────────┘
 ```

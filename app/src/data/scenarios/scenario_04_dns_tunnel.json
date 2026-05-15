@@ -31,6 +31,30 @@
       ],
       "correct": 1,
       "explanation": "DNS (Domain Name System) resolves domain names to IP addresses. Because DNS traffic is rarely blocked by firewalls and often not inspected, attackers abuse it as a covert channel for command-and-control communication and data exfiltration."
+    },
+    {
+      "id": "s4_pq3",
+      "question": "Why is DNS traffic rarely blocked by firewalls?",
+      "options": [
+        "DNS uses encryption by default, so firewalls cannot inspect it",
+        "DNS is essential for network operation — blocking it would prevent all domain name resolution",
+        "DNS only operates on the local network segment",
+        "Firewalls are not designed to filter UDP traffic"
+      ],
+      "correct": 1,
+      "explanation": "DNS is fundamental infrastructure — without it, no domain name can be resolved. This makes it an attractive covert channel because it's almost always allowed through firewalls."
+    },
+    {
+      "id": "s4_pq4",
+      "question": "What type of DNS record is commonly used by tunneling tools to send data back from the attacker's server to the compromised host?",
+      "options": [
+        "A records (IP addresses)",
+        "AAAA records (IPv6 addresses)",
+        "TXT records (arbitrary text data)",
+        "NS records (nameserver delegation)"
+      ],
+      "correct": 2,
+      "explanation": "TXT records can contain arbitrary text strings up to 255 characters per string. DNS tunneling tools use TXT responses to send commands or data back to the compromised host."
     }
   ],
   "network_log": [
@@ -94,7 +118,7 @@
     {
       "tier": 2,
       "cost": 20,
-      "text": "The subdomains in the queries to exfil-c2.net look like random characters — but they're actually base64-encoded data. Try decoding one."
+      "text": "The subdomains contain no spaces or special characters — just letters, digits, and occasionally '+' or '/'. Does that character set remind you of a common encoding scheme?"
     },
     {
       "tier": 3,
@@ -133,6 +157,30 @@
       ],
       "correct": 1,
       "explanation": "The hallmark of DNS tunneling is many queries to one domain with unusually long, high-entropy subdomains (base64 or hex-encoded data). Normal DNS subdomains are short and human-readable (e.g., 'www', 'mail', 'api')."
+    },
+    {
+      "id": "s4_postq3",
+      "question": "What was the strongest indicator that the DNS traffic in this scenario was malicious rather than normal browsing?",
+      "options": [
+        "The queries used TCP instead of UDP",
+        "847 queries with long, high-entropy subdomains were sent to a single domain in 4 minutes",
+        "The DNS server responded with NXDOMAIN errors",
+        "The queries came from multiple source IP addresses"
+      ],
+      "correct": 1,
+      "explanation": "The combination of extreme volume (847 queries in 4 minutes), long random-looking subdomains (base64-encoded data), and a single destination domain (exfil-c2.net) is the hallmark of DNS tunneling."
+    },
+    {
+      "id": "s4_postq4",
+      "question": "What specific data was being exfiltrated through the DNS tunnel in this case?",
+      "options": [
+        "Windows registry keys",
+        "Browser cookies and session tokens",
+        "The /etc/passwd file containing system user accounts",
+        "Database credentials stored in environment variables"
+      ],
+      "correct": 2,
+      "explanation": "Decoding the base64 subdomains revealed lines from /etc/passwd (e.g., 'root:x:0:0:root:/root:/bin/'). The attacker was exfiltrating the system's user account database through DNS queries."
     }
   ]
 }

@@ -98,6 +98,30 @@ When a timestomping tool runs, it typically sets **all four** \$SI timestamps to
 
 **Why:** Timestomping is specifically about **falsifying** timestamps, not encrypting, deleting, or compressing them.
 
+### Question 3
+> **"How many distinct timestamps does NTFS store for each file in the $STANDARD_INFORMATION attribute?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | 1 (Last Modified only) | ❌ |
+| 1 | 2 (Created and Modified) | ❌ |
+| 2 | 3 (Created, Modified, Accessed) | ❌ |
+| **3** | **4 (Created, Modified, Accessed, MFT Changed)** | **✅** |
+
+**Why:** NTFS stores four timestamps in $SI: Created, Modified, Accessed, and MFT Changed. Each captures a different aspect of the file's lifecycle.
+
+### Question 4
+> **"Which Windows API call is commonly used by timestomping tools to alter file timestamps?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | `CreateFile()` | ❌ |
+| **1** | **`SetFileTime()`** | **✅** |
+| 2 | `ReadFile()` | ❌ |
+| 3 | `DeleteFile()` | ❌ |
+
+**Why:** `SetFileTime()` allows user-space programs to set the Created, Modified, and Accessed timestamps of a file. Timestomping tools call this API to falsify $SI timestamps.
+
 
 ## 4. Filesystem Layout
 
@@ -376,6 +400,30 @@ $FILE_NAME Attribute Values:
 
 **Why:** When a timestomping tool sets all four timestamps in a single operation, they all get the same value. In normal file operations, Created, Modified, Accessed, and MFT Changed would all differ.
 
+### Question 3
+> **"In this investigation, what corroborating evidence confirmed the timestamps were deliberately altered?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | The files had mismatched magic bytes | ❌ |
+| **1** | **A tool artifact (timestomp_log.tmp) was found in AppData** | **✅** |
+| 2 | The files were encrypted with a suspicious key | ❌ |
+| 3 | The Windows registry showed anti-forensic software installed | ❌ |
+
+**Why:** The `timestomp_log.tmp` file in the user's AppData folder was a leftover from the timestomping tool itself. It named both tampered files and the exact timestamp applied — the strongest evidence of deliberate manipulation.
+
+### Question 4
+> **"Why were all four $SI timestamps on the tampered files set to the exact same second?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | The file was copied from a USB drive, which strips timestamp variation | ❌ |
+| 1 | Windows sets all timestamps to the current time when a file is accessed | ❌ |
+| **2** | **The timestomping tool used a single SetFileTime() call that applies the same value to all four fields** | **✅** |
+| 3 | NTFS automatically synchronizes timestamps for files modified by administrators | ❌ |
+
+**Why:** Timestomping tools typically use one API call to set all four $SI timestamps simultaneously. This creates the "all-identical" pattern that's virtually impossible during normal file operations.
+
 
 ## 11. Debriefing Verification
 
@@ -402,7 +450,7 @@ After completing the post-quiz, verify the debriefing screen shows:
 │  Smoking Gun: timestomp_log.tmp in AppData                │
 │  Control File: personal_notes.txt (clean)                 │
 │                                                           │
-│  Pre-Quiz: 1→B, 2→B                                       │
-│  Post-Quiz: 1→B, 2→C                                      │
+│  Pre-Quiz: 1→B, 2→B, 3→D, 4→B                               │
+│  Post-Quiz: 1→B, 2→C, 3→B, 4→C                              │
 └───────────────────────────────────────────────────────────┘
 ```

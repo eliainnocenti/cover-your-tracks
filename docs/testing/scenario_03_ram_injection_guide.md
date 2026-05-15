@@ -127,6 +127,30 @@ Windows uses pool tags (`Proc`, `Thre`, `File`, etc.) to label kernel memory all
 
 **Why:** EPROCESS is the **kernel's core process representation**. It exists in kernel memory and contains all the metadata the kernel needs to manage the process.
 
+### Question 3
+> **"In Windows memory forensics, what does 'PAGE_EXECUTE_READWRITE' (RWX) permission on a memory region suggest?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | The region stores encrypted data | ❌ |
+| 1 | The region is a standard code segment loaded by the OS | ❌ |
+| **2** | **The region may contain injected code, since normal code pages are read-execute only** | **✅** |
+| 3 | The region is part of the Windows kernel | ❌ |
+
+**Why:** Normal executable code is loaded with PAGE_EXECUTE_READ (RX). RWX regions allow code to be both written and executed — a strong indicator of runtime code injection.
+
+### Question 4
+> **"Why might an attacker name their malicious process 'svchost.exe'?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | Because svchost.exe has higher privileges than other processes | ❌ |
+| **1** | **Because the name is common on Windows systems, making the malicious process blend in** | **✅** |
+| 2 | Because only processes named svchost.exe can access the network | ❌ |
+| 3 | Because Windows will automatically restart any process named svchost.exe | ❌ |
+
+**Why:** svchost.exe is a legitimate Windows service host with many instances running simultaneously. Naming malware 'svchost.exe' makes it difficult to spot among the legitimate copies.
+
 
 ## 4. RAM Dump Layout
 
@@ -339,6 +363,30 @@ This is the **primary view** for this scenario. Verify:
 
 **Why:** psscan does a brute-force scan of physical memory looking for the `Proc` pool tag. Since it never walks the ActiveProcessLinks chain, it's immune to DKOM unlinking.
 
+### Question 3
+> **"In this scenario, what proved PID 4812 was hidden via DKOM rather than simply terminated?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | Its entry in the Windows registry was deleted | ❌ |
+| **1** | **It appeared in psscan (raw memory scan) but not in pslist (linked list walk), while still having active threads** | **✅** |
+| 2 | Its executable file was missing from disk | ❌ |
+| 3 | The Windows Event Log showed it was killed by the kernel | ❌ |
+
+**Why:** DKOM hides a process by unlinking its EPROCESS from the ActiveProcessLinks chain (making pslist miss it), but the process continues running. Finding it via psscan with active threads proves it's hidden, not terminated.
+
+### Question 4
+> **"What did the 'MZ' header (4D 5A) found in the RWX memory region of PID 4812 indicate?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | The memory region contained compressed data | ❌ |
+| **1** | **A Windows PE executable was loaded into writable+executable memory — a sign of code injection** | **✅** |
+| 2 | The process was a legitimate Microsoft application | ❌ |
+| 3 | The memory region was part of the Windows swap file | ❌ |
+
+**Why:** 'MZ' (4D 5A) is the magic signature of a Windows PE (Portable Executable) file. Finding a PE header inside an RWX memory region means executable code was injected at runtime — it was not loaded normally by the OS.
+
 
 ## 11. Debriefing Verification
 
@@ -409,8 +457,8 @@ PID 4812's PPID points to PID 3021, which is terminated. In normal Windows opera
 │  Technique: DKOM (ActiveProcessLinks unlink)      │
 │  Evidence: malfind — MZ header in RWX at 0x400000 │
 │                                                   │
-│  Pre-Quiz: 1→B, 2→B                               │
-│  Post-Quiz: 1→B, 2→C                              │
+│  Pre-Quiz: 1→B, 2→B, 3→C, 4→B                             │
+│  Post-Quiz: 1→B, 2→C, 3→B, 4→B                            │
 │                                                   │
 │  NO filesystem, NO network log                    │
 └───────────────────────────────────────────────────┘

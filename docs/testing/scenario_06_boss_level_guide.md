@@ -141,7 +141,29 @@ REM Self-deleting script (but timestamps remain)
 - Payloads contain **printable ASCII** (not random padding)
 - Multiple requests in rapid succession (exfiltration burst)
 
+### Question 3
+> **"In a Windows environment, what does a PPID of 0 indicate for a user-mode process?"**
 
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | The process was started by the network service | ❌ |
+| **1** | **It is an invalid/anomalous state, as user-mode processes should have a valid parent like explorer.exe or services.exe** | **✅** |
+| 2 | The process is a legitimate system idle thread | ❌ |
+| 3 | The process is running in safe mode | ❌ |
+
+**Why:** All normal user-mode processes have a parent process ID (PPID) pointing to the process that launched them. A PPID of 0 for a process like 'winlogon_helper.exe' is a strong indicator of malicious tampering or rootkit activity.
+
+### Question 4
+> **"What is 'typosquatting' in the context of process execution?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | Executing a program with incorrect command-line arguments | ❌ |
+| **1** | **Naming malicious processes very similarly to legitimate system processes to avoid visual detection** | **✅** |
+| 2 | Crashing a program by overflowing its text buffers | ❌ |
+| 3 | Modifying the system font to hide text in the terminal | ❌ |
+
+**Why:** Typosquatting relies on human error or quick visual scanning. Naming a rootkit 'winlogon_helper.exe' or 'svch0st.exe' allows it to blend in with legitimate system processes like 'winlogon.exe' or 'svchost.exe' in task managers.
 ## 5. Investigation Walkthrough
 
 ### Layer 1: Filesystem — Detect Log Wiping
@@ -300,6 +322,30 @@ This is the only scenario that uses **ALL THREE data sources** (filesystem + RAM
 | 2 | ICMP has no maximum payload size limit | ❌ |
 | 3 | ICMP packets cannot be captured by sniffers | ❌ |
 
+### Question 3
+> **"What specific anomaly proved that winlogon_helper.exe was a hidden rootkit?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | Its memory utilization was unusually high | ❌ |
+| **1** | **It appeared in the psscan results but was missing from the pslist results** | **✅** |
+| 2 | It was communicating directly with a known malicious domain | ❌ |
+| 3 | It was digitally signed with a revoked certificate | ❌ |
+
+**Why:** Legitimate processes appear in both the ActiveProcessLinks list (checked by pslist) and physical memory (checked by psscan). A process that only appears in psscan has been deliberately unlinked via DKOM — a classic rootkit technique.
+
+### Question 4
+> **"How did the attacker create a 'blind spot' during their operational window?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | By physically disconnecting the network cable | ❌ |
+| **1** | **By executing wevtutil_clear.bat to wipe the Security Event Log, destroying the records of their activities** | **✅** |
+| 2 | By changing the system clock to a future date | ❌ |
+| 3 | By encrypting the entire hard drive with ransomware | ❌ |
+
+**Why:** The `wevtutil_clear.bat` script cleared the Security, System, and Application logs at 03:14 AM. This erased the event records from 23:02 to 03:08 (the 4-hour operational window), leaving a suspicious gap and a truncated 512 KB log file.
+
 
 ## 12. Common Mistakes and Edge Cases
 
@@ -331,8 +377,8 @@ This is the only scenario that uses **ALL THREE data sources** (filesystem + RAM
 │  Three Layers: Filesystem + RAM + Network          │
 │  Kill Chain: Exfil → Ops → Log wipe → Persist      │
 │                                                    │
-│  Pre-Quiz: 1→C, 2→B                                │
-│  Post-Quiz: 1→C, 2→B                               │
+│  Pre-Quiz: 1→C, 2→B, 3→B, 4→B                      │
+│  Post-Quiz: 1→C, 2→B, 3→B, 4→B                     │
 │                                                    │
 │  ALL views used (Explorer, RAM, Network)           │
 └────────────────────────────────────────────────────┘

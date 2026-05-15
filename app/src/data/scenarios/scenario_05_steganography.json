@@ -31,6 +31,30 @@
       ],
       "correct": 1,
       "explanation": "In a 24-bit PNG, each pixel has three color channels (Red, Green, Blue), each represented by 8 bits (0-255). This means each pixel carries 24 bits of color data — and an LSB steganography tool can hide 3 bits of secret data per pixel (one bit per channel)."
+    },
+    {
+      "id": "s5_pq3",
+      "question": "Approximately how much data can be hidden in a 1920×1080 image using single-bit LSB steganography across all three color channels?",
+      "options": [
+        "About 8 KB",
+        "About 80 KB",
+        "About 760 KB",
+        "About 6 MB"
+      ],
+      "correct": 2,
+      "explanation": "A 1920×1080 image has 2,073,600 pixels × 3 channels = 6,220,800 available LSBs. At 1 bit each: 6,220,800 / 8 = 777,600 bytes ≈ 760 KB."
+    },
+    {
+      "id": "s5_pq4",
+      "question": "What is EXIF metadata in a digital image?",
+      "options": [
+        "The raw pixel data stored in the file",
+        "Embedded information about the camera, date, GPS location, and capture settings",
+        "A digital signature proving the image has not been modified",
+        "The compression algorithm used to reduce file size"
+      ],
+      "correct": 1,
+      "explanation": "EXIF (Exchangeable Image File Format) metadata records information like camera model, capture date/time, GPS coordinates, and exposure settings. Its absence or inconsistency can be a forensic clue."
     }
   ],
   "filesystem": {
@@ -203,7 +227,7 @@
     {
       "tier": 2,
       "cost": 20,
-      "text": "cat_03.png is 14% larger AND its EXIF metadata has been stripped (the other two have normal EXIF). This is suspicious — stripping EXIF prevents metadata analysis."
+      "text": "One of the three images has two inconsistencies: its file size doesn't match what you'd expect for the same resolution, and something is missing from its metadata that the other two have. Which image?"
     },
     {
       "tier": 3,
@@ -242,6 +266,30 @@
       ],
       "correct": 1,
       "explanation": "While there are legitimate reasons to strip EXIF (privacy), in a forensic context it's suspicious — especially when other images from the same device retain their EXIF. Stripping EXIF removes timestamps, camera info, and GPS that could help trace the image's origin, and some steganography tools automatically strip it."
+    },
+    {
+      "id": "s5_postq3",
+      "question": "Why did cat_03.png have its EXIF metadata stripped while cat_01 and cat_02 retained theirs?",
+      "options": [
+        "The image was uploaded to social media, which strips EXIF automatically",
+        "The steganography embedding tool (Steghide) stripped EXIF during the embedding process",
+        "The camera malfunctioned when taking the third photo",
+        "EXIF is only stored in JPEG files, not PNG"
+      ],
+      "correct": 1,
+      "explanation": "Many steganography tools strip EXIF during embedding because the metadata can conflict with the modified pixel data. The steghide_history.log confirmed: 'EXIF metadata stripped from output.'"
+    },
+    {
+      "id": "s5_postq4",
+      "question": "Why did cat_03.png's LSB chi-square value (0.48) differ so significantly from cat_01 (0.92) and cat_02 (0.89)?",
+      "options": [
+        "cat_03 was taken with a lower-quality camera sensor",
+        "The embedded zip archive replaced the natural LSB distribution with structured data, changing the statistical signature",
+        "cat_03 used a different color space (CMYK instead of RGB)",
+        "PNG compression artifacts lowered the chi-square value"
+      ],
+      "correct": 1,
+      "explanation": "Natural images have semi-random LSBs (chi-square ≈ 1.0). When a compressed file (like a zip) replaces those LSBs, it introduces structured patterns that significantly lower the chi-square statistic."
     }
   ]
 }

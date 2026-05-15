@@ -133,6 +133,30 @@ This is the first line of `/etc/passwd`.
 
 **Why:** The primary function of DNS is name resolution. Because it's so fundamental, DNS traffic is almost never blocked — which makes it an ideal covert channel.
 
+### Question 3
+> **"Why is DNS traffic rarely blocked by firewalls?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | DNS uses encryption by default, so firewalls cannot inspect it | ❌ |
+| **1** | **DNS is essential for network operation — blocking it would prevent all domain name resolution** | **✅** |
+| 2 | DNS only operates on the local network segment | ❌ |
+| 3 | Firewalls are not designed to filter UDP traffic | ❌ |
+
+**Why:** DNS is fundamental infrastructure — without it, no domain name can be resolved. This makes it an attractive covert channel because it's almost always allowed through firewalls.
+
+### Question 4
+> **"What type of DNS record is commonly used by tunneling tools to send data back from the attacker's server to the compromised host?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | A records (IP addresses) | ❌ |
+| 1 | AAAA records (IPv6 addresses) | ❌ |
+| **2** | **TXT records (arbitrary text data)** | **✅** |
+| 3 | NS records (nameserver delegation) | ❌ |
+
+**Why:** TXT records can contain arbitrary text strings up to 255 characters per string. DNS tunneling tools use TXT responses to send commands or data back to the compromised host.
+
 
 ## 4. Network Log Layout
 
@@ -337,6 +361,30 @@ This is the **main view** for this scenario. Verify:
 
 **Why:** The combination of high volume + long subdomains + single destination domain is the hallmark of DNS tunneling. Normal DNS has short, human-readable labels.
 
+### Question 3
+> **"What was the strongest indicator that the DNS traffic in this scenario was malicious rather than normal browsing?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | The queries used TCP instead of UDP | ❌ |
+| **1** | **847 queries with long, high-entropy subdomains were sent to a single domain in 4 minutes** | **✅** |
+| 2 | The DNS server responded with NXDOMAIN errors | ❌ |
+| 3 | The queries came from multiple source IP addresses | ❌ |
+
+**Why:** The combination of extreme volume (847 queries in 4 minutes), long random-looking subdomains (base64-encoded data), and a single destination domain (exfil-c2.net) is the hallmark of DNS tunneling.
+
+### Question 4
+> **"What specific data was being exfiltrated through the DNS tunnel in this case?"**
+
+| # | Option | Correct? |
+|---|--------|----------|
+| 0 | Windows registry keys | ❌ |
+| 1 | Browser cookies and session tokens | ❌ |
+| **2** | **The /etc/passwd file containing system user accounts** | **✅** |
+| 3 | Database credentials stored in environment variables | ❌ |
+
+**Why:** Decoding the base64 subdomains revealed lines from /etc/passwd (e.g., 'root:x:0:0:root:/root:/bin/'). The attacker was exfiltrating the system's user account database through DNS queries.
+
 
 ## 11. Debriefing Verification
 
@@ -396,8 +444,8 @@ Students should understand how this would be detected in practice:
 │  Encoding: Base64 in subdomain labels            │
 │  Stolen Data: /etc/passwd file contents          │
 │                                                  │
-│  Pre-Quiz: 1→A, 2→B                              │
-│  Post-Quiz: 1→B, 2→B                             │
+│  Pre-Quiz: 1→A, 2→B, 3→B, 4→C                    │
+│  Post-Quiz: 1→B, 2→B, 3→B, 4→C                   │
 │                                                  │
 │  NO filesystem, NO RAM dump                      │
 └──────────────────────────────────────────────────┘
