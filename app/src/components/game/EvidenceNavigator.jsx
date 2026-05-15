@@ -376,8 +376,10 @@ function TerminalView() {
         '  istat <inode>     — show full MFT record ($SI + $FN)',
         '  strings <file>    — extract printable strings from any file',
         '  hash <file>       — compute MD5 / SHA-256',
+        '  grep <pattern> <file> — search text inside a file',
         '  cat <file>        — print text file contents',
         '  xxd <file>        — hex dump first 64 bytes',
+        '  file <file>       — determine file type',
         '  history           — show command history',
         '  clear             — clear terminal',
       )
@@ -580,6 +582,55 @@ function TerminalView() {
         if (isEvtx(found?.extension)) {
           push({ text: `[!] 'ElfF' (456C6646) is the Windows Event Log binary format signature. Use 'strings ${target}' to extract readable event entries.`, type: 'warn' })
         }
+      }
+    }
+
+    // ── file ──
+    else if (base === 'file') {
+      const target = args[0]
+      if (!target) { push({ text: 'Usage: file <filename>', type: 'error' }); setInput(''); return }
+      if (scenario?.filesystem) {
+        const found = findFileByName(scenario.filesystem.root, target)
+        if (!found) {
+          push({ text: `file: cannot open '${target}' (No such file or directory)`, type: 'error' })
+        } else {
+          const m = found.magic_bytes
+          if (m) {
+            push({ text: `${target}: ${magicBytesLabel(m)}`, type: 'output' })
+          } else if (found.content_preview) {
+            push({ text: `${target}: ASCII text`, type: 'output' })
+          } else if (found.type === 'directory') {
+            push({ text: `${target}: directory`, type: 'output' })
+          } else {
+            push({ text: `${target}: empty`, type: 'output' })
+          }
+        }
+      } else {
+        push({ text: 'No filesystem loaded.', type: 'error' })
+      }
+    }
+
+    // ── grep ──
+    else if (base === 'grep') {
+      const pattern = args[0]
+      const target = args[1]
+      if (!pattern || !target) { push({ text: 'Usage: grep <pattern> <filename>', type: 'error' }); setInput(''); return }
+      
+      if (scenario?.filesystem) {
+        const found = findFileByName(scenario.filesystem.root, target)
+        if (!found) {
+          push({ text: `grep: ${target}: No such file or directory`, type: 'error' })
+        } else if (isEvtx(found.extension) || isBinaryExt(found.extension)) {
+          push({ text: `grep: ${target}: binary file matches`, type: 'output' })
+        } else if (found.content_preview) {
+          const lines = found.content_preview.split('\n')
+          const matches = lines.filter(l => l.includes(pattern))
+          if (matches.length > 0) {
+            matches.forEach(m => push({ text: m, type: 'output' }))
+          }
+        }
+      } else {
+        push({ text: 'No filesystem loaded.', type: 'error' })
       }
     }
 
