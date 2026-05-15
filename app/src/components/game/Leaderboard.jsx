@@ -30,7 +30,7 @@ export default function Leaderboard({ loadLeaderboard }) {
 
   return (
     <div style={{
-      width: '100%', maxWidth: 760,
+      width: '100%', maxWidth: 760, flexShrink: 0,
       border: '1px solid var(--border-dim)',
       borderRadius: 'var(--radius-lg)',
       background: 'var(--bg-surface)',
@@ -75,60 +75,62 @@ export default function Leaderboard({ loadLeaderboard }) {
             </p>
           ) : (
             <>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
-                <thead>
-                  <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border-dim)' }}>
-                    <td style={{ padding: '4px 8px 8px 0', width: 24 }}>#</td>
-                    <td style={{ padding: '4px 8px 8px 0' }}>SCENARIO</td>
-                    <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>SCORE</td>
-                    <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>TIER</td>
-                    <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>FLAGS</td>
-                    <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>K.Δ</td>
-                    <td style={{ padding: '4px 8px 8px 0', textAlign: 'right' }}>TIME</td>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.map((e, i) => {
-                    const tier = getTier(e.finalScore)
-                    const isGold = i === 0
-                    return (
-                      <tr key={e.id} style={{
-                        borderBottom: '1px solid var(--bg-raised)',
-                        color: isGold ? 'var(--amber-main)' : 'var(--text-secondary)',
-                      }}>
-                        <td style={{ padding: '6px 8px 6px 0', color: isGold ? 'var(--amber-main)' : 'var(--text-ghost)' }}>
-                          {i + 1}
-                        </td>
-                        <td style={{ padding: '6px 8px 6px 0' }}>
-                          <div style={{ fontSize: '11px', color: 'var(--text-primary)' }}>{e.scenarioTitle}</div>
-                          <div style={{ fontSize: '9px', color: 'var(--text-ghost)', marginTop: 1 }}>
-                            {new Date(e.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        </td>
-                        <td style={{ padding: '6px 8px 6px 0', textAlign: 'center', fontWeight: 700, color: isGold ? 'var(--amber-main)' : 'var(--text-primary)' }}>
-                          {e.finalScore}
-                        </td>
-                        <td style={{ padding: '6px 8px 6px 0', textAlign: 'center', fontSize: '10px' }}>
-                          <span title={tier.label}>{tier.emoji}</span>
-                        </td>
-                        <td style={{ padding: '6px 8px 6px 0', textAlign: 'center', color: e.flagsFound === e.totalFlags ? 'var(--green-main)' : 'var(--text-secondary)' }}>
-                          {e.flagsFound}/{e.totalFlags}
-                        </td>
-                        <td style={{ padding: '6px 8px 6px 0', textAlign: 'center' }}>
-                          <span style={{
-                            color: e.knowledgeDelta > 0 ? 'var(--green-main)' : e.knowledgeDelta < 0 ? 'var(--red-alert)' : 'var(--text-muted)',
-                          }}>
-                            {e.knowledgeDelta > 0 ? `+${e.knowledgeDelta}%` : `${e.knowledgeDelta}%`}
-                          </span>
-                        </td>
-                        <td style={{ padding: '6px 0 6px 0', textAlign: 'right', color: 'var(--text-muted)' }}>
-                          {fmtTime(e.totalTimeSeconds)}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+              <div style={{ maxHeight: '280px', overflowY: 'auto', paddingRight: '4px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+                  <thead>
+                    <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border-dim)' }}>
+                      <td style={{ padding: '4px 8px 8px 0', width: 24 }}>#</td>
+                      <td style={{ padding: '4px 8px 8px 0' }}>SCENARIO</td>
+                      <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>SCORE</td>
+                      <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>TIER</td>
+                      <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>FLAGS</td>
+                      <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>K.Δ</td>
+                      <td style={{ padding: '4px 8px 8px 0', textAlign: 'right' }}>TIME</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {entries.map((e, i) => {
+                      const tier = getTier(e.finalScore)
+                      const isGold = i === 0
+                      return (
+                        <tr key={e.id} style={{
+                          borderBottom: '1px solid var(--bg-raised)',
+                          color: isGold ? 'var(--amber-main)' : 'var(--text-secondary)',
+                        }}>
+                          <td style={{ padding: '6px 8px 6px 0', color: isGold ? 'var(--amber-main)' : 'var(--text-ghost)' }}>
+                            {i + 1}
+                          </td>
+                          <td style={{ padding: '6px 8px 6px 0' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--text-primary)' }}>{e.scenarioTitle}</div>
+                            <div style={{ fontSize: '9px', color: 'var(--text-ghost)', marginTop: 1 }}>
+                              {new Date(e.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </td>
+                          <td style={{ padding: '6px 8px 6px 0', textAlign: 'center', fontWeight: 700, color: isGold ? 'var(--amber-main)' : 'var(--text-primary)' }}>
+                            {e.finalScore}
+                          </td>
+                          <td style={{ padding: '6px 8px 6px 0', textAlign: 'center', fontSize: '10px' }}>
+                            <span title={tier.label}>{tier.emoji}</span>
+                          </td>
+                          <td style={{ padding: '6px 8px 6px 0', textAlign: 'center', color: e.flagsFound === e.totalFlags ? 'var(--green-main)' : 'var(--text-secondary)' }}>
+                            {e.flagsFound}/{e.totalFlags}
+                          </td>
+                          <td style={{ padding: '6px 8px 6px 0', textAlign: 'center' }}>
+                            <span style={{
+                              color: e.knowledgeDelta > 0 ? 'var(--green-main)' : e.knowledgeDelta < 0 ? 'var(--red-alert)' : 'var(--text-muted)',
+                            }}>
+                              {e.knowledgeDelta > 0 ? `+${e.knowledgeDelta}%` : `${e.knowledgeDelta}%`}
+                            </span>
+                          </td>
+                          <td style={{ padding: '6px 0 6px 0', textAlign: 'right', color: 'var(--text-muted)' }}>
+                            {fmtTime(e.totalTimeSeconds)}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
               {/* Clear button */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>

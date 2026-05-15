@@ -143,7 +143,7 @@ function TreeNode({ node, path, depth, selectedPath, onSelect }) {
 }
 
 function FileDetail({ node }) {
-  const { tagEvidence, state } = useEngine()
+  const { tagEvidence, untagEvidence, state } = useEngine()
   const meta = node.metadata
   const isTagged = !!state.taggedEvidence.find(e => e.id === node.path)
 
@@ -177,7 +177,7 @@ function FileDetail({ node }) {
         </div>
         <button
           className={`btn-tag ${isTagged ? 'tagged' : ''}`}
-          onClick={() => tagEvidence({
+          onClick={() => isTagged ? untagEvidence(node.path) : tagEvidence({
             id: node.path, name: node.name, type: 'file',
             note: allSiSame ? '⚠ All $SI timestamps identical' : '',
             path: node.path,
@@ -772,7 +772,7 @@ function HexView() {
 // psscan shows all processes (carves raw EPROCESS structures).
 // The count discrepancy is surfaced explicitly as a clue.
 function RamView() {
-  const { state, tagEvidence } = useEngine()
+  const { state, tagEvidence, untagEvidence } = useEngine()
   const data = state.scenario?.ram_dump
   const [scanMode, setScanMode] = useState('pslist') // 'pslist' | 'psscan'
   const [selected, setSelected] = useState(null)
@@ -914,7 +914,7 @@ function RamView() {
               </div>
               <button
                 className={`btn-tag ${isTagged(selected) ? 'tagged' : ''}`}
-                onClick={() => tagEvidence({
+                onClick={() => isTagged(selected) ? untagEvidence(`ram_${selected.pid}`) : tagEvidence({
                   id: `ram_${selected.pid}`,
                   name: `${selected.name} (PID ${selected.pid})`,
                   type: 'process',
@@ -965,7 +965,7 @@ function RamView() {
 // Fix: clicking a row expands its detail + provides a Tag Evidence button.
 // Packets in scenario 04/06 can now be tagged and submitted as flags.
 function NetworkView() {
-  const { state, tagEvidence } = useEngine()
+  const { state, tagEvidence, untagEvidence } = useEngine()
   const data = state.scenario?.network_log
   const [selected, setSelected] = useState(null)
 
@@ -1039,7 +1039,7 @@ function NetworkView() {
               </div>
               <button
                 className={`btn-tag ${tagged ? 'tagged' : ''}`}
-                onClick={() => tagEvidence({
+                onClick={() => tagged ? untagEvidence(tagId) : tagEvidence({
                   id: tagId,
                   name: tagName,
                   type: 'network',
