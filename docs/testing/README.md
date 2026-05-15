@@ -75,25 +75,25 @@ Phase auto-advances to `post_quiz` when all flags are found.
 
 ### Pre-Quiz Answers
 
-| Scenario | Q1 | Q2 |
-|----------|----|----|
-| 01 — Timestomper | B (index 1) | B (index 1) |
-| 02 — Slack Space | B (index 1) | C (index 2) |
-| 03 — RAM Injection | B (index 1) | B (index 1) |
-| 04 — DNS Tunnel | A (index 0) | B (index 1) |
-| 05 — Steganography | B (index 1) | B (index 1) |
-| 06 — Boss Level | C (index 2) | B (index 1) |
+| Scenario | Q1 | Q2 | Q3 | Q4 |
+|----------|----|----|----|----|
+| 01 — Timestomper | B (index 1) | B (index 1) | D (index 3) | B (index 1) |
+| 02 — Slack Space | B (index 1) | C (index 2) | C (index 2) | C (index 2) |
+| 03 — RAM Injection | B (index 1) | B (index 1) | C (index 2) | B (index 1) |
+| 04 — DNS Tunnel | A (index 0) | B (index 1) | B (index 1) | C (index 2) |
+| 05 — Steganography | B (index 1) | B (index 1) | C (index 2) | B (index 1) |
+| 06 — Boss Level | C (index 2) | B (index 1) | B (index 1) | B (index 1) |
 
 ### Post-Quiz Answers
 
-| Scenario | Q1 | Q2 |
-|----------|----|----|
-| 01 — Timestomper | B (index 1) | C (index 2) |
-| 02 — Slack Space | B (index 1) | B (index 1) |
-| 03 — RAM Injection | B (index 1) | C (index 2) |
-| 04 — DNS Tunnel | B (index 1) | B (index 1) |
-| 05 — Steganography | B (index 1) | B (index 1) |
-| 06 — Boss Level | C (index 2) | B (index 1) |
+| Scenario | Q1 | Q2 | Q3 | Q4 |
+|----------|----|----|----|----|
+| 01 — Timestomper | B (index 1) | C (index 2) | B (index 1) | C (index 2) |
+| 02 — Slack Space | B (index 1) | B (index 1) | B (index 1) | B (index 1) |
+| 03 — RAM Injection | B (index 1) | C (index 2) | B (index 1) | B (index 1) |
+| 04 — DNS Tunnel | B (index 1) | B (index 1) | B (index 1) | C (index 2) |
+| 05 — Steganography | B (index 1) | B (index 1) | B (index 1) | B (index 1) |
+| 06 — Boss Level | C (index 2) | B (index 1) | B (index 1) | B (index 1) |
 
 ### All Flags Summary
 

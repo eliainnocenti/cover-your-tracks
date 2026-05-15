@@ -19,9 +19,11 @@ Each scenario follows a structured learning loop:
 
 ### Core Features
 - **Scenario-Based Learning**: Play through 6 distinct scenarios covering filesystem, memory, network, and steganography domains.
+- **Granular Assessments**: Every scenario features a 4-question pre-quiz and post-quiz to accurately measure the knowledge delta (learning gain) before and after the hands-on investigation.
+- **Forensic Utilities**: Investigate evidence using simulated terminal commands (`grep`, `file`, `stat`, `strings`, `xxd`), a hex viewer, memory process analyzer, and network packet inspector.
 - **Chain of Custody**: Every action (viewing files, running commands, using hints) is tracked in an immutable session log visible at the end of the game.
 - **Cross-Reference Connections**: Players can link multiple pieces of evidence together to uncover hidden narrative connections and earn bonus points.
-- **Persistent Leaderboard**: Completed scenarios save to local storage, allowing players to track their progress and aim for higher investigation tiers.
+- **Persistent Leaderboard**: Completed scenarios save to local storage, allowing players to track their progress, time spent, and aim for higher investigation tiers.
 
 ### Scenarios
 
