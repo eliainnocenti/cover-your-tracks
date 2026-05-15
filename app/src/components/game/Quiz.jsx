@@ -1,13 +1,19 @@
 // Quiz.jsx
-import { useState } from 'react'
-import { Brain, CheckCircle, XCircle, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Brain, CheckCircle, XCircle, ChevronRight, SkipForward } from 'lucide-react'
 import { useEngine } from './ScenarioEngine'
 
 export default function Quiz({ type }) {
-  const { state, submitPreQuiz, submitPostQuiz } = useEngine()
+  const { state, submitPreQuiz, submitPostQuiz, skipQuiz, startPostQuiz } = useEngine()
   const questions = type === 'pre' ? state.scenario.preQuiz : state.scenario.postQuiz
   const [answers, setAnswers] = useState({})
   const [submitted, setSubmitted] = useState(false)
+  const [showSkipConfirm, setShowSkipConfirm] = useState(false)
+
+  // Record post-quiz start time when post-quiz mounts
+  useEffect(() => {
+    if (type === 'post') startPostQuiz()
+  }, [type, startPostQuiz])
 
   const allAnswered = questions.every(q => answers[q.id] !== undefined)
   const correct = submitted ? questions.filter(q => answers[q.id] === q.correct).length : null
@@ -75,6 +81,67 @@ export default function Quiz({ type }) {
             ? (type === 'pre' ? '▶ Submit and Begin Investigation' : '▶ Submit and View Results')
             : `Answer all ${questions.length} questions to continue`}
         </button>
+      )}
+
+      {/* Skip assessment option (pre-quiz only) */}
+      {!submitted && type === 'pre' && (
+        <button
+          onClick={() => setShowSkipConfirm(true)}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            margin: '12px auto 0', background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-mono)',
+            transition: 'color 0.15s',
+          }}
+          onMouseEnter={e => e.target.style.color = 'var(--text-secondary)'}
+          onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
+        >
+          <SkipForward size={11} /> Skip Assessment
+        </button>
+      )}
+
+      {/* Skip confirmation dialog */}
+      {showSkipConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
+        }} onClick={() => setShowSkipConfirm(false)}>
+          <div style={{
+            background: 'var(--bg-raised)', border: '1px solid var(--border-dim)',
+            borderRadius: 'var(--radius-md)', padding: 24, maxWidth: 400,
+            fontFamily: 'var(--font-mono)',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: '13px', color: 'var(--amber-main)', fontWeight: 700, marginBottom: 12 }}>
+              ⚠ Skip Assessment?
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 16 }}>
+              Skipping the assessment means:
+              <ul style={{ margin: '8px 0 0 16px', padding: 0 }}>
+                <li>Your Knowledge Delta won't be measured</li>
+                <li>You won't receive the post-quiz bonus (up to +20 pts)</li>
+                <li>Your instructor may require the assessment for grading</li>
+              </ul>
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowSkipConfirm(false)}
+                style={{
+                  background: 'var(--bg-raised)', border: '1px solid var(--border-dim)',
+                  borderRadius: 'var(--radius-md)', padding: '6px 16px',
+                  color: 'var(--text-secondary)', fontSize: '11px', fontFamily: 'var(--font-mono)', cursor: 'pointer',
+                }}
+              >Cancel</button>
+              <button
+                onClick={() => { setShowSkipConfirm(false); skipQuiz() }}
+                style={{
+                  background: 'rgba(255,184,0,0.1)', border: '1px solid var(--amber-dim)',
+                  borderRadius: 'var(--radius-md)', padding: '6px 16px',
+                  color: 'var(--amber-main)', fontSize: '11px', fontFamily: 'var(--font-mono)', cursor: 'pointer',
+                }}
+              >Skip and Start Investigation</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

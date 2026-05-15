@@ -1,5 +1,5 @@
 // App.jsx — Game shell + phase router
-import { useState } from 'react';
+import { useState, createContext, useContext } from 'react';
 
 import { ScenarioProvider, useEngine } from './components/game/ScenarioEngine';
 import EvidenceNavigator from './components/game/EvidenceNavigator';
@@ -27,13 +27,20 @@ const ALL_SCENARIOS = {
   scenario_06: scenario06,
 };
 
+// ── Tutorial context (shared between GameRouter and TopBar) ───────────────────
+const TutorialContext = createContext(null)
+
 // ─── Top-level shell ──────────────────────────────────────────────────────────
 export default function App() {
+  const [showTutorial, setShowTutorial] = useState(false)
+
   return (
     <ScenarioProvider>
-      <div className="h-screen bg-gray-950 text-gray-300 flex flex-col overflow-hidden" style={{ fontFamily: "var(--font-mono)" }}>
-        <GameRouter />
-      </div>
+      <TutorialContext.Provider value={{ showTutorial, setShowTutorial }}>
+        <div className="h-screen bg-gray-950 text-gray-300 flex flex-col overflow-hidden" style={{ fontFamily: "var(--font-mono)" }}>
+          <GameRouter />
+        </div>
+      </TutorialContext.Provider>
     </ScenarioProvider>
   );
 }
@@ -41,13 +48,13 @@ export default function App() {
 function GameRouter() {
   const { state, loadScenario } = useEngine();
   const { phase, scenario } = state;
+  const { showTutorial, setShowTutorial } = useContext(TutorialContext);
 
   // Briefing modal state — shows after selecting a scenario, before quiz
   const [showBriefing, setShowBriefing] = useState(false);
   const [pendingScenario, setPendingScenario] = useState(null);
 
-  // Tutorial overlay state — shows after quiz, before investigation
-  const [showTutorial, setShowTutorial] = useState(false);
+  // Tutorial tracking — shows once per scenario on first investigation entry
   const [tutorialShownForScenario, setTutorialShownForScenario] = useState(null);
 
   // Detect when we enter investigation phase — show tutorial if not yet shown
@@ -135,8 +142,9 @@ function DebriefScreen() {
 }
 
 function InvestigationScreen() {
-  const { state } = useEngine();
+  const { state, reset } = useEngine();
   const { scenario } = state;
+  const [showResignConfirm, setShowResignConfirm] = useState(false);
 
   return (
     <div className="flex flex-col h-full">
@@ -152,8 +160,22 @@ function InvestigationScreen() {
         <span style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 700 }}>{scenario.title}</span>
         <div className="h-3 w-px bg-gray-700" />
         <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{scenario.subtitle}</span>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-3">
           <DomainBadge domain={scenario.domain} />
+          <button
+            onClick={() => setShowResignConfirm(true)}
+            title="Resign from investigation"
+            style={{
+              background: 'none', border: '1px solid var(--red-dim)',
+              borderRadius: 'var(--radius-md)', padding: '3px 10px',
+              color: 'var(--red-alert)', fontSize: '10px', fontFamily: 'var(--font-mono)',
+              cursor: 'pointer', opacity: 0.7, transition: 'opacity 0.15s',
+            }}
+            onMouseEnter={e => e.target.style.opacity = '1'}
+            onMouseLeave={e => e.target.style.opacity = '0.7'}
+          >
+            Resign
+          </button>
         </div>
       </div>
 
@@ -169,6 +191,45 @@ function InvestigationScreen() {
         <EvidenceNavigator />
         <InvestigatorNotebook />
       </div>
+
+      {/* Resign confirmation dialog */}
+      {showResignConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
+        }} onClick={() => setShowResignConfirm(false)}>
+          <div style={{
+            background: 'var(--bg-raised)', border: '1px solid var(--border-dim)',
+            borderRadius: 'var(--radius-md)', padding: 24, maxWidth: 380,
+            fontFamily: 'var(--font-mono)',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: '13px', color: 'var(--red-alert)', fontWeight: 700, marginBottom: 12 }}>
+              🚨 Resign from Investigation?
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 16 }}>
+              Your progress will be lost. You'll return to the scenario selection screen.
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowResignConfirm(false)}
+                style={{
+                  background: 'var(--bg-raised)', border: '1px solid var(--border-dim)',
+                  borderRadius: 'var(--radius-md)', padding: '6px 16px',
+                  color: 'var(--text-secondary)', fontSize: '11px', fontFamily: 'var(--font-mono)', cursor: 'pointer',
+                }}
+              >Continue Investigation</button>
+              <button
+                onClick={() => { setShowResignConfirm(false); reset() }}
+                style={{
+                  background: 'rgba(255,60,60,0.1)', border: '1px solid var(--red-dim)',
+                  borderRadius: 'var(--radius-md)', padding: '6px 16px',
+                  color: 'var(--red-alert)', fontSize: '11px', fontFamily: 'var(--font-mono)', cursor: 'pointer',
+                }}
+              >Resign</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -202,12 +263,30 @@ function LoadingScreen() {
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
 function TopBar() {
-  const { state } = useEngine();
+  const { state, reset } = useEngine();
   const { scenario, score, phase } = state;
+  const tutorialCtx = useContext(TutorialContext);
+  const [showBackConfirm, setShowBackConfirm] = useState(false);
 
   return (
     <div className="flex items-center justify-between px-4 py-2.5 border-b border-green-900/40 bg-gray-900">
       <div className="flex items-center gap-3">
+        {/* Back arrow — pre_quiz only */}
+        {phase === 'pre_quiz' && (
+          <button
+            onClick={() => setShowBackConfirm(true)}
+            title="Back to scenario select"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text-muted)', display: 'flex', alignItems: 'center',
+              transition: 'color 0.15s', padding: 0, marginRight: 4,
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+          </button>
+        )}
         <span style={{ color: 'var(--green-main)', fontSize: '13px', fontWeight: 700, letterSpacing: '0.12em' }}>
           COVER YOUR TRACKS
         </span>
@@ -217,11 +296,69 @@ function TopBar() {
       <div className="flex items-center gap-4">
         <PhaseIndicator phase={phase} />
         {phase === 'investigation' && (
-          <span style={{ color: 'var(--green-main)', fontSize: '13px' }}>
-            Score: <span style={{ fontWeight: 700 }}>{score}</span>
-          </span>
+          <>
+            {/* Help button — reopen tutorial */}
+            <button
+              onClick={() => tutorialCtx?.setShowTutorial(true)}
+              title="Reopen investigation guide"
+              style={{
+                background: 'none', border: '1px solid var(--border-dim)',
+                borderRadius: 'var(--radius-md)', padding: '2px 8px',
+                color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-mono)',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--green-main)'; e.currentTarget.style.borderColor = 'var(--green-dim)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-dim)' }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+              Guide
+            </button>
+            <span style={{ color: 'var(--green-main)', fontSize: '13px' }}>
+              Score: <span style={{ fontWeight: 700 }}>{score}</span>
+            </span>
+          </>
         )}
       </div>
+
+      {/* Back confirmation dialog */}
+      {showBackConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
+        }} onClick={() => setShowBackConfirm(false)}>
+          <div style={{
+            background: 'var(--bg-raised)', border: '1px solid var(--border-dim)',
+            borderRadius: 'var(--radius-md)', padding: 24, maxWidth: 340,
+            fontFamily: 'var(--font-mono)',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700, marginBottom: 12 }}>
+              Leave this scenario?
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 16 }}>
+              You'll return to the scenario selection screen.
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowBackConfirm(false)}
+                style={{
+                  background: 'var(--bg-raised)', border: '1px solid var(--border-dim)',
+                  borderRadius: 'var(--radius-md)', padding: '6px 16px',
+                  color: 'var(--text-secondary)', fontSize: '11px', fontFamily: 'var(--font-mono)', cursor: 'pointer',
+                }}
+              >Stay</button>
+              <button
+                onClick={() => { setShowBackConfirm(false); reset() }}
+                style={{
+                  background: 'rgba(0,200,100,0.08)', border: '1px solid var(--green-muted)',
+                  borderRadius: 'var(--radius-md)', padding: '6px 16px',
+                  color: 'var(--green-main)', fontSize: '11px', fontFamily: 'var(--font-mono)', cursor: 'pointer',
+                }}
+              >Leave</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

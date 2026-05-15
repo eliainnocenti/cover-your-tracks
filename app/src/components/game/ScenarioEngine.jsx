@@ -39,8 +39,13 @@ const initialState = {
   selectedNode: null,      // currently inspected filesystem node
   preQuizAnswers: {},
   postQuizAnswers: {},
-  preQuizScore: null,      // 0–100
+  preQuizScore: null,      // 0–100 or null (skipped)
   postQuizScore: null,
+  quizSkipped: false,      // true when student opted to skip assessment
+  preQuizStartTime: null,  // ms timestamp when pre-quiz phase began
+  preQuizEndTime: null,
+  postQuizStartTime: null,
+  postQuizEndTime: null,
   startTime: null,
   endTime: null,
   wrongAttempts: 0,
@@ -78,6 +83,7 @@ function engineReducer(state, action) {
         phase: 'pre_quiz',
         scenario: action.payload,
         startTime: Date.now(),
+        preQuizStartTime: Date.now(),
         sessionLog: [
           logEntry('SESSION_START', `Investigation session opened — Case: ${action.payload.title} [${action.payload.id}]`),
           logEntry('EVIDENCE_LOADED', `Evidence set mounted (domain: ${action.payload.domain})`),
@@ -93,6 +99,7 @@ function engineReducer(state, action) {
         ...state,
         preQuizAnswers: answers,
         preQuizScore: score,
+        preQuizEndTime: Date.now(),
         phase: 'investigation',
         sessionLog: [...state.sessionLog,
         logEntry('PRE_ASSESSMENT', `Pre-quiz completed — Score: ${score}% (${correct}/${qs.length})`, { score }),
@@ -100,6 +107,23 @@ function engineReducer(state, action) {
         ],
       }
     }
+
+    case 'SKIP_QUIZ':
+      return {
+        ...state,
+        quizSkipped: true,
+        preQuizScore: null,
+        postQuizScore: null,
+        preQuizEndTime: Date.now(),
+        phase: 'investigation',
+        sessionLog: [...state.sessionLog,
+        logEntry('PRE_ASSESSMENT_SKIPPED', 'Pre-quiz skipped — Knowledge Delta will not be measured, post-quiz bonus forfeited'),
+        logEntry('INVESTIGATION_START', 'Investigation phase started — evidence access granted'),
+        ],
+      }
+
+    case 'RESET':
+      return initialState
 
     case 'SET_VIEW':
       return {
@@ -207,11 +231,18 @@ function engineReducer(state, action) {
         flagsFound: newFound,
         score: newScore,
         pendingWrongsByFlag: newPendingByFlag,
-        phase: allRequiredDone ? 'post_quiz' : 'investigation',
+        phase: allRequiredDone
+          ? (state.quizSkipped ? 'debrief' : 'post_quiz')
+          : 'investigation',
+        ...(allRequiredDone && state.quizSkipped ? { endTime: Date.now() } : {}),
         sessionLog: [...state.sessionLog,
         logEntry('FLAG_FOUND', `✓ Confirmed finding: ${flag.target} — ${flag.finding} (+${flag.points} pts)`, { flagId, points: flag.points }),
         ...extraLogs,
-        ...(allRequiredDone ? [logEntry('ALL_FLAGS_FOUND', 'All required forensic findings identified — proceeding to post-assessment')] : []),
+        ...(allRequiredDone ? [logEntry('ALL_FLAGS_FOUND',
+          state.quizSkipped
+            ? 'All required forensic findings identified — assessment was skipped, proceeding to debrief'
+            : 'All required forensic findings identified — proceeding to post-assessment'
+        )] : []),
         ],
       }
     }
@@ -247,6 +278,9 @@ function engineReducer(state, action) {
       }
     }
 
+    case 'START_POST_QUIZ':
+      return { ...state, postQuizStartTime: Date.now() }
+
     case 'SUBMIT_POST_QUIZ': {
       const answers = action.payload
       const qs = state.scenario.postQuiz
@@ -257,6 +291,7 @@ function engineReducer(state, action) {
         ...state,
         postQuizAnswers: answers,
         postQuizScore: postScore,
+        postQuizEndTime: Date.now(),
         score: state.score + bonus,
         phase: 'debrief',
         endTime: Date.now(),
@@ -313,6 +348,8 @@ export function ScenarioProvider({ children }) {
 
   const loadScenario = useCallback(s => dispatch({ type: 'LOAD_SCENARIO', payload: s }), [])
   const submitPreQuiz = useCallback(a => dispatch({ type: 'SUBMIT_PRE_QUIZ', payload: a }), [])
+  const skipQuiz = useCallback(() => dispatch({ type: 'SKIP_QUIZ' }), [])
+  const reset = useCallback(() => dispatch({ type: 'RESET' }), [])
   const setView = useCallback(v => dispatch({ type: 'SET_VIEW', payload: v }), [])
   const selectNode = useCallback(n => dispatch({ type: 'SELECT_NODE', payload: n }), [])
   const tagEvidence = useCallback(i => dispatch({ type: 'TAG_EVIDENCE', payload: i }), [])
@@ -321,6 +358,7 @@ export function ScenarioProvider({ children }) {
   const submitFlag = useCallback(id => dispatch({ type: 'SUBMIT_FLAG', payload: { flagId: id } }), [])
   // wrongSubmission now requires the flagId context so deferred penalty is per-flag
   const wrongSubmission = useCallback((flagId = 'unknown') => dispatch({ type: 'WRONG_SUBMISSION', payload: { flagId } }), [])
+  const startPostQuiz = useCallback(() => dispatch({ type: 'START_POST_QUIZ' }), [])
   const submitPostQuiz = useCallback(a => dispatch({ type: 'SUBMIT_POST_QUIZ', payload: a }), [])
   const addTerminalLine = useCallback((text, type = 'output') => dispatch({ type: 'ADD_TERMINAL_LINE', payload: { text, type } }), [])
   const addTerminalCmd = useCallback(cmd => dispatch({ type: 'ADD_TERMINAL_CMD', payload: cmd }), [])
@@ -329,14 +367,16 @@ export function ScenarioProvider({ children }) {
   const registerConnection = useCallback(c => dispatch({ type: 'REGISTER_CONNECTION', payload: c }), [])
 
   // Derived metrics — available after endTime is set
+  const rawDelta = (state.postQuizScore ?? 0) - (state.preQuizScore ?? 0)
   const metrics = state.endTime ? {
     scenarioId: state.scenario?.id,
     scenarioTitle: state.scenario?.title,
     totalTimeSeconds: Math.round((state.endTime - state.startTime) / 1000),
     finalScore: state.score,
-    preQuizScore: state.preQuizScore ?? 0,
-    postQuizScore: state.postQuizScore ?? 0,
-    knowledgeDelta: (state.postQuizScore ?? 0) - (state.preQuizScore ?? 0),
+    quizSkipped: state.quizSkipped,
+    preQuizScore: state.preQuizScore,
+    postQuizScore: state.postQuizScore,
+    knowledgeDelta: state.quizSkipped ? null : Math.max(0, rawDelta),
     hintsUsedCount: state.hintsUsed.length,
     wrongAttempts: state.wrongAttempts,
     flagsFound: state.flagsFound.length,
@@ -352,6 +392,11 @@ export function ScenarioProvider({ children }) {
     totalBonusFlags: state.scenario?.flags.filter(f => f.required === false).length ?? 0,
     connectionsFound: state.foundConnections.length,
     totalConnections: state.scenario?.connections?.length ?? 0,
+    // Quiz timing
+    preQuizDurationSeconds: state.preQuizStartTime && state.preQuizEndTime
+      ? Math.round((state.preQuizEndTime - state.preQuizStartTime) / 1000) : null,
+    postQuizDurationSeconds: state.postQuizStartTime && state.postQuizEndTime
+      ? Math.round((state.postQuizEndTime - state.postQuizStartTime) / 1000) : null,
     sessionLog: state.sessionLog,
   } : null
 
@@ -382,9 +427,9 @@ export function ScenarioProvider({ children }) {
   return (
     <EngineContext.Provider value={{
       state, dispatch, metrics,
-      loadScenario, submitPreQuiz, setView, selectNode,
+      loadScenario, submitPreQuiz, skipQuiz, reset, setView, selectNode,
       tagEvidence, untagEvidence, useHint, submitFlag,
-      wrongSubmission, submitPostQuiz, addTerminalLine, addTerminalCmd,
+      wrongSubmission, startPostQuiz, submitPostQuiz, addTerminalLine, addTerminalCmd,
       clearTerminal, complete, registerConnection,
       loadLeaderboard,
     }}>

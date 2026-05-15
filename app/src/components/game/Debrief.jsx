@@ -7,7 +7,8 @@ export default function Debrief({ onNext }) {
   const { state, metrics } = useEngine()
   const { scenario } = state
   const d = scenario.debriefing
-  const delta = metrics?.knowledgeDelta ?? 0
+  const delta = metrics?.knowledgeDelta
+  const quizSkipped = metrics?.quizSkipped
 
   return (
     <div style={{ maxWidth: 620, margin: '0 auto', padding: '32px 20px', display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -33,11 +34,19 @@ export default function Debrief({ onNext }) {
             value={fmtTime(metrics.totalTimeSeconds)} valueColor="var(--blue-accent)"
           />
           <MetricCard
-            icon={delta > 0 ? <TrendingUp size={13} style={{ color: 'var(--green-main)' }} /> : delta < 0 ? <TrendingDown size={13} style={{ color: 'var(--red-alert)' }} /> : <Minus size={13} style={{ color: 'var(--text-muted)' }} />}
+            icon={quizSkipped
+              ? <Minus size={13} style={{ color: 'var(--text-muted)' }} />
+              : delta > 0
+                ? <TrendingUp size={13} style={{ color: 'var(--green-main)' }} />
+                : <Minus size={13} style={{ color: 'var(--text-muted)' }} />
+            }
             label="Knowledge Δ"
-            value={delta > 0 ? `+${delta}%` : `${delta}%`}
-            sub={`${metrics.preQuizScore}% → ${metrics.postQuizScore}%`}
-            valueColor={delta > 0 ? 'var(--green-main)' : delta < 0 ? 'var(--red-alert)' : 'var(--text-muted)'}
+            value={quizSkipped ? 'N/A' : delta > 0 ? `+${delta}%` : '±0%'}
+            sub={quizSkipped
+              ? 'Assessment skipped'
+              : `${metrics.preQuizScore ?? 0}% → ${metrics.postQuizScore ?? 0}%`
+            }
+            valueColor={quizSkipped ? 'var(--text-muted)' : delta > 0 ? 'var(--green-main)' : 'var(--text-muted)'}
           />
           <MetricCard icon={<Target size={13} style={{ color: 'var(--green-main)' }} />} label="Flags Found"
             value={metrics.bonusFlagsFound > 0
@@ -127,8 +136,22 @@ export default function Debrief({ onNext }) {
           📊 Assessment Record
         </div>
         <div style={{ fontSize: '10px', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
-          Pre-quiz: <b style={{ color: 'var(--text-primary)' }}>{metrics?.preQuizScore ?? '—'}%</b> →
-          Post-quiz: <b style={{ color: 'var(--text-primary)' }}>{metrics?.postQuizScore ?? '—'}%</b> &nbsp;|&nbsp;
+          {metrics?.quizSkipped ? (
+            <span>Assessment: <b style={{ color: 'var(--text-muted)' }}>Skipped</b></span>
+          ) : (
+            <>
+              Pre-quiz: <b style={{ color: 'var(--text-primary)' }}>{metrics?.preQuizScore ?? '—'}%</b>
+              {metrics?.preQuizDurationSeconds != null && (
+                <span style={{ color: 'var(--text-muted)' }}> ({fmtTime(metrics.preQuizDurationSeconds)})</span>
+              )}
+              {' → '}
+              Post-quiz: <b style={{ color: 'var(--text-primary)' }}>{metrics?.postQuizScore ?? '—'}%</b>
+              {metrics?.postQuizDurationSeconds != null && (
+                <span style={{ color: 'var(--text-muted)' }}> ({fmtTime(metrics.postQuizDurationSeconds)})</span>
+              )}
+            </>
+          )}
+          &nbsp;|&nbsp;
           Score: <b style={{ color: 'var(--text-primary)' }}>{metrics?.finalScore ?? '—'}</b> &nbsp;|&nbsp;
           Duration: <b style={{ color: 'var(--text-primary)' }}>{metrics ? fmtTime(metrics.totalTimeSeconds) : '—'}</b>
         </div>
