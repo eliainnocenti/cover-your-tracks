@@ -576,6 +576,10 @@ function TerminalView() {
           { text: `00000000: ${magic.match(/.{2}/g)?.join(' ') ?? magic}  ...`, type: 'output' },
           { text: `[!] Magic bytes ${magic} — ${magicBytesLabel(magic)}`, type: 'warn' },
         )
+        // Educational note for .evtx binary format
+        if (isEvtx(found?.extension)) {
+          push({ text: `[!] 'ElfF' (456C6646) is the Windows Event Log binary format signature. Use 'strings ${target}' to extract readable event entries.`, type: 'warn' })
+        }
       }
     }
 

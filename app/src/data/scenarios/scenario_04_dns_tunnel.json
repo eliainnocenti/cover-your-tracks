@@ -34,24 +34,24 @@
     }
   ],
   "network_log": [
-    { "time": "14:22:01.103", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: mail.google.com", "suspicious": false },
-    { "time": "14:22:01.248", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "A response: 142.250.80.5", "suspicious": false },
-    { "time": "14:22:03.410", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: cm9vdDp4OjA6MDpyb290Oi9yb290Oi9iaW4v.exfil-c2.net", "suspicious": true },
-    { "time": "14:22:03.512", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "TXT response: [64 bytes encoded payload]", "suspicious": true },
-    { "time": "14:22:03.780", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: YmFzaDpkYWVtb246L3Vzci9iaW4vbm9sb2dpbg.exfil-c2.net", "suspicious": true },
-    { "time": "14:22:03.891", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "TXT response: [64 bytes encoded payload]", "suspicious": true },
-    { "time": "14:22:04.110", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: c3luYzp4OjU6MDpzeW5jOi9zYmluOi9iaW4v.exfil-c2.net", "suspicious": true },
-    { "time": "14:22:04.220", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "TXT response: [64 bytes encoded payload]", "suspicious": true },
-    { "time": "14:22:04.501", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: bWFuOng6NjoxMjptYW46L3Zhci9jYWNoZS9tYW4.exfil-c2.net", "suspicious": true },
-    { "time": "14:22:04.612", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "TXT response: [64 bytes encoded payload]", "suspicious": true },
-    { "time": "14:22:05.003", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: bHA6eDo3Ojc6bHA6L3Zhci9zcG9vbC9scGQ6.exfil-c2.net", "suspicious": true },
-    { "time": "14:22:05.890", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: d3d3LWRhdGE6eDozMzozMzp3d3ctZGF0YTov.exfil-c2.net", "suspicious": true },
-    { "time": "14:22:06.210", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: bm9ib2R5Ong6NjU1MzQ6NjU1MzQ6bm9ib2R5.exfil-c2.net", "suspicious": true },
-    { "time": "14:22:06.890", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: c3lzdGVtZC1yZXNvbHZlOng6MTAxOjEwMzpz.exfil-c2.net", "suspicious": true },
-    { "time": "14:22:07.330", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: ...847 total queries to *.exfil-c2.net (showing sample)", "suspicious": true },
-    { "time": "14:22:14.550", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: www.microsoft.com", "suspicious": false },
-    { "time": "14:22:14.680", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "A response: 20.70.246.20", "suspicious": false },
-    { "time": "14:26:01.020", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: RU9GCg.exfil-c2.net (final chunk)", "suspicious": true }
+    { "id": "s4_pkt_01", "time": "14:22:01.103", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: mail.google.com", "suspicious": false },
+    { "id": "s4_pkt_02", "time": "14:22:01.248", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "A response: 142.250.80.5", "suspicious": false },
+    { "id": "s4_pkt_03", "time": "14:22:03.410", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: cm9vdDp4OjA6MDpyb290Oi9yb290Oi9iaW4v.exfil-c2.net", "suspicious": true },
+    { "id": "s4_pkt_04", "time": "14:22:03.512", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "TXT response: [64 bytes encoded payload]", "suspicious": true },
+    { "id": "s4_pkt_05", "time": "14:22:03.780", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: YmFzaDpkYWVtb246L3Vzci9iaW4vbm9sb2dpbg.exfil-c2.net", "suspicious": true },
+    { "id": "s4_pkt_06", "time": "14:22:03.891", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "TXT response: [64 bytes encoded payload]", "suspicious": true },
+    { "id": "s4_pkt_07", "time": "14:22:04.110", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: c3luYzp4OjU6MDpzeW5jOi9zYmluOi9iaW4v.exfil-c2.net", "suspicious": true },
+    { "id": "s4_pkt_08", "time": "14:22:04.220", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "TXT response: [64 bytes encoded payload]", "suspicious": true },
+    { "id": "s4_pkt_09", "time": "14:22:04.501", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: bWFuOng6NjoxMjptYW46L3Zhci9jYWNoZS9tYW4.exfil-c2.net", "suspicious": true },
+    { "id": "s4_pkt_10", "time": "14:22:04.612", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "TXT response: [64 bytes encoded payload]", "suspicious": true },
+    { "id": "s4_pkt_11", "time": "14:22:05.003", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: bHA6eDo3Ojc6bHA6L3Zhci9zcG9vbC9scGQ6.exfil-c2.net", "suspicious": true },
+    { "id": "s4_pkt_12", "time": "14:22:05.890", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: d3d3LWRhdGE6eDozMzozMzp3d3ctZGF0YTov.exfil-c2.net", "suspicious": true },
+    { "id": "s4_pkt_13", "time": "14:22:06.210", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: bm9ib2R5Ong6NjU1MzQ6NjU1MzQ6bm9ib2R5.exfil-c2.net", "suspicious": true },
+    { "id": "s4_pkt_14", "time": "14:22:06.890", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: c3lzdGVtZC1yZXNvbHZlOng6MTAxOjEwMzpz.exfil-c2.net", "suspicious": true },
+    { "id": "s4_pkt_15", "time": "14:22:07.330", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: ...847 total queries to *.exfil-c2.net (showing sample)", "suspicious": true },
+    { "id": "s4_pkt_16", "time": "14:22:14.550", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: www.microsoft.com", "suspicious": false },
+    { "id": "s4_pkt_17", "time": "14:22:14.680", "src": "8.8.8.8", "dst": "192.168.1.47", "protocol": "DNS", "info": "A response: 20.70.246.20", "suspicious": false },
+    { "id": "s4_pkt_18", "time": "14:26:01.020", "src": "192.168.1.47", "dst": "8.8.8.8", "protocol": "DNS", "info": "A query: RU9GCg.exfil-c2.net (final chunk)", "suspicious": true }
   ],
   "decoded_subdomains": [
     { "encoded": "cm9vdDp4OjA6MDpyb290Oi9yb290Oi9iaW4v", "decoded": "root:x:0:0:root:/root:/bin/" },
@@ -99,7 +99,7 @@
     {
       "tier": 3,
       "cost": 30,
-      "text": "Decode 'cm9vdDp4OjA6MDpyb290' from base64. It's 'root:x:0:0:root' — the first line of /etc/passwd. The attacker is tunneling file contents through DNS queries."
+      "text": "Those long subdomain labels use a specific character set (A-Z, a-z, 0-9, +, /). What common encoding scheme uses exactly that alphabet? Try mentally decoding the first few characters of one of those subdomains and think about what kind of system file might begin with 'root:x:0:0'."
     }
   ],
   "debriefing": {

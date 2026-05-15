@@ -192,9 +192,9 @@
     {
       "id": "s2_flag_02",
       "type": "content",
-      "target": "CSV fragment",
+      "target": "foremost_output.txt",
       "finding": "salary data",
-      "description": "Slack space contains a CSV fragment with employee salary/compensation data — evidence of data exfiltration staging.",
+      "description": "Forensic carving (foremost) recovered a CSV fragment with employee salary/compensation data from the slack space — evidence of data exfiltration staging.",
       "points": 35
     },
     {
@@ -220,7 +220,7 @@
     {
       "tier": 3,
       "cost": 30,
-      "text": "The slack space contains a CSV fragment. Now check the Recycle Bin — notice the filename starting with 0xE5? That's a deleted file marker. The two are connected."
+      "text": "You've found hidden data in the slack space of a file. Think about where that data came from — if a file is deleted in FAT, the OS doesn't erase the directory entry entirely. It replaces a specific byte to mark it. Where in this filesystem might a deleted entry still be visible, and what byte value acts as the deletion marker?"
     }
   ],
   "debriefing": {

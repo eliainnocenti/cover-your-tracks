@@ -1,6 +1,6 @@
 // InvestigatorNotebook.jsx
 import { useState } from 'react'
-import { BookOpen, Tag, X, CheckCircle, Lightbulb, Send } from 'lucide-react'
+import { BookOpen, Tag, X, CheckCircle, Lightbulb, Send, AlertTriangle } from 'lucide-react'
 import { useEngine } from './ScenarioEngine'
 import CrossReference from './CrossReference'
 
@@ -70,12 +70,22 @@ export default function InvestigatorNotebook() {
           fTarget.includes(eName.split('\\').pop() ?? eName)  // basename match
       } else if (eType === 'process') {
         // evidence name is "winlogon_helper.exe (PID 3580)"
-        // flag target might be "winlogon_helper.exe" or "winlogon_helper"
-        const procName = eName.split(' (pid')[0]
-        targetMatch =
-          procName.includes(fTarget) ||
-          fTarget.includes(procName) ||
-          sanitize(procName).includes(sanitize(fTarget))
+        // flag target might be "winlogon_helper.exe" or "svchost.exe PID 4812"
+        const procName = eName.split(' (pid')[0].trim()
+        const ePidMatch = eName.match(/\(pid\s*(\d+)\)/i)
+        const fPidMatch = fTarget.match(/pid\s*(\d+)/i)
+        if (ePidMatch && fPidMatch) {
+          // Both have PIDs — require PID match + name overlap
+          const fNamePart = fTarget.replace(/\s*pid\s*\d+/i, '').trim()
+          targetMatch = ePidMatch[1] === fPidMatch[1] &&
+            (procName.includes(fNamePart) || fNamePart.includes(procName))
+        } else {
+          // Fallback: name-only match (no PID in flag target)
+          targetMatch =
+            procName.includes(fTarget) ||
+            fTarget.includes(procName) ||
+            sanitize(procName).includes(sanitize(fTarget))
+        }
       } else if (eType === 'network') {
         // evidence name is "ICMP 10.1.1.50 → 185.220.101.47"
         // flag target might be "ICMP to 185.220.101.47"
@@ -107,7 +117,17 @@ export default function InvestigatorNotebook() {
         const fTarget = (f.target ?? '').toLowerCase()
         const eName = evidence.name.toLowerCase()
         if (evidence.type === 'file') return eName.includes(fTarget) || fTarget.includes(eName.split('\\').pop() ?? eName)
-        if (evidence.type === 'process') return eName.split(' (pid')[0].includes(fTarget) || fTarget.includes(eName.split(' (pid')[0])
+        if (evidence.type === 'process') {
+          const procName = eName.split(' (pid')[0].trim()
+          const ePid = eName.match(/\(pid\s*(\d+)\)/i)?.[1]
+          const fPid = fTarget.match(/pid\s*(\d+)/i)?.[1]
+          if (ePid && fPid) return ePid === fPid
+          return procName.includes(fTarget) || fTarget.includes(procName)
+        }
+        if (evidence.type === 'network') {
+          const ipMatch = fTarget.match(/\b(\d{1,3}(?:\.\d{1,3}){3})\b/g) ?? []
+          return ipMatch.some(ip => eName.includes(ip))
+        }
         return false
       })
       wrongSubmission(evidenceOnlyMatch?.id ?? 'unknown')
@@ -292,35 +312,11 @@ export default function InvestigatorNotebook() {
             They cost points only after you've used a hint.
           </div>
           {hintsOpen && (
-            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {scenario.hints.map(hint => {
-                const used = hintsUsed.includes(hint.tier)
-                return (
-                  <div key={hint.tier} style={{
-                    border: `1px solid ${used ? 'var(--amber-dim)' : 'var(--border-dim)'}`,
-                    background: used ? 'rgba(255,184,0,0.05)' : 'var(--bg-raised)',
-                    borderRadius: 'var(--radius-sm)', padding: '8px 10px',
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: used ? 6 : 0 }}>
-                      <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>TIER {hint.tier}</span>
-                      <span style={{ fontSize: '9px', color: 'var(--red-alert)' }}>−{hint.cost} pts</span>
-                    </div>
-                    {used
-                      ? <p style={{ fontSize: '10px', color: 'var(--amber-main)', margin: 0, lineHeight: 1.5 }}>{hint.text}</p>
-                      : <button
-                        onClick={() => useHint(hint.tier)}
-                        style={{
-                          fontSize: '10px', color: 'var(--text-muted)', background: 'none',
-                          border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-mono)',
-                        }}
-                      >
-                        Reveal (−{hint.cost} pts)
-                      </button>
-                    }
-                  </div>
-                )
-              })}
-            </div>
+            <HintsList
+              hints={scenario.hints}
+              hintsUsed={hintsUsed}
+              useHint={useHint}
+            />
           )}
         </div>
 
@@ -366,7 +362,7 @@ function CustomAutocomplete({ value, options, onChange, placeholder, onEnter }) 
           {filtered.map(o => (
             <div
               key={o}
-              onClick={() => { setInputValue(o); onChange(o); setOpen(false) }}
+              onMouseDown={() => { setInputValue(o); onChange(o); setOpen(false) }}
               style={{
                 padding: '6px 8px', fontSize: '11px', fontFamily: 'var(--font-mono)',
                 color: 'var(--text-primary)', cursor: 'pointer',
@@ -451,6 +447,88 @@ function EvidenceDropdown({ value, options, onChange, placeholder }) {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function HintsList({ hints, hintsUsed, useHint }) {
+  const [confirming, setConfirming] = useState(null) // tier awaiting confirmation
+  const isFirstHint = hintsUsed.length === 0
+
+  const handleReveal = (tier) => {
+    if (isFirstHint && confirming !== tier) {
+      // First hint ever — show confirmation
+      setConfirming(tier)
+      return
+    }
+    useHint(tier)
+    setConfirming(null)
+  }
+
+  return (
+    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {hints.map(hint => {
+        const used = hintsUsed.includes(hint.tier)
+        const isConfirming = confirming === hint.tier
+        return (
+          <div key={hint.tier} style={{
+            border: `1px solid ${used ? 'var(--amber-dim)' : isConfirming ? 'var(--red-dim)' : 'var(--border-dim)'}`,
+            background: used ? 'rgba(255,184,0,0.05)' : isConfirming ? 'rgba(255,60,60,0.04)' : 'var(--bg-raised)',
+            borderRadius: 'var(--radius-sm)', padding: '8px 10px',
+            transition: 'all 0.15s',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: used || isConfirming ? 6 : 0 }}>
+              <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>TIER {hint.tier}</span>
+              <span style={{ fontSize: '9px', color: 'var(--red-alert)' }}>−{hint.cost} pts</span>
+            </div>
+            {used ? (
+              <p style={{ fontSize: '10px', color: 'var(--amber-main)', margin: 0, lineHeight: 1.5 }}>{hint.text}</p>
+            ) : isConfirming ? (
+              <div>
+                <div style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 6,
+                  fontSize: '10px', color: 'var(--amber-main)', lineHeight: 1.5, marginBottom: 8,
+                }}>
+                  <AlertTriangle size={11} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span>Using a hint means all future wrong guesses will cost −5 pts immediately. Are you sure?</span>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    onClick={() => setConfirming(null)}
+                    style={{
+                      fontSize: '10px', padding: '3px 10px', fontFamily: 'var(--font-mono)',
+                      background: 'var(--bg-surface)', border: '1px solid var(--border-dim)',
+                      borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleReveal(hint.tier)}
+                    style={{
+                      fontSize: '10px', padding: '3px 10px', fontFamily: 'var(--font-mono)',
+                      background: 'rgba(255,184,0,0.1)', border: '1px solid var(--amber-dim)',
+                      borderRadius: 'var(--radius-sm)', color: 'var(--amber-main)', cursor: 'pointer',
+                    }}
+                  >
+                    Reveal Hint (−{hint.cost} pts)
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => handleReveal(hint.tier)}
+                style={{
+                  fontSize: '10px', color: 'var(--text-muted)', background: 'none',
+                  border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-mono)',
+                }}
+              >
+                Reveal (−{hint.cost} pts)
+              </button>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }

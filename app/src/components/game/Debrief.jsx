@@ -40,7 +40,10 @@ export default function Debrief({ onNext }) {
             valueColor={delta > 0 ? 'var(--green-main)' : delta < 0 ? 'var(--red-alert)' : 'var(--text-muted)'}
           />
           <MetricCard icon={<Target size={13} style={{ color: 'var(--green-main)' }} />} label="Flags Found"
-            value={`${metrics.flagsFound}/${metrics.totalFlags}`} valueColor="var(--green-main)"
+            value={metrics.bonusFlagsFound > 0
+              ? `${metrics.flagsFound}/${metrics.totalFlags} +${metrics.bonusFlagsFound}★`
+              : `${metrics.flagsFound}/${metrics.totalFlags}`
+            } valueColor="var(--green-main)"
           />
           <MetricCard icon={<Lightbulb size={13} style={{ color: 'var(--amber-main)' }} />} label="Hints Used"
             value={metrics.hintsUsedCount}
@@ -50,6 +53,24 @@ export default function Debrief({ onNext }) {
             value={metrics.wrongAttempts}
             valueColor={metrics.wrongAttempts === 0 ? 'var(--green-main)' : 'var(--red-alert)'}
           />
+        </div>
+      )}
+
+      {/* Penalty explainer (D4) */}
+      {metrics && metrics.wrongAttempts > 0 && (
+        <div style={{
+          padding: '10px 14px', borderRadius: 'var(--radius-md)',
+          background: 'rgba(255,60,60,0.04)', border: '1px solid var(--red-dim)',
+          fontSize: '10px', color: 'var(--text-secondary)', lineHeight: 1.6,
+        }}>
+          <span style={{ color: 'var(--red-alert)', fontWeight: 700 }}>Penalty breakdown:</span>{' '}
+          {metrics.hintsUsedCount > 0
+            ? `You had ${metrics.wrongAttempts} wrong attempt${metrics.wrongAttempts !== 1 ? 's' : ''}. `
+              + `Guesses made after your first hint cost −5 pts each. `
+              + `Any guesses you made before using hints were forgiven if you found the answer yourself.`
+            : `You had ${metrics.wrongAttempts} wrong attempt${metrics.wrongAttempts !== 1 ? 's' : ''}, `
+              + `but since you never used a hint, all penalties were forgiven. Well done!`
+          }
         </div>
       )}
 

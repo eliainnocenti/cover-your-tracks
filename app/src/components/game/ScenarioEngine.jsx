@@ -342,8 +342,14 @@ export function ScenarioProvider({ children }) {
     flagsFound: state.flagsFound.length,
     totalFlags: state.scenario?.flags.filter(f => f.required !== false).length ?? 0,
     completionRate: state.scenario
-      ? Math.round((state.flagsFound.length / state.scenario.flags.length) * 100)
+      ? Math.round((state.flagsFound.filter(ff =>
+          state.scenario.flags.filter(f => f.required !== false).some(rf => rf.id === ff.flagId)
+        ).length / state.scenario.flags.filter(f => f.required !== false).length) * 100)
       : 0,
+    bonusFlagsFound: state.flagsFound.filter(ff =>
+      state.scenario?.flags.some(f => f.id === ff.flagId && f.required === false)
+    ).length,
+    totalBonusFlags: state.scenario?.flags.filter(f => f.required === false).length ?? 0,
     connectionsFound: state.foundConnections.length,
     totalConnections: state.scenario?.connections?.length ?? 0,
     sessionLog: state.sessionLog,

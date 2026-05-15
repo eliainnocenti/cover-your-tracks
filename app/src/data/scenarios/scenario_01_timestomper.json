@@ -242,7 +242,7 @@
     {
       "tier": 3,
       "cost": 30,
-      "text": "When all four MAC timestamps of a file are identical down to the second, that is almost always the fingerprint of a timestomping tool. Ask yourself: if a user-space tool did this, where might it leave artifacts in the user's profile?"
+      "text": "When all four MAC timestamps of a file are identical down to the second, that is almost always the fingerprint of a timestomping tool. A user-space tool that modifies file timestamps must itself be executed — and on Windows, applications running under a user account store runtime data and logs in a specific directory structure. What kind of leftover artifact might such a tool leave behind, and where would Windows place it?"
     }
   ],
   "debriefing": {

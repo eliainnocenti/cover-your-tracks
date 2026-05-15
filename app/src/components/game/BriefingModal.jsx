@@ -4,8 +4,12 @@ import { BookOpen, Shield, Target, ChevronRight, X } from 'lucide-react'
 export default function BriefingModal({ scenario, onContinue }) {
   if (!scenario) return null
 
-  const flagCount = scenario.flags?.length ?? 0
+  const requiredFlags = scenario.flags?.filter(f => f.required !== false) ?? []
+  const bonusFlags = scenario.flags?.filter(f => f.required === false) ?? []
+  const flagCount = requiredFlags.length
   const quizCount = scenario.preQuiz?.length ?? 0
+  const maxFlagPts = requiredFlags.reduce((sum, f) => sum + (f.points ?? 0), 0)
+  const hintCosts = scenario.hints?.reduce((sum, h) => sum + (h.cost ?? 0), 0) ?? 0
 
   return (
     <div className="modal-backdrop" onClick={onContinue}>
@@ -114,8 +118,29 @@ export default function BriefingModal({ scenario, onContinue }) {
               <span style={{ color: 'var(--text-muted)' }}>2.</span> Then the <strong style={{ color: 'var(--text-primary)' }}>investigation environment</strong> opens — explore evidence and find flags
             </div>
             <div>
-              <span style={{ color: 'var(--text-muted)' }}>3.</span> After finding all <strong style={{ color: 'var(--text-primary)' }}>{flagCount} flags</strong>, a post-quiz measures what you learned
+              <span style={{ color: 'var(--text-muted)' }}>3.</span> After finding all <strong style={{ color: 'var(--text-primary)' }}>{flagCount} required flag{flagCount !== 1 ? 's' : ''}</strong>{bonusFlags.length > 0 && <span style={{ color: 'var(--text-ghost)' }}> (+{bonusFlags.length} bonus)</span>}, a post-quiz measures what you learned
             </div>
+          </div>
+        </div>
+
+        {/* Scoring breakdown (D3) */}
+        <div style={{
+          marginBottom: 24, padding: '12px 14px',
+          background: 'rgba(0,200,100,0.03)', borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--green-muted)',
+        }}>
+          <div style={{
+            fontSize: '11px', color: 'var(--green-dim)',
+            textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8,
+          }}>
+            Scoring
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+            <div>▸ Starting score: <strong style={{ color: 'var(--text-primary)' }}>100 pts</strong></div>
+            <div>▸ Flags: up to <strong style={{ color: 'var(--text-primary)' }}>+{maxFlagPts} pts</strong> ({flagCount} findings{bonusFlags.length > 0 ? ` + ${bonusFlags.length} bonus` : ''})</div>
+            <div>▸ Post-quiz bonus: up to <strong style={{ color: 'var(--text-primary)' }}>+20 pts</strong></div>
+            <div>▸ Hints: <span style={{ color: 'var(--amber-main)' }}>−{hintCosts} pts</span> total ({scenario.hints?.length ?? 0} tiers)</div>
+            <div>▸ Wrong guesses: <span style={{ color: 'var(--text-muted)' }}>free before hints</span>, <span style={{ color: 'var(--red-alert)' }}>−5 pts</span> each after</div>
           </div>
         </div>
 

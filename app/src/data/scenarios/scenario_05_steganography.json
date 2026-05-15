@@ -5,7 +5,7 @@
   "difficulty": 4,
   "domain": "steganography",
   "estimatedMinutes": 25,
-  "narrative": "After the DNS tunnel was shut down, an insider at Prism Design Inc. is suspected of switching to a quieter channel to leak product designs. The DLP system caught nothing — no suspicious attachments, no cloud uploads. But a sharp-eyed analyst noticed that the suspect sent three 'cat photos' to an external email address the night before a competitor unveiled a suspiciously similar product. All three PNGs look innocent. Your job: find the one that's hiding something.",
+  "narrative": "After the DNS tunnel was shut down (Scenario 04), the DLP and network monitoring teams tightened egress controls. But a sophisticated insider knows that when network channels are watched, the next step is application-layer steganography — hiding data inside files that look completely normal. An insider at Prism Design Inc. is suspected of using exactly this approach to leak product designs. The DLP system caught nothing — no suspicious attachments, no cloud uploads. But a sharp-eyed analyst noticed that the suspect sent three 'cat photos' to an external email address the night before a competitor unveiled a suspiciously similar product. All three PNGs look innocent. Your job: find the one that's hiding something.",
   "learningObjective": "Understand LSB (Least Significant Bit) steganography — how data can be hidden in the least significant bits of pixel color values without visually altering an image. Learn to identify steganographic images through statistical analysis, file size anomalies, and EXIF metadata inconsistencies.",
   "preQuiz": [
     {
@@ -208,7 +208,7 @@
     {
       "tier": 3,
       "cost": 30,
-      "text": "The LSB chi-square analysis confirms it: cat_03.png has a chi-square of 0.48 (natural images are ~0.9). Run zsteg — there's a zip archive embedded via LSB steganography."
+      "text": "The chi-square statistic measures how randomly distributed the least significant bits are across an image. A natural photograph hovers around 1.0 because camera noise is essentially random. When the value drops significantly, it means the LSBs carry structured data instead of random noise. Which specialized analysis tool can extract hidden payloads from PNG images by reading those modified LSBs in sequence?"
     }
   ],
   "debriefing": {
