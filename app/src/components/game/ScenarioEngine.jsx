@@ -26,6 +26,14 @@ function logEntry(action, detail, extra = {}) {
   return { ts: Date.now(), action, detail, ...extra }
 }
 
+const DEFAULT_TERMINAL_LINES = [
+  { text: '╔════════════════════════════════════════╗', type: 'system' },
+  { text: '║  FORENSIC TERMINAL                     ║', type: 'system' },
+  { text: '╚════════════════════════════════════════╝', type: 'system' },
+  { text: 'Type "help" for available commands.', type: 'comment' },
+  { text: '', type: 'output' },
+]
+
 // ── Initial state ─────────────────────────────────────────────────────────────
 const initialState = {
   phase: 'landing',        // landing | pre_quiz | investigation | post_quiz | debrief | complete
@@ -34,6 +42,10 @@ const initialState = {
   hintsUsed: [],           // [tier numbers]
   flagsFound: [],          // [{ flagId, timestamp, attemptNumber }]
   taggedEvidence: [],      // [{ id, name, type, note, path }]
+  terminalLines: DEFAULT_TERMINAL_LINES,
+  terminalCwd: '',
+  terminalCmdHistory: [],
+  terminalHistIdx: -1,
   terminalHistory: [],     // [{ text, type, timestamp }]
   activeView: 'explorer',  // explorer | terminal | hex | ram | network
   selectedNode: null,      // currently inspected filesystem node
@@ -317,7 +329,14 @@ function engineReducer(state, action) {
       }
 
     case 'CLEAR_TERMINAL':
-      return { ...state, terminalHistory: [] }
+      return {
+        ...state,
+        terminalLines: DEFAULT_TERMINAL_LINES,
+        terminalHistory: [],
+      }
+
+    case 'UPDATE_TERMINAL_STATE':
+      return { ...state, ...action.payload }
 
     case 'REGISTER_CONNECTION': {
       const { connectionId, description, points, evidence1, evidence2 } = action.payload
@@ -363,6 +382,7 @@ export function ScenarioProvider({ children }) {
   const addTerminalLine = useCallback((text, type = 'output') => dispatch({ type: 'ADD_TERMINAL_LINE', payload: { text, type } }), [])
   const addTerminalCmd = useCallback(cmd => dispatch({ type: 'ADD_TERMINAL_CMD', payload: cmd }), [])
   const clearTerminal = useCallback(() => dispatch({ type: 'CLEAR_TERMINAL' }), [])
+  const updateTerminalState = useCallback(payload => dispatch({ type: 'UPDATE_TERMINAL_STATE', payload }), [])
   const complete = useCallback(() => dispatch({ type: 'COMPLETE' }), [])
   const registerConnection = useCallback(c => dispatch({ type: 'REGISTER_CONNECTION', payload: c }), [])
 
@@ -430,7 +450,7 @@ export function ScenarioProvider({ children }) {
       loadScenario, submitPreQuiz, skipQuiz, reset, setView, selectNode,
       tagEvidence, untagEvidence, useHint, submitFlag,
       wrongSubmission, startPostQuiz, submitPostQuiz, addTerminalLine, addTerminalCmd,
-      clearTerminal, complete, registerConnection,
+      clearTerminal, updateTerminalState, complete, registerConnection,
       loadLeaderboard,
     }}>
       {children}

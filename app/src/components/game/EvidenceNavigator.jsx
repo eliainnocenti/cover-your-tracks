@@ -334,25 +334,30 @@ function isBinaryExt(ext) { return BINARY_EXTENSIONS.has((ext ?? '').toLowerCase
 function isEvtx(ext) { return (ext ?? '').toLowerCase() === 'evtx' }
 
 function TerminalView() {
-  const { state, addTerminalLine, clearTerminal } = useEngine()
+  const { state, clearTerminal, updateTerminalState } = useEngine()
   const [input, setInput] = useState('')
-  const [cmdHistory, setCmdHistory] = useState([])
-  const [histIdx, setHistIdx] = useState(-1)
-  const [lines, setLines] = useState([
-    { text: '╔════════════════════════════════════════╗', type: 'system' },
-    { text: '║  FORENSIC TERMINAL                     ║', type: 'system' },
-    { text: '╚════════════════════════════════════════╝', type: 'system' },
-    { text: 'Type "help" for available commands.', type: 'comment' },
-    { text: '', type: 'output' },
-  ])
+  const lines = state.terminalLines
+  const cmdHistory = state.terminalCmdHistory
+  const histIdx = state.terminalHistIdx
+  const cwd = state.terminalCwd
   const bottomRef = useRef(null)
+  const linesRef = useRef(lines)
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [lines])
+  useEffect(() => { linesRef.current = lines }, [lines])
 
-  const push = (...newLines) =>
-    setLines(l => [...l, ...newLines.map(t => typeof t === 'string' ? { text: t, type: 'output' } : t)])
+  const push = (...newLines) => {
+    const next = [...linesRef.current, ...newLines.map(t => typeof t === 'string' ? { text: t, type: 'output' } : t)]
+    linesRef.current = next
+    updateTerminalState({ terminalLines: next })
+  }
 
   const scenario = state.scenario
+  const rootName = scenario?.filesystem?.root?.name ?? ''
+
+  useEffect(() => {
+    if (rootName && (cwd == null)) updateTerminalState({ terminalCwd: '' })
+  }, [rootName, cwd, updateTerminalState])
 
   const handleCmd = (raw) => {
     const cmd = raw.trim()
@@ -361,28 +366,55 @@ function TerminalView() {
     const base = parts[0].toLowerCase()
     const args = parts.slice(1)
 
-    setCmdHistory(h => [cmd, ...h.slice(0, 49)])
-    setHistIdx(-1)
-    push({ text: `analyst@forensics:~$ ${cmd}`, type: 'input' })
+    updateTerminalState({
+      terminalCmdHistory: [cmd, ...cmdHistory.slice(0, 49)],
+      terminalHistIdx: -1,
+    })
+    push({ text: `analyst@forensics:${formatPromptPath(cwd, rootName)}$ ${cmd}`, type: 'input' })
 
-    if (base === 'clear') { setLines([]); setInput(''); return }
+    if (base === 'clear') { clearTerminal(); setInput(''); return }
 
     // ── help ──
     if (base === 'help') {
       push(
         { text: 'Available commands:', type: 'system' },
-        '  ls [path]         — list directory contents',
-        '  stat <file>       — show file timestamps ($SI)',
-        '  istat <inode>     — show full MFT record ($SI + $FN)',
-        '  strings <file>    — extract printable strings from any file',
-        '  hash <file>       — compute MD5 / SHA-256',
+        '  cd [path]             — change directory (virtual filesystem)',
+        '  ls [path]             — list directory contents',
+        '  stat <file>           — show file timestamps ($SI)',
+        '  istat <inode>         — show full MFT record ($SI + $FN)',
+        '  strings <file>        — extract printable strings from any file',
+        '  hash <file>           — compute MD5 / SHA-256',
         '  grep <pattern> <file> — search text inside a file',
-        '  cat <file>        — print text file contents',
-        '  xxd <file>        — hex dump first 64 bytes',
-        '  file <file>       — determine file type',
-        '  history           — show command history',
-        '  clear             — clear terminal',
+        '  cat <file>            — print text file contents',
+        '  xxd <file>            — hex dump first 64 bytes',
+        '  file <file>           — determine file type',
+        '  history               — show command history',
+        '  clear                 — clear terminal',
       )
+    }
+
+    // ── cd ──
+    else if (base === 'cd') {
+      if (!scenario?.filesystem) {
+        push({ text: 'No filesystem loaded.', type: 'error' })
+      } else {
+        const target = args[0] ?? ''
+        const resolved = resolveVirtualPath(cwd, target, rootName)
+        if (resolved == null) {
+          push({ text: `cd: ${target}: Invalid path`, type: 'error' })
+          setInput(''); return
+        }
+        const node = resolved === ''
+          ? scenario.filesystem.root
+          : resolvePathNode(scenario.filesystem.root, resolved)
+        if (!node) {
+          push({ text: `cd: ${target}: No such file or directory`, type: 'error' })
+        } else if (node.type !== 'directory') {
+          push({ text: `cd: ${target}: Not a directory`, type: 'error' })
+        } else {
+          updateTerminalState({ terminalCwd: resolved })
+        }
+      }
     }
 
     // ── ls ──
@@ -391,8 +423,11 @@ function TerminalView() {
         const root = scenario.filesystem.root
         const targetPath = args[0]
         let targetNode = root
-        if (targetPath) {
-          targetNode = resolvePathNode(root, targetPath)
+        const resolved = resolveVirtualPath(cwd, targetPath ?? '', rootName)
+        if (resolved === '') {
+          targetNode = root
+        } else if (resolved) {
+          targetNode = resolvePathNode(root, resolved)
           if (!targetNode) {
             push({ text: `ls: cannot access '${targetPath}': No such file or directory`, type: 'error' })
             setInput(''); return
@@ -646,13 +681,13 @@ function TerminalView() {
     if (e.key === 'ArrowUp') {
       e.preventDefault()
       const idx = Math.min(histIdx + 1, cmdHistory.length - 1)
-      setHistIdx(idx)
+      updateTerminalState({ terminalHistIdx: idx })
       setInput(cmdHistory[idx] ?? '')
     }
     if (e.key === 'ArrowDown') {
       e.preventDefault()
       const idx = Math.max(histIdx - 1, -1)
-      setHistIdx(idx)
+      updateTerminalState({ terminalHistIdx: idx })
       setInput(idx === -1 ? '' : cmdHistory[idx] ?? '')
     }
   }
@@ -681,7 +716,7 @@ function TerminalView() {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid var(--border-dim)', paddingTop: 8 }}>
         <span style={{ color: 'var(--green-main)', fontSize: '11px', fontFamily: 'var(--font-mono)', flexShrink: 0 }}>
-          analyst@forensics:~$
+          analyst@forensics:{formatPromptPath(cwd, rootName)}$
         </span>
         <input
           value={input}
@@ -1086,6 +1121,40 @@ function EmptyPanel({ msg }) {
       <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{msg}</span>
     </div>
   )
+}
+
+function resolveVirtualPath(base, target, rootName) {
+  if (!rootName) return null
+  const basePath = base || ''
+  if (!target || target === '.') return basePath
+  if (target === '~' || target === '/') return ''
+
+  let path
+  if (target.startsWith('/')) {
+    path = target.replace(/^\/+/, '')
+  } else {
+    path = `${basePath}/${target}`
+  }
+
+  const segments = path.replace(/\\/g, '/').split('/').filter(Boolean)
+  const normalized = []
+  for (const seg of segments) {
+    if (seg === '.') continue
+    if (seg === '..') {
+      if (normalized.length > 0) normalized.pop()
+      continue
+    }
+    normalized.push(seg)
+  }
+
+  return normalized.join('/')
+}
+
+function formatPromptPath(cwd, rootName) {
+  if (!rootName) return '~'
+  const rootLabel = rootName.replace(/\\+/g, '').replace(/\/+$/, '')
+  const suffix = cwd ? `/${cwd}` : ''
+  return `/${rootLabel}${suffix}`
 }
 
 function resolvePathNode(root, path) {
