@@ -89,6 +89,10 @@ function GameRouter() {
               loadScenario(pendingScenario);
               setPendingScenario(null);
             }}
+            onClose={() => {
+              setShowBriefing(false);
+              setPendingScenario(null);
+            }}
           />
         )}
       </>

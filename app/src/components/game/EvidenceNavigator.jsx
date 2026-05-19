@@ -340,7 +340,7 @@ function TerminalView() {
   const [histIdx, setHistIdx] = useState(-1)
   const [lines, setLines] = useState([
     { text: '╔════════════════════════════════════════╗', type: 'system' },
-    { text: '║  FORENSIC TERMINAL  v2.1 — RESTRICTED  ║', type: 'system' },
+    { text: '║  FORENSIC TERMINAL                     ║', type: 'system' },
     { text: '╚════════════════════════════════════════╝', type: 'system' },
     { text: 'Type "help" for available commands.', type: 'comment' },
     { text: '', type: 'output' },
@@ -663,6 +663,7 @@ function TerminalView() {
         {lines.map((line, i) => (
           <div key={i} style={{
             fontFamily: 'var(--font-mono)', fontSize: '11px', lineHeight: '1.6',
+            whiteSpace: 'pre',
             color: {
               system: 'var(--green-main)',
               input: 'var(--text-primary)',

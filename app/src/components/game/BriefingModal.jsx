@@ -1,7 +1,7 @@
 // BriefingModal.jsx — Scenario introduction popup before pre-quiz
 import { BookOpen, Shield, Target, ChevronRight, X } from 'lucide-react'
 
-export default function BriefingModal({ scenario, onContinue }) {
+export default function BriefingModal({ scenario, onContinue, onClose }) {
   if (!scenario) return null
 
   const requiredFlags = scenario.flags?.filter(f => f.required !== false) ?? []
@@ -16,7 +16,7 @@ export default function BriefingModal({ scenario, onContinue }) {
       <div className="modal-card" onClick={e => e.stopPropagation()}>
         {/* Close button */}
         <button
-          onClick={onContinue}
+          onClick={onClose}
           style={{
             position: 'absolute', top: 14, right: 14,
             background: 'none', border: 'none', cursor: 'pointer',
