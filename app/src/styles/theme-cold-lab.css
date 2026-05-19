@@ -609,19 +609,6 @@ textarea::placeholder {
     position: relative;
 }
 
-.modal-card::before {
-    content: 'CRYO LAB';
-    position: absolute;
-    top: 12px;
-    right: 14px;
-    font-family: var(--font-display);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    color: rgba(126, 226, 245, 0.6);
-    border: 1px solid rgba(126, 226, 245, 0.35);
-    padding: 2px 6px;
-    border-radius: 3px;
-}
 
 /* ── Tutorial overlay ───────────────────────────────────────────────────── */
 .tutorial-backdrop {
