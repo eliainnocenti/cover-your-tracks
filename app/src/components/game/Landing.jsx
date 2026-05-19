@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Shield, ChevronRight, Clock, Target, Layers, Info, Github, Linkedin, Mail, X } from 'lucide-react'
+import { Shield, ChevronRight, Clock, Target, Layers, Info, Github, Linkedin, Mail, X, Settings } from 'lucide-react'
 import { useEngine } from './ScenarioEngine'
 import Leaderboard from './Leaderboard'
+import { applyTheme, getStoredTheme, getThemes } from '../../theme'
 
 const SCENARIOS_META = [
   { id: 'scenario_01', title: 'The Timestomper', subtitle: 'Filesystem — MAC Time Manipulation', domain: 'filesystem', difficulty: 2, minutes: 15 },
@@ -23,8 +24,37 @@ const DOMAIN_COLORS = {
 export default function Landing({ onStart }) {
   const { loadLeaderboard } = useEngine()
   const [showAbout, setShowAbout] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [activeTheme, setActiveTheme] = useState(getStoredTheme())
+  const themes = getThemes()
+
+  const handleThemeChange = (themeId) => {
+    const selected = applyTheme(themeId)
+    setActiveTheme(selected)
+  }
   return (
-    <div style={{ height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px' }}>
+    <div style={{ height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px', position: 'relative' }}>
+      {/* Settings button */}
+      <button
+        onClick={() => setShowSettings(true)}
+        title="Theme settings"
+        style={{
+          position: 'absolute', top: 24, right: 24,
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-dim)',
+          borderRadius: 'var(--radius-md)',
+          padding: '6px 10px',
+          color: 'var(--text-muted)',
+          cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 6,
+          fontSize: '10px', fontFamily: 'var(--font-mono)',
+          letterSpacing: '0.08em', textTransform: 'uppercase',
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+      >
+        <Settings size={12} /> Theme
+      </button>
       {/* Hero */}
       <div style={{ textAlign: 'center', marginBottom: 48 }} className="boot-text">
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
@@ -130,6 +160,43 @@ export default function Landing({ onStart }) {
       </div>
 
       {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
+      {showSettings && (
+        <div className="modal-backdrop" onClick={() => setShowSettings(false)}>
+          <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: 440, padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Settings size={16} style={{ color: 'var(--green-main)' }} />
+                <h2 style={{ fontSize: '13px', margin: 0, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Theme Settings</h2>
+              </div>
+              <button onClick={() => setShowSettings(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }} onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {themes.map(theme => (
+                <button
+                  key={theme.id}
+                  onClick={() => handleThemeChange(theme.id)}
+                  style={{
+                    textAlign: 'left',
+                    background: theme.id === activeTheme ? 'var(--bg-overlay)' : 'var(--bg-surface)',
+                    border: theme.id === activeTheme ? '1px solid var(--green-dim)' : '1px solid var(--border-dim)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '10px 12px',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-mono)',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', fontWeight: 700 }}>{theme.label}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 4 }}>{theme.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
