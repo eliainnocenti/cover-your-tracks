@@ -1,4 +1,4 @@
-# 🕵️ Cover Your Tracks — Complete Testing and Solution Guide
+# Cover Your Tracks — Complete Testing and Solution Guide
 
 > **Forensics Serious Game — Full Walkthrough for All 6 Scenarios**
 
@@ -22,7 +22,7 @@ This directory contains one comprehensive guide per scenario. Each guide covers:
 
 | # | Guide | Domain | Difficulty | Flags | Key Technique |
 |---|-------|--------|-----------|-------|---------------|
-| 01 | [The Timestomper](scenario_01_timestomper_guide.md) | Filesystem | ★☆☆☆☆ | 3 | NTFS \$SI vs \$FN timestamp manipulation |
+| 01 | [The Timestomper](scenario_01_timestomper_guide.md) | Filesystem | ★★☆☆☆ | 3 | NTFS \$SI vs \$FN timestamp manipulation |
 | 02 | [Ghosts in the Sectors](scenario_02_slackspace_guide.md) | Filesystem | ★★☆☆☆ | 3 | Slack space data hiding and file carving |
 | 03 | [Ghost in the Machine](scenario_03_ram_injection_guide.md) | RAM/OS | ★★★☆☆ | 3 | DKOM process hiding and code injection |
 | 04 | [The Whispering DNS](scenario_04_dns_tunnel_guide.md) | Network | ★★★☆☆ | 3 | DNS tunneling data exfiltration |

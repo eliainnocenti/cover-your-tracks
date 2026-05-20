@@ -29,7 +29,7 @@ Each scenario follows a structured learning loop:
 
 | # | Title | Domain | Technique | Difficulty |
 |---|-------|--------|-----------|------------|
-| 01 | The Timestomper | Filesystem | MAC time manipulation (\$SI vs \$FN) | ★☆☆☆☆ |
+| 01 | The Timestomper | Filesystem | MAC time manipulation (\$SI vs \$FN) | ★★☆☆☆ |
 | 02 | Ghosts in the Sectors | Filesystem | Slack space exploitation | ★★☆☆☆ |
 | 03 | Ghost in the Machine | RAM | DKOM rootkit / process hiding | ★★★☆☆ |
 | 04 | The Whispering DNS | Network | DNS tunneling for data exfiltration | ★★★☆☆ |
@@ -135,8 +135,8 @@ The game uses a **finite state machine** powered by React's `useReducer` + Conte
 |--------|-------------|
 | `preQuizScore` | Baseline knowledge (%) |
 | `postQuizScore` | Knowledge after gameplay (%) |
-| `knowledgeDelta` | Learning gain (post − pre) |
-| `finalScore` | Investigation quality (base 100 + flag bonuses − penalties) |
+| `knowledgeDelta` | Learning gain (post - pre) |
+| `finalScore` | Investigation quality (base 100 + flag bonuses - penalties) |
 | `hintsUsedCount` | Self-sufficiency indicator |
 | `wrongAttempts` | Methodical vs. guessing behavior |
 | `totalTimeSeconds` | Efficiency |
