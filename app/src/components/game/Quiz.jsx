@@ -4,7 +4,7 @@ import { Brain, CheckCircle, XCircle, ChevronRight, SkipForward } from 'lucide-r
 import { useEngine } from './ScenarioEngine'
 
 export default function Quiz({ type }) {
-  const { state, submitPreQuiz, submitPostQuiz, skipQuiz, startPostQuiz } = useEngine()
+  const { state, submitPreQuiz, submitPostQuiz, skipQuiz, skipPostQuiz, startPostQuiz } = useEngine()
   const questions = type === 'pre' ? state.scenario.preQuiz : state.scenario.postQuiz
   const [answers, setAnswers] = useState({})
   const [submitted, setSubmitted] = useState(false)
@@ -83,8 +83,8 @@ export default function Quiz({ type }) {
         </button>
       )}
 
-      {/* Skip assessment option (pre-quiz only) */}
-      {!submitted && type === 'pre' && (
+      {/* Skip assessment option (both pre and post) */}
+      {!submitted && (
         <button
           onClick={() => setShowSkipConfirm(true)}
           style={{
@@ -96,7 +96,7 @@ export default function Quiz({ type }) {
           onMouseEnter={e => e.target.style.color = 'var(--text-secondary)'}
           onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
         >
-          <SkipForward size={11} /> Skip Assessment
+          <SkipForward size={11} /> {type === 'pre' ? 'Skip Assessment' : 'Skip Post-Quiz'}
         </button>
       )}
 
@@ -112,15 +112,28 @@ export default function Quiz({ type }) {
             fontFamily: 'var(--font-mono)',
           }} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: '13px', color: 'var(--amber-main)', fontWeight: 700, marginBottom: 12 }}>
-              ⚠ Skip Assessment?
+              ⚠ {type === 'pre' ? 'Skip Assessment?' : 'Skip Post-Quiz?'}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 16 }}>
-              Skipping the assessment means:
-              <ul style={{ margin: '8px 0 0 16px', padding: 0 }}>
-                <li>Your Knowledge Delta won't be measured</li>
-                <li>You won't receive the post-quiz bonus (up to +20 pts)</li>
-                <li>Your instructor may require the assessment for grading</li>
-              </ul>
+              {type === 'pre' ? (
+                <>
+                  Skipping the assessment means:
+                  <ul style={{ margin: '8px 0 0 16px', padding: 0 }}>
+                    <li>Your Knowledge Delta won't be measured</li>
+                    <li>You won't receive the post-quiz bonus (up to +20 pts)</li>
+                    <li>Your instructor may require the assessment for grading</li>
+                  </ul>
+                </>
+              ) : (
+                <>
+                  Skipping the post-quiz means:
+                  <ul style={{ margin: '8px 0 0 16px', padding: 0 }}>
+                    <li>Your Knowledge Delta won't be measured</li>
+                    <li>You will forfeit the post-quiz score and bonus (up to +20 pts)</li>
+                    <li>Your final report will mark the post-assessment as skipped</li>
+                  </ul>
+                </>
+              )}
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button
@@ -132,13 +145,22 @@ export default function Quiz({ type }) {
                 }}
               >Cancel</button>
               <button
-                onClick={() => { setShowSkipConfirm(false); skipQuiz() }}
+                onClick={() => {
+                  setShowSkipConfirm(false)
+                  if (type === 'pre') {
+                    skipQuiz()
+                  } else {
+                    skipPostQuiz()
+                  }
+                }}
                 style={{
                   background: 'rgba(255,184,0,0.1)', border: '1px solid var(--amber-dim)',
                   borderRadius: 'var(--radius-md)', padding: '6px 16px',
                   color: 'var(--amber-main)', fontSize: '11px', fontFamily: 'var(--font-mono)', cursor: 'pointer',
                 }}
-              >Skip and Start Investigation</button>
+              >
+                {type === 'pre' ? 'Skip and Start Investigation' : 'Skip and View Results'}
+              </button>
             </div>
           </div>
         </div>

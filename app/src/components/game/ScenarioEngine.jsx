@@ -137,6 +137,20 @@ function engineReducer(state, action) {
         ],
       }
 
+    case 'SKIP_POST_QUIZ':
+      return {
+        ...state,
+        quizSkipped: true,
+        postQuizScore: null,
+        postQuizEndTime: Date.now(),
+        phase: 'debrief',
+        endTime: Date.now(),
+        sessionLog: [...state.sessionLog,
+        logEntry('POST_ASSESSMENT_SKIPPED', 'Post-quiz skipped — Knowledge Delta will not be measured, post-quiz bonus forfeited'),
+        logEntry('INVESTIGATION_END', 'Investigation session concluded — generating debrief'),
+        ],
+      }
+
     case 'RESET':
       return initialState
 
@@ -371,6 +385,7 @@ export function ScenarioProvider({ children }) {
   const loadScenario = useCallback(s => dispatch({ type: 'LOAD_SCENARIO', payload: s }), [])
   const submitPreQuiz = useCallback(a => dispatch({ type: 'SUBMIT_PRE_QUIZ', payload: a }), [])
   const skipQuiz = useCallback(() => dispatch({ type: 'SKIP_QUIZ' }), [])
+  const skipPostQuiz = useCallback(() => dispatch({ type: 'SKIP_POST_QUIZ' }), [])
   const reset = useCallback(() => dispatch({ type: 'RESET' }), [])
   const setView = useCallback(v => dispatch({ type: 'SET_VIEW', payload: v }), [])
   const selectNode = useCallback(n => dispatch({ type: 'SELECT_NODE', payload: n }), [])
@@ -450,7 +465,7 @@ export function ScenarioProvider({ children }) {
   return (
     <EngineContext.Provider value={{
       state, dispatch, metrics,
-      loadScenario, submitPreQuiz, skipQuiz, reset, setView, selectNode,
+      loadScenario, submitPreQuiz, skipQuiz, skipPostQuiz, reset, setView, selectNode,
       tagEvidence, untagEvidence, useHint, submitFlag,
       wrongSubmission, startPostQuiz, submitPostQuiz, addTerminalLine, addTerminalCmd,
       clearTerminal, updateTerminalState, complete, registerConnection,
