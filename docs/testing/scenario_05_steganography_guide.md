@@ -333,11 +333,14 @@ Steghide v0.5.1 — Execution Log
 
 ## 7. Hints and Their Cost
 
-| Tier | Cost | Text | What it reveals |
-|------|------|------|----------------|
-| 1 | −10 pts | "All three images are the same resolution (1920×1080). Compare their file sizes — one is noticeably larger than the others. Why?" | Points toward file size anomaly |
-| 2 | −20 pts | "cat_03.png is 14% larger AND its EXIF metadata has been stripped (the other two have normal EXIF). This is suspicious..." | Identifies two anomalies |
-| 3 | −30 pts | "The LSB chi-square analysis confirms it: cat_03.png has a chi-square of 0.48 (natural images are ~0.9). Run zsteg — there's a zip archive embedded via LSB steganography." | Complete solution |
+The professor strongly mandated that hints should not act as mechanical walkthroughs, but instead leave space for conceptual inference and reasoning about statistical anomalies and metadata integrity.
+
+| Tier | Cost | Text | Conceptual Focus |
+|------|------|------|------------------|
+| 1 | −10 pts | "Consider the physical footprint of digital image storage. If three control files share identical pixel dimensions and depict similar scenes, what does a statistically significant variance in file size indicate about the underlying byte arrangement of one specific file?" | **Data Storage Footprint**: Prompts the student to reason about why the stego-carrier is 14% larger due to the embedded zip archive. |
+| 2 | −20 pts | "Analyze the metadata profiles of the images. While normal digital cameras systematically embed device descriptions, timestamps, and geolocation tags, what diagnostic inference can you draw when an image's EXIF profile is entirely blank? How does this cross-correlate with changes in the MFT timestamps?" | **EXIF Metadata Anomalies**: Prompts students to identify that the lack of camera model/GPS is due to steganography tools automatic stripping. |
+| 3 | −30 pts | "The Chi-square statistic measures the goodness-of-fit against a uniform random distribution. A natural photograph's LSB layer, dominated by chaotic sensor noise, exhibits a Chi-square value near 1.0. If the Chi-square drops to 0.48, what does this tell you about the predictability and order of those bits? Why does replacing chaotic sensor noise with highly structured binary data (such as a compressed container) cause this specific mathematical anomaly?" | **Chi-Square & LSB Statistical Deviation**: Leads students to deduce that structured zip payloads overwrite natural chaotic noise, creating detectable statistical spikes and low Chi-square values. |
+
 
 
 ## 8. Scoring Breakdown

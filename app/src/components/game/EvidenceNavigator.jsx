@@ -239,6 +239,7 @@ function FileDetail({ node }) {
                 ['EXIF present', meta.exif_stripped ? '✗ STRIPPED' : '✓ Present'],
                 ['Camera', meta.exif_camera ?? '—'],
                 ['Date taken', meta.exif_date ?? '—'],
+                ['GPS Coordinates', meta.exif_gps ?? '—'],
               ].map(([k, v]) => (
                 <tr key={k} className={
                   (k === 'Chi-square' && meta.lsb_chi_square < 0.7) ||

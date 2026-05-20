@@ -222,17 +222,17 @@
     {
       "tier": 1,
       "cost": 10,
-      "text": "All three images are the same resolution (1920x1080). Compare their file sizes — one is noticeably larger than the others. Why?"
+      "text": "Consider the physical footprint of digital image storage. If three control files share identical pixel dimensions and depict similar scenes, what does a statistically significant variance in file size indicate about the underlying byte arrangement of one specific file?"
     },
     {
       "tier": 2,
       "cost": 20,
-      "text": "One of the three images has two inconsistencies: its file size doesn't match what you'd expect for the same resolution, and something is missing from its metadata that the other two have. Which image?"
+      "text": "Analyze the metadata profiles of the images. While normal digital cameras systematically embed device descriptions, timestamps, and geolocation tags, what diagnostic inference can you draw when an image's EXIF profile is entirely blank? How does this cross-correlate with changes in the MFT timestamps?"
     },
     {
       "tier": 3,
       "cost": 30,
-      "text": "The chi-square statistic measures how randomly distributed the least significant bits are across an image. A natural photograph hovers around 1.0 because camera noise is essentially random. When the value drops significantly, it means the LSBs carry structured data instead of random noise. Which specialized analysis tool can extract hidden payloads from PNG images by reading those modified LSBs in sequence?"
+      "text": "The Chi-square statistic measures the goodness-of-fit against a uniform random distribution. A natural photograph's LSB layer, dominated by chaotic sensor noise, exhibits a Chi-square value near 1.0. If the Chi-square drops to 0.48, what does this tell you about the predictability and order of those bits? Why does replacing chaotic sensor noise with highly structured binary data (such as a compressed container) cause this specific mathematical anomaly?"
     }
   ],
   "debriefing": {
