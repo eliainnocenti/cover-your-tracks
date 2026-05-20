@@ -300,13 +300,24 @@ Finding the actual tool log is the strongest evidence. The tampered timestamps a
 
 These commands work in the in-game terminal and should be tested:
 
-### `help`
-Should display the full command list.
+> [!IMPORTANT]
+> **Terminal Pathing Constraint:**
+> The simplified in-game terminal does **not** resolve absolute paths (e.g. `/Users/...`) or multi-segment relative paths from the root (e.g. `stat Users/kmartin/Documents/Q2_Report_FINAL.docx`). 
+> Before running any file inspection command (like `stat`, `cat`, `strings`, `xxd`, `hash`), you must first **`cd`** into the directory containing that file.
 
-### `ls`
-Should list the root directory contents (Users, Windows).
+### General Navigation and Help
+```bash
+help     # Displays the full command list
+ls       # Lists the root directory contents (Users, Windows)
+```
 
-### `stat Q2_Report_FINAL.docx`
+### Testing Documents Directory
+First, navigate to the target documents directory:
+```bash
+cd Users/kmartin/Documents
+```
+
+#### `stat Q2_Report_FINAL.docx`
 **Expected output includes:**
 ```
   File: Q2_Report_FINAL.docx
@@ -319,14 +330,14 @@ Should list the root directory contents (Users, Windows).
 ```
 The warning appears because the code checks `siVals.every(v => v === siVals[0])`.
 
-### `stat personal_notes.txt`
+#### `stat personal_notes.txt`
 **Expected:** Normal output, **no warning** (timestamps differ).
 
-### `stat HR_Termination_Draft_v3.docx`
+#### `stat HR_Termination_Draft_v3.docx`
 **Expected:** Same all-identical warning as Q2_Report.
 
-### `istat 78234` (inode for Q2_Report)
-**Expected output includes both \$SI and \$FN blocks:**
+#### `istat 78234` (inode for Q2_Report)
+**Expected output includes both $SI and $FN blocks:**
 ```
 $STANDARD_INFORMATION Attribute Values:
   Created:      2024-11-14 09:22:11
@@ -339,38 +350,58 @@ $FILE_NAME Attribute Values:
 [!] $SI and $FN create times differ — forensic anomaly
 ```
 
-### `istat 78301` (inode for HR_Termination)
-**Expected:** Similar \$SI/\$FN mismatch warning.
+#### `istat 78301` (inode for HR_Termination)
+**Expected:** Similar $SI/$FN mismatch warning.
 
-### `istat 78290` (inode for personal_notes.txt)
+#### `istat 78290` (inode for personal_notes.txt)
 **Expected:** No anomaly warning (timestamps match).
 
-### `istat 78455` (inode for timestomp_log.tmp)
-**Expected:** Normal output, no anomaly warning (timestamps match). This file has legitimate timestamps from when the tool was executed.
-
-### `istat 120` (inode for Security.evtx)
-**Expected:** Normal output, no anomaly warning.
-
-### `cat timestomp_log.tmp`
-**Expected:** Should display the TIMESTOMP v2.0 execution log content.
-
-### `strings timestomp_log.tmp`
-**Expected:** Should display timestomping tool signatures.
-
-### `strings Security.evtx`
-**Expected:** Printable event log entries showing the login/access timeline.
-
-### `xxd Q2_Report_FINAL.docx`
+#### `xxd Q2_Report_FINAL.docx`
 **Expected:** Hex dump showing magic bytes `504B0304` (ZIP/DOCX container).
 
-### `hash Q2_Report_FINAL.docx`
+#### `hash Q2_Report_FINAL.docx`
 **Expected:** MD5 and SHA-256 hashes (deterministic but fake).
+
+---
+
+### Testing AppData Directory (The Tool Artifact)
+First, navigate to the AppData Roaming directory:
+```bash
+cd /         # Go back to root
+cd Users/kmartin/AppData/Roaming
+```
+
+#### `istat 78455` (inode for timestomp_log.tmp)
+**Expected:** Normal output, no anomaly warning (timestamps match). This file has legitimate timestamps from when the tool was executed.
+
+#### `cat timestomp_log.tmp`
+**Expected:** Should display the TIMESTOMP v2.0 execution log content.
+
+#### `strings timestomp_log.tmp`
+**Expected:** Should display timestomping tool signatures.
+
+---
+
+### Testing Windows Directory (Security Event Logs)
+First, navigate to the Event Logs directory:
+```bash
+cd /         # Go back to root
+cd Windows/System32/winevt
+```
+
+#### `istat 120` (inode for Security.evtx)
+**Expected:** Normal output, no anomaly warning.
+
+#### `strings Security.evtx`
+**Expected:** Printable event log entries showing the login/access timeline.
+
+---
 
 ### Error cases to test:
 - `stat nonexistent.txt` → "cannot stat: No such file"
 - `istat 99999` → "inode not found"
 - `cat` (no argument) → "Usage: cat <filename>"
-- `cat Security.evtx` → "Binary event log. Try 'strings Security.evtx' instead."
+- `cat Security.evtx` (if run inside Windows/System32/winevt) → "Binary event log. Try 'strings Security.evtx' instead."
 - `unknowncmd` → "command not found"
 
 
@@ -450,7 +481,7 @@ After completing the post-quiz, verify the debriefing screen shows:
 │  Smoking Gun: timestomp_log.tmp in AppData                │
 │  Control File: personal_notes.txt (clean)                 │
 │                                                           │
-│  Pre-Quiz: 1→B, 2→B, 3→D, 4→B                               │
-│  Post-Quiz: 1→B, 2→C, 3→B, 4→C                              │
+│  Pre-Quiz: 1→B, 2→B, 3→D, 4→B                             │
+│  Post-Quiz: 1→B, 2→C, 3→B, 4→C                            │
 └───────────────────────────────────────────────────────────┘
 ```

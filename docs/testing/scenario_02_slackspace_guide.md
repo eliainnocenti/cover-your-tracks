@@ -269,10 +269,13 @@ Recovered fragment (foremost):
 
 ### Flag 3: salary_export.csv deletion (35 points)
 
-**What to type:**
-- `salary_export.csv was deleted` ✅
-- `salary_export.csv` ✅ (matches target)
-- `0xE5 deletion` ✅ (matches finding)
+**Target:** `å5alary_export.csv` (representing the deleted file with the FAT `0xE5` prefix marker)  
+**Technique:** `0xE5 Deletion`
+
+**In-Game Notebook Submission details:**
+- **Evidence selection:** Select **`$Recycle.Bin/å5alary_export.csv`** from your tagged evidence dropdown list.
+- **Finding/Technique:** Select **`0xE5 Deletion`** (or type `0xE5 deletion` / `salary_export.csv` if writing in).
+- **Automatic Character Normalization:** The investigator notebook logic dynamically normalizes target file names during submission. It strips any leading FAT `0xE5` character markers (`å` or `å5`), meaning that submitting the raw name `å5alary_export.csv` successfully matches the internal target `salary_export.csv` without frustrating target mismatches.
 
 **Why:** The deleted directory entry with the `0xE5` prefix confirms deliberate deletion of the sensitive file. Combined with the slack space evidence, it proves the data existed on this drive.
 
@@ -303,25 +306,62 @@ Recovered fragment (foremost):
 
 ## 9. Terminal Commands to Test
 
-### `stat file.pdf`
+These commands work in the in-game terminal and should be tested:
+
+> [!IMPORTANT]
+> **Terminal Pathing Constraint:**
+> The simplified in-game terminal does **not** resolve absolute paths (e.g. `/Users/...`) or multi-segment relative paths from the root (e.g. `stat Projects/file.pdf`). 
+> Before running any file inspection command (like `stat`, `cat`, `xxd`, `istat`), you must first **`cd`** into the directory containing that file.
+
+### General Navigation and Help
+```bash
+help     # Displays the full command list
+ls       # Lists the root directory contents (Projects, $Recycle.Bin, forensics_output)
+```
+
+### Testing Projects Directory
+First, navigate to the projects directory:
+```bash
+cd Projects
+```
+
+#### `stat file.pdf`
 **Expected:** File info with size 2,400 bytes. Timestamps should be normal (no warning).
 
-### `stat meeting_notes.docx`
+#### `stat meeting_notes.docx`
 **Expected:** Normal output, no anomalies.
 
-### `cat foremost_output.txt`
-**Expected:** Should display the carving results showing the CSV fragment.
-
-### `cat å5alary_export.csv` or `cat salary_export.csv`
-**Expected:** Should show the deleted file's recovered content, or a "not found" error depending on name matching.
-
-### `xxd file.pdf`
+#### `xxd file.pdf`
 **Expected:** Hex dump with magic bytes `25504446` highlighted (`%PDF` — the PDF magic number).
 
-### `istat 44102` (inode for file.pdf)
-**Expected:** \$SI and \$FN timestamps displayed. No anomaly since the file itself isn't timestomped.
+#### `istat 44102` (inode for file.pdf)
+**Expected:** $SI and $FN timestamps displayed. No anomaly since the file itself isn't timestomped.
 
-### `istat 44200` (inode for deleted salary_export.csv)
+---
+
+### Testing Forensics Output Directory
+First, navigate to the forensics output directory:
+```bash
+cd /         # Go back to root
+cd forensics_output
+```
+
+#### `cat foremost_output.txt`
+**Expected:** Should display the carving results showing the CSV fragment.
+
+---
+
+### Testing Recycle Bin (Deleted File)
+First, navigate to the Recycle Bin directory:
+```bash
+cd /         # Go back to root
+cd $Recycle.Bin
+```
+
+#### `cat å5alary_export.csv`
+**Expected:** Should show the deleted file's recovered content.
+
+#### `istat 44200` (inode for deleted salary_export.csv)
 **Expected:** Metadata for the deleted file, including the late-night timestamps.
 
 
@@ -384,26 +424,6 @@ Verify the debriefing shows:
 - **Real-World Tools:** Sleuth Kit `blkls`, `foremost`, EnCase, FTK, `slacker`
 - **Case Connection:** Employee deleted CSV, smaller PDF written over same clusters, slack retained fragments, 0xE5 confirmed deletion
 - **Further Reading:** NTFS cluster allocation, FAT directory entries, foremost/scalpel file carving
-
-
-## 12. Common Mistakes and Edge Cases
-
-### Testing Edge Cases
-
-| Test | Expected Behavior |
-|------|-------------------|
-| Clicking meeting_notes.docx and budget_2024.xlsx | Should show normal files with no anomaly warnings |
-| Submitting "slack" without "space" | May not match — check if "slack space" vs "slack" is handled |
-| Submitting "0xE5" alone | Should match Flag 3's finding "0xE5 deletion" |
-| Exploring $Recycle.Bin | The display name shows "å5alary_export.csv" representing the 0xE5 prefix |
-
-### Common Student Mistakes
-
-1. **Only finding file.pdf slack** — Students often stop at Flag 1 without connecting it to the deleted file in Recycle Bin.
-2. **Ignoring the forensics_output directory** — The foremost results confirm the slack content and bridge the gap between the anomaly and the evidence.
-3. **Confusing slack space with unallocated space** — Slack is within allocated clusters; unallocated is in free areas of the disk.
-4. **Not understanding the 0xE5 marker** — Students may not know why the filename starts with `å` (it's the visual representation of the `0xE5` byte).
-
 
 ## Quick Reference Card
 
