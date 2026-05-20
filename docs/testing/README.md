@@ -39,8 +39,8 @@ This directory contains one comprehensive guide per scenario. Each guide covers:
 | Starting score | **100 pts** |
 | Flag found | **+points** (varies per flag) |
 | Cross-Reference | **+points** (varies per connection) |
-| Wrong submission | **−5 pts** (min 0) |
-| Hint used | **−cost** (10/20/30 per tier) |
+| Wrong submission | **-5 pts** (min 0) |
+| Hint used | **-cost** (10/20/30 per tier) |
 | Post-quiz bonus | **+Math.round(postQuizScore × 0.2)** (max +20) |
 
 ### Flag Matching Logic (from `InvestigatorNotebook.jsx`)

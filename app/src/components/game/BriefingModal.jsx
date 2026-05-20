@@ -139,8 +139,8 @@ export default function BriefingModal({ scenario, onContinue, onClose }) {
             <div>▸ Starting score: <strong style={{ color: 'var(--text-primary)' }}>100 pts</strong></div>
             <div>▸ Flags: up to <strong style={{ color: 'var(--text-primary)' }}>+{maxFlagPts} pts</strong> ({flagCount} findings{bonusFlags.length > 0 ? ` + ${bonusFlags.length} bonus` : ''})</div>
             <div>▸ Post-quiz bonus: up to <strong style={{ color: 'var(--text-primary)' }}>+20 pts</strong></div>
-            <div>▸ Hints: <span style={{ color: 'var(--amber-main)' }}>−{hintCosts} pts</span> total ({scenario.hints?.length ?? 0} tiers)</div>
-            <div>▸ Wrong guesses: <span style={{ color: 'var(--text-muted)' }}>free before hints</span>, <span style={{ color: 'var(--red-alert)' }}>−5 pts</span> each after</div>
+            <div>▸ Hints: <span style={{ color: 'var(--amber-main)' }}>-{hintCosts} pts</span> total ({scenario.hints?.length ?? 0} tiers)</div>
+            <div>▸ Wrong guesses: <span style={{ color: 'var(--text-muted)' }}>free before hints</span>, <span style={{ color: 'var(--red-alert)' }}>-5 pts</span> each after</div>
           </div>
         </div>
 

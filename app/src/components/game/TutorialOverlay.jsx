@@ -40,7 +40,7 @@ const STEPS = [
     icon: Lightbulb,
     title: 'Hints',
     color: 'var(--amber-main)',
-    description: "Stuck? Use the hint system — 3 tiers of increasing detail. Tier 1 gives a nudge (−10 pts), Tier 2 is more specific (−20 pts), and Tier 3 is very direct (−30 pts). Wrong submissions only cost points if you end up using a hint later.",
+    description: "Stuck? Use the hint system — 3 tiers of increasing detail. Tier 1 gives a nudge (-10 pts), Tier 2 is more specific (-20 pts), and Tier 3 is very direct (-30 pts). Wrong submissions only cost points if you end up using a hint later.",
   },
 ]
 

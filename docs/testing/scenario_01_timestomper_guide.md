@@ -268,11 +268,11 @@ Finding the actual tool log is the strongest evidence. The tampered timestamps a
 
 | Tier | Cost | Text | What it reveals |
 |------|------|------|----------------|
-| 1 | −10 pts | "In NTFS, every file has two timestamp records. Most tools only show you one. Try comparing them." | Points toward \$SI vs \$FN comparison |
-| 2 | −20 pts | "Look at the Documents folder. Notice anything unusual about when the files were supposedly last modified?" | Narrows focus to Documents folder |
-| 3 | −30 pts | "When all four MAC timestamps of a file are identical down to the second, that is almost always the fingerprint of a timestomping tool. Ask yourself: if a user-space tool did this, where might it leave artifacts in the user's profile?" | Explains the all-identical pattern and nudges toward tool artifacts |
+| 1 | -10 pts | "In NTFS, every file has two timestamp records. Most tools only show you one. Try comparing them." | Points toward \$SI vs \$FN comparison |
+| 2 | -20 pts | "Look at the Documents folder. Notice anything unusual about when the files were supposedly last modified?" | Narrows focus to Documents folder |
+| 3 | -30 pts | "When all four MAC timestamps of a file are identical down to the second, that is almost always the fingerprint of a timestomping tool. Ask yourself: if a user-space tool did this, where might it leave artifacts in the user's profile?" | Explains the all-identical pattern and nudges toward tool artifacts |
 
-**Total hint cost: −60 pts** (if all three used)
+**Total hint cost: -60 pts** (if all three used)
 
 
 ## 8. Scoring Breakdown
@@ -283,17 +283,17 @@ Finding the actual tool log is the strongest evidence. The tampered timestamps a
 | Flag 1 (Q2_Report) | +30 | |
 | Flag 2 (HR_Termination) | +30 | |
 | Flag 3 (timestomp_log) | +40 | |
-| Wrong submissions | −5 each (only after a hint is used) | Penalty is deferred until the first hint is taken |
-| Hint Tier 1 | −10 | |
-| Hint Tier 2 | −20 | |
-| Hint Tier 3 | −30 | |
+| Wrong submissions | -5 each (only after a hint is used) | Penalty is deferred until the first hint is taken |
+| Hint Tier 1 | -10 | |
+| Hint Tier 2 | -20 | |
+| Hint Tier 3 | -30 | |
 | Post-quiz bonus | +0 to +20 | `Math.round(postQuizScore * 0.2)` |
 
 **Perfect run (no hints, no wrong answers, 100% post-quiz):**  
 100 + 30 + 30 + 40 + 20 = **220 pts**
 
 **Worst case (all hints, many wrong answers, 0% post-quiz):**  
-100 − 60 − (n×5) + 30 + 30 + 40 + 0 = **140 − 5n pts**
+100 - 60 - (n×5) + 30 + 30 + 40 + 0 = **140 - 5n pts**
 
 
 ## 9. Terminal Commands to Test

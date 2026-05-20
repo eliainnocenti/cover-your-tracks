@@ -337,9 +337,9 @@ The professor strongly mandated that hints should not act as mechanical walkthro
 
 | Tier | Cost | Text | Conceptual Focus |
 |------|------|------|------------------|
-| 1 | −10 pts | "Consider the physical footprint of digital image storage. If three control files share identical pixel dimensions and depict similar scenes, what does a statistically significant variance in file size indicate about the underlying byte arrangement of one specific file?" | **Data Storage Footprint**: Prompts the student to reason about why the stego-carrier is 14% larger due to the embedded zip archive. |
-| 2 | −20 pts | "Analyze the metadata profiles of the images. While normal digital cameras systematically embed device descriptions, timestamps, and geolocation tags, what diagnostic inference can you draw when an image's EXIF profile is entirely blank? How does this cross-correlate with changes in the MFT timestamps?" | **EXIF Metadata Anomalies**: Prompts students to identify that the lack of camera model/GPS is due to steganography tools automatic stripping. |
-| 3 | −30 pts | "The Chi-square statistic measures the goodness-of-fit against a uniform random distribution. A natural photograph's LSB layer, dominated by chaotic sensor noise, exhibits a Chi-square value near 1.0. If the Chi-square drops to 0.48, what does this tell you about the predictability and order of those bits? Why does replacing chaotic sensor noise with highly structured binary data (such as a compressed container) cause this specific mathematical anomaly?" | **Chi-Square & LSB Statistical Deviation**: Leads students to deduce that structured zip payloads overwrite natural chaotic noise, creating detectable statistical spikes and low Chi-square values. |
+| 1 | -10 pts | "Consider the physical footprint of digital image storage. If three control files share identical pixel dimensions and depict similar scenes, what does a statistically significant variance in file size indicate about the underlying byte arrangement of one specific file?" | **Data Storage Footprint**: Prompts the student to reason about why the stego-carrier is 14% larger due to the embedded zip archive. |
+| 2 | -20 pts | "Analyze the metadata profiles of the images. While normal digital cameras systematically embed device descriptions, timestamps, and geolocation tags, what diagnostic inference can you draw when an image's EXIF profile is entirely blank? How does this cross-correlate with changes in the MFT timestamps?" | **EXIF Metadata Anomalies**: Prompts students to identify that the lack of camera model/GPS is due to steganography tools automatic stripping. |
+| 3 | -30 pts | "The Chi-square statistic measures the goodness-of-fit against a uniform random distribution. A natural photograph's LSB layer, dominated by chaotic sensor noise, exhibits a Chi-square value near 1.0. If the Chi-square drops to 0.48, what does this tell you about the predictability and order of those bits? Why does replacing chaotic sensor noise with highly structured binary data (such as a compressed container) cause this specific mathematical anomaly?" | **Chi-Square & LSB Statistical Deviation**: Leads students to deduce that structured zip payloads overwrite natural chaotic noise, creating detectable statistical spikes and low Chi-square values. |
 
 
 
@@ -351,8 +351,8 @@ The professor strongly mandated that hints should not act as mechanical walkthro
 | Flag 1 (anomalous image) | +30 |
 | Flag 2 (LSB steganography) | +35 |
 | Flag 3 (embedded payload) | +35 |
-| Wrong submissions | −5 each |
-| Hints | −10, −20, −30 |
+| Wrong submissions | -5 each |
+| Hints | -10, -20, -30 |
 | Post-quiz bonus | +0 to +20 |
 
 **Perfect run:** 100 + 30 + 35 + 35 + 20 = **220 pts**

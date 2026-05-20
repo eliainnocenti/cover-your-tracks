@@ -123,7 +123,7 @@ In FAT file systems, when a file is deleted:
 | **2** | **1,096 bytes** | **✅** |
 | 3 | 4,096 bytes | ❌ |
 
-**Why:** Slack space = cluster size − file size = 4,096 − 3,000 = 1,096 bytes. This space may contain remnants of previously stored data.
+**Why:** Slack space = cluster size - file size = 4,096 - 3,000 = 1,096 bytes. This space may contain remnants of previously stored data.
 
 ### Question 4
 > **"What happens to the actual data on disk when a file is deleted in FAT or NTFS?"**
@@ -284,9 +284,9 @@ Recovered fragment (foremost):
 
 | Tier | Cost | Text | What it reveals |
 |------|------|------|----------------|
-| 1 | −10 pts | "Look at the file sizes vs. their allocated cluster sizes. When a file doesn't fill its last cluster, what's in the remaining space?" | Points toward slack space concept |
-| 2 | −20 pts | "One file in the Projects folder has a suspiciously large gap between its logical size and its allocated size. Check the slack space of file.pdf." | Identifies file.pdf as the target |
-| 3 | −30 pts | "The slack space contains a CSV fragment. Now check the Recycle Bin — notice the filename starting with 0xE5? That's a deleted file marker. The two are connected." | Connects slack data to deleted file |
+| 1 | -10 pts | "Look at the file sizes vs. their allocated cluster sizes. When a file doesn't fill its last cluster, what's in the remaining space?" | Points toward slack space concept |
+| 2 | -20 pts | "One file in the Projects folder has a suspiciously large gap between its logical size and its allocated size. Check the slack space of file.pdf." | Identifies file.pdf as the target |
+| 3 | -30 pts | "The slack space contains a CSV fragment. Now check the Recycle Bin — notice the filename starting with 0xE5? That's a deleted file marker. The two are connected." | Connects slack data to deleted file |
 
 
 ## 8. Scoring Breakdown
@@ -297,8 +297,8 @@ Recovered fragment (foremost):
 | Flag 1 (file.pdf slack) | +30 |
 | Flag 2 (CSV fragment) | +35 |
 | Flag 3 (salary_export.csv) | +35 |
-| Wrong submissions | −5 each |
-| Hints | −10, −20, −30 |
+| Wrong submissions | -5 each |
+| Hints | -10, -20, -30 |
 | Post-quiz bonus | +0 to +20 |
 
 **Perfect run:** 100 + 30 + 35 + 35 + 20 = **220 pts**

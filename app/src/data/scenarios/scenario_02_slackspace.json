@@ -42,7 +42,7 @@
         "4,096 bytes"
       ],
       "correct": 2,
-      "explanation": "Slack space = cluster size − file size = 4,096 − 3,000 = 1,096 bytes. This space may contain remnants of previously stored data."
+      "explanation": "Slack space = cluster size - file size = 4,096 - 3,000 = 1,096 bytes. This space may contain remnants of previously stored data."
     },
     {
       "id": "s2_pq4",

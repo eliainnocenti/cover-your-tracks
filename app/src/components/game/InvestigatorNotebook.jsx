@@ -122,7 +122,7 @@ export default function InvestigatorNotebook() {
 
       const isFindingMatch = q.includes(fFinding) || (fFinding.includes(q) && q.length > 3) ||
         qNorm.includes(fFindingNorm) || (fFindingNorm.includes(qNorm) && qNorm.length >= 3)
-      
+
       const isTargetMatch = qNorm.includes(fTargetNorm) || (fTargetNorm.includes(qNorm) && qNorm.length >= 3)
 
       return isFindingMatch || isTargetMatch
@@ -499,25 +499,25 @@ function HintsList({ hints, hintsUsed, useHint }) {
       {hints.map(hint => {
         const used = hintsUsed.includes(hint.tier)
         const isConfirming = confirming === hint.tier
-        
+
         // Sequential check: Locked if it's Tier > 1 and the previous tier hint has not been used yet
         const isLocked = hint.tier > 1 && !hintsUsed.includes(hint.tier - 1)
 
         return (
           <div key={hint.tier} style={{
-            border: used 
-              ? '1px solid var(--amber-dim)' 
-              : isConfirming 
-                ? '1px solid var(--red-dim)' 
-                : isLocked 
-                  ? '1px dashed rgba(255, 255, 255, 0.15)' 
+            border: used
+              ? '1px solid var(--amber-dim)'
+              : isConfirming
+                ? '1px solid var(--red-dim)'
+                : isLocked
+                  ? '1px dashed rgba(255, 255, 255, 0.15)'
                   : '1px solid var(--border-dim)',
-            background: used 
-              ? 'rgba(255,184,0,0.05)' 
-              : isConfirming 
-                ? 'rgba(255,60,60,0.04)' 
-                : isLocked 
-                  ? 'rgba(255,255,255,0.01)' 
+            background: used
+              ? 'rgba(255,184,0,0.05)'
+              : isConfirming
+                ? 'rgba(255,60,60,0.04)'
+                : isLocked
+                  ? 'rgba(255,255,255,0.01)'
                   : 'var(--bg-raised)',
             borderRadius: 'var(--radius-sm)', padding: '8px 10px',
             transition: 'all 0.15s',
@@ -528,7 +528,7 @@ function HintsList({ hints, hintsUsed, useHint }) {
                 TIER {hint.tier} {isLocked && '[LOCKED]'}
               </span>
               <span style={{ fontSize: '9px', color: isLocked ? 'var(--text-ghost)' : 'var(--red-alert)' }}>
-                −{hint.cost} pts
+                -{hint.cost} pts
               </span>
             </div>
             {used ? (
@@ -541,9 +541,9 @@ function HintsList({ hints, hintsUsed, useHint }) {
                 }}>
                   <AlertTriangle size={11} style={{ flexShrink: 0, marginTop: 1 }} />
                   <span>
-                    {hintsUsed.length === 0 
-                      ? 'Using a hint means all future wrong guesses will cost −5 pts immediately. Are you sure?' 
-                      : `Are you sure you want to reveal Tier ${hint.tier} hint? This will cost −${hint.cost} pts immediately.`}
+                    {hintsUsed.length === 0
+                      ? 'Using a hint means all future wrong guesses will cost -5 pts immediately. Are you sure?'
+                      : `Are you sure you want to reveal Tier ${hint.tier} hint? This will cost -${hint.cost} pts immediately.`}
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
@@ -565,7 +565,7 @@ function HintsList({ hints, hintsUsed, useHint }) {
                       borderRadius: 'var(--radius-sm)', color: 'var(--amber-main)', cursor: 'pointer',
                     }}
                   >
-                    Reveal Hint (−{hint.cost} pts)
+                    Reveal Hint (-{hint.cost} pts)
                   </button>
                 </div>
               </div>
@@ -582,7 +582,7 @@ function HintsList({ hints, hintsUsed, useHint }) {
                   display: 'flex', alignItems: 'center', gap: 4,
                 }}
               >
-                Reveal Hint (−{hint.cost} pts)
+                Reveal Hint (-{hint.cost} pts)
               </button>
             )}
           </div>

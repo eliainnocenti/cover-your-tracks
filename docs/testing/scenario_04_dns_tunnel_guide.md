@@ -314,9 +314,9 @@ The game engine utilizes an advanced submission normalization framework (`normal
 
 | Tier | Cost | Text | What it reveals |
 |------|------|------|----------------|
-| 1 | −10 pts | "Look at the network log. Most DNS queries are to normal domains — but one domain appears hundreds of times. What's unusual about it?" | Points toward exfil-c2.net |
-| 2 | −20 pts | "The subdomains in the queries to exfil-c2.net look like random characters — but they're actually base64-encoded data. Try decoding one." | Reveals base64 encoding |
-| 3 | −30 pts | "Decode 'cm9vdDp4OjA6MDpyb290' from base64. It's 'root:x:0:0:root' — the first line of /etc/passwd." | Complete solution |
+| 1 | -10 pts | "Look at the network log. Most DNS queries are to normal domains — but one domain appears hundreds of times. What's unusual about it?" | Points toward exfil-c2.net |
+| 2 | -20 pts | "The subdomains in the queries to exfil-c2.net look like random characters — but they're actually base64-encoded data. Try decoding one." | Reveals base64 encoding |
+| 3 | -30 pts | "Decode 'cm9vdDp4OjA6MDpyb290' from base64. It's 'root:x:0:0:root' — the first line of /etc/passwd." | Complete solution |
 
 
 ## 8. Scoring Breakdown
@@ -327,8 +327,8 @@ The game engine utilizes an advanced submission normalization framework (`normal
 | Flag 1 (suspicious domain) | +30 |
 | Flag 2 (DNS tunneling) | +35 |
 | Flag 3 (/etc/passwd) | +35 |
-| Wrong submissions | −5 each |
-| Hints | −10, −20, −30 |
+| Wrong submissions | -5 each |
+| Hints | -10, -20, -30 |
 | Post-quiz bonus | +0 to +20 |
 
 **Perfect run:** 100 + 30 + 35 + 35 + 20 = **220 pts**

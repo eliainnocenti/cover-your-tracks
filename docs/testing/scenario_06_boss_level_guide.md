@@ -269,9 +269,9 @@ This scenario features cross-reference links where players can combine evidence 
 
 | Tier | Cost | Text |
 |------|------|------|
-| 1 | −10 | "Start with the filesystem: check the event log file. How many days of logs should there be vs. how many are actually there?" |
-| 2 | −20 | "Layer 2 — RAM: pslist shows 22 processes, but psscan shows 24. Find the two hidden ones. One has a name very similar to a real Windows process." |
-| 3 | −30 | "Layer 3 — Network: Look at the ICMP traffic. Normal ping payloads are 32 bytes. These are 1400 bytes each, going to a known Tor exit node." |
+| 1 | -10 | "Start with the filesystem: check the event log file. How many days of logs should there be vs. how many are actually there?" |
+| 2 | -20 | "Layer 2 — RAM: pslist shows 22 processes, but psscan shows 24. Find the two hidden ones. One has a name very similar to a real Windows process." |
+| 3 | -30 | "Layer 3 — Network: Look at the ICMP traffic. Normal ping payloads are 32 bytes. These are 1400 bytes each, going to a known Tor exit node." |
 
 
 ## 9. Scoring Breakdown
@@ -286,8 +286,8 @@ This scenario features cross-reference links where players can combine evidence 
 | Connection 1 (Script ↔ Log) | +15 |
 | Connection 2 (Rootkit ↔ ICMP) | +15 |
 | Connection 3 (Log gap ↔ ICMP) | +15 |
-| Wrong submissions | −5 each |
-| Hints | −10, −20, −30 |
+| Wrong submissions | -5 each |
+| Hints | -10, -20, -30 |
 | Post-quiz bonus | +0 to +20 |
 
 **Perfect run:** 100 + 25 + 30 + 30 + 15 + 15 + 15 + 15 + 20 = **265 pts**

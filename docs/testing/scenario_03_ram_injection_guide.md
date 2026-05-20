@@ -296,9 +296,9 @@ While viewing the respective processes and injected regions:
 
 | Tier | Cost | Text | What it reveals |
 |------|------|------|----------------|
-| 1 | −10 pts | "Compare the RAM process table carefully. Some processes might appear in one scan method but not another." | Points toward pslist vs psscan comparison |
-| 2 | −20 pts | "Look for a process that exists in psscan output but is hidden from pslist. Check if its parent PID points to a terminated process." | Identifies PID 4812 and its orphan parent |
-| 3 | −30 pts | "PID 4812 (svchost.exe) is hidden via DKOM. Its PPID 3021 is a ghost. Run malfind on 4812 — the RWX region with an MZ header proves code injection." | Complete solution |
+| 1 | -10 pts | "Compare the RAM process table carefully. Some processes might appear in one scan method but not another." | Points toward pslist vs psscan comparison |
+| 2 | -20 pts | "Look for a process that exists in psscan output but is hidden from pslist. Check if its parent PID points to a terminated process." | Identifies PID 4812 and its orphan parent |
+| 3 | -30 pts | "PID 4812 (svchost.exe) is hidden via DKOM. Its PPID 3021 is a ghost. Run malfind on 4812 — the RWX region with an MZ header proves code injection." | Complete solution |
 
 
 ## 8. Scoring Breakdown
@@ -309,8 +309,8 @@ While viewing the respective processes and injected regions:
 | Flag 1 (hidden process) | +30 |
 | Flag 2 (DKOM) | +35 |
 | Flag 3 (PE injection) | +35 |
-| Wrong submissions | −5 each |
-| Hints | −10, −20, −30 |
+| Wrong submissions | -5 each |
+| Hints | -10, -20, -30 |
 | Post-quiz bonus | +0 to +20 |
 
 **Perfect run:** 100 + 30 + 35 + 35 + 20 = **220 pts**

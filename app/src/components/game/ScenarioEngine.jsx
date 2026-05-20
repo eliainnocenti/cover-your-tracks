@@ -188,7 +188,7 @@ function engineReducer(state, action) {
         hintsUsed: [...state.hintsUsed, tier],
         score: newScore,
         sessionLog: [...state.sessionLog,
-        logEntry('HINT_USED', `Requested Tier ${tier} hint (cost: −${hint.cost} pts, score: ${newScore})`, { tier, cost: hint.cost }),
+        logEntry('HINT_USED', `Requested Tier ${tier} hint (cost: -${hint.cost} pts, score: ${newScore})`, { tier, cost: hint.cost }),
         ],
       }
     }
@@ -217,7 +217,7 @@ function engineReducer(state, action) {
           scoreDelta -= penalty
           extraLogs.push(
             logEntry('WRONG_ATTEMPT_PENALTY',
-              `Deferred wrong-guess penalty applied for ${flag.target}: −${penalty} pts (${pendingForThisFlag} wrong attempts × 5)`,
+              `Deferred wrong-guess penalty applied for ${flag.target}: -${penalty} pts (${pendingForThisFlag} wrong attempts × 5)`,
               { penalty, flagId })
           )
         } else {
@@ -273,7 +273,7 @@ function engineReducer(state, action) {
           wrongAttempts: state.wrongAttempts + 1,
           score: Math.max(0, state.score - 5),
           sessionLog: [...state.sessionLog,
-          logEntry('WRONG_ATTEMPT', `✗ Incorrect submission (attempt #${state.wrongAttempts + 1}, −5 pts immediately — hints have been used)`),
+          logEntry('WRONG_ATTEMPT', `✗ Incorrect submission (attempt #${state.wrongAttempts + 1}, -5 pts immediately — hints have been used)`),
           ],
         }
       }
@@ -406,8 +406,8 @@ export function ScenarioProvider({ children }) {
     totalFlags: state.scenario?.flags.filter(f => f.required !== false).length ?? 0,
     completionRate: state.scenario
       ? Math.round((state.flagsFound.filter(ff =>
-          state.scenario.flags.filter(f => f.required !== false).some(rf => rf.id === ff.flagId)
-        ).length / state.scenario.flags.filter(f => f.required !== false).length) * 100)
+        state.scenario.flags.filter(f => f.required !== false).some(rf => rf.id === ff.flagId)
+      ).length / state.scenario.flags.filter(f => f.required !== false).length) * 100)
       : 0,
     bonusFlagsFound: state.flagsFound.filter(ff =>
       state.scenario?.flags.some(f => f.id === ff.flagId && f.required === false)

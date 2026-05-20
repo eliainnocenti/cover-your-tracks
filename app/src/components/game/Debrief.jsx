@@ -76,10 +76,10 @@ export default function Debrief({ onNext }) {
           <span style={{ color: 'var(--red-alert)', fontWeight: 700 }}>Penalty breakdown:</span>{' '}
           {metrics.hintsUsedCount > 0
             ? `You had ${metrics.wrongAttempts} wrong attempt${metrics.wrongAttempts !== 1 ? 's' : ''}. `
-              + `Guesses made after your first hint cost −5 pts each. `
-              + `Any guesses you made before using hints were forgiven if you found the answer yourself.`
+            + `Guesses made after your first hint cost -5 pts each. `
+            + `Any guesses you made before using hints were forgiven if you found the answer yourself.`
             : `You had ${metrics.wrongAttempts} wrong attempt${metrics.wrongAttempts !== 1 ? 's' : ''}, `
-              + `but since you never used a hint, all penalties were forgiven. Well done!`
+            + `but since you never used a hint, all penalties were forgiven. Well done!`
           }
         </div>
       )}
