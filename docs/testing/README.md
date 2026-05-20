@@ -45,18 +45,25 @@ This directory contains one comprehensive guide per scenario. Each guide covers:
 
 ### Flag Matching Logic (from `InvestigatorNotebook.jsx`)
 
+The notebook utilizes an advanced string normalizer and a flexible dual-matching engine to ensure students are not unfairly penalized for minor syntax, capitalization, or formatting variations. 
+
 ```javascript
-const match = scenario.flags.find(f => {
-  if (alreadyFound) return false
-  return (
-    input.includes(f.target.toLowerCase()) ||
-    input.includes(f.finding.toLowerCase()) ||
-    input.includes(f.id)
-  )
-})
+const normalizeString = (str) => {
+  if (!str) return ''
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/^\/+/, '')           // remove leading slashes
+    .replace(/\/+$/, '')           // remove trailing slashes
+    .replace(/[\s_\-]/g, '')       // remove spaces, underscores, and hyphens
+}
 ```
 
-Your text submission is **lowercased** and checked if it **contains** the flag's `target`, `finding`, or `id`.
+A submission is successful if:
+1. The tagged evidence type matches the flag target type (`file`, `process`, `network`, etc.).
+2. The normalized submission string matches *either* the normalized flag **finding** (e.g. `0xE5 deletion`, `timestomping`, `DNS tunneling`) *or* the normalized flag **target** (e.g. `salary_export.csv`, `exfil-c2.net`, `Security.evtx`).
+3. Suffix comparisons are performed on filename base paths to allow inputs like `etc/passwd` or `å5alary_export.csv` to seamlessly match `/etc/passwd` or `salary_export.csv` respectively.
+
 
 ### Cross-Reference Logic (from `CrossReference.jsx`)
 

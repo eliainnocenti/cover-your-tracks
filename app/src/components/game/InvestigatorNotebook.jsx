@@ -76,12 +76,12 @@ export default function InvestigatorNotebook() {
       let targetMatch = false
 
       if (eType === 'file') {
-        const normEName = eName.split(/[\\/]/).pop()?.replace(/^å\d?/, '') ?? eName.replace(/^å\d?/, '')
-        const normFTarget = fTarget.split(/[\\/]/).pop()?.replace(/^å\d?/, '') ?? fTarget.replace(/^å\d?/, '')
+        const cleanEName = eName.split(/[\\/]/).pop()?.replace(/^å\d?/, '') ?? eName.replace(/^å\d?/, '')
+        const cleanFTarget = fTarget.split(/[\\/]/).pop()?.replace(/^å\d?/, '') ?? fTarget.replace(/^å\d?/, '')
         targetMatch =
           eName.includes(fTarget) ||
-          fTarget.includes(eName.split('\\').pop() ?? eName) ||
-          (normEName && normFTarget && (normFTarget.endsWith(normEName) || normEName.endsWith(normFTarget)))
+          fTarget.includes(eName.split(/[\\/]/).pop() ?? eName) ||
+          (cleanEName && cleanFTarget && (cleanEName.includes(cleanFTarget) || cleanFTarget.includes(cleanEName) || cleanEName === cleanFTarget))
       } else if (eType === 'process') {
         // evidence name is "winlogon_helper.exe (PID 3580)"
         // flag target might be "winlogon_helper.exe" or "svchost.exe PID 4812"
@@ -141,9 +141,9 @@ export default function InvestigatorNotebook() {
         const fTarget = (f.target ?? '').toLowerCase()
         const eName = evidence.name.toLowerCase()
         if (evidence.type === 'file') {
-          const normEName = eName.split(/[\\/]/).pop()?.replace(/^å\d?/, '') ?? eName.replace(/^å\d?/, '')
-          const normFTarget = fTarget.split(/[\\/]/).pop()?.replace(/^å\d?/, '') ?? fTarget.replace(/^å\d?/, '')
-          return eName.includes(fTarget) || fTarget.includes(eName.split('\\').pop() ?? eName) || (normEName && normFTarget && (normFTarget.endsWith(normEName) || normEName.endsWith(normFTarget)))
+          const cleanEName = eName.split(/[\\/]/).pop()?.replace(/^å\d?/, '') ?? eName.replace(/^å\d?/, '')
+          const cleanFTarget = fTarget.split(/[\\/]/).pop()?.replace(/^å\d?/, '') ?? fTarget.replace(/^å\d?/, '')
+          return eName.includes(fTarget) || fTarget.includes(eName.split(/[\\/]/).pop() ?? eName) || (cleanEName && cleanFTarget && (cleanEName.includes(cleanFTarget) || cleanFTarget.includes(cleanEName) || cleanEName === cleanFTarget))
         }
         if (evidence.type === 'process') {
           const procName = eName.split(' (pid')[0].trim()
@@ -484,11 +484,9 @@ function EvidenceDropdown({ value, options, onChange, placeholder }) {
 
 function HintsList({ hints, hintsUsed, useHint }) {
   const [confirming, setConfirming] = useState(null) // tier awaiting confirmation
-  const isFirstHint = hintsUsed.length === 0
 
   const handleReveal = (tier) => {
-    if (isFirstHint && confirming !== tier) {
-      // First hint ever — show confirmation
+    if (confirming !== tier) {
       setConfirming(tier)
       return
     }
@@ -497,20 +495,41 @@ function HintsList({ hints, hintsUsed, useHint }) {
   }
 
   return (
-    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
       {hints.map(hint => {
         const used = hintsUsed.includes(hint.tier)
         const isConfirming = confirming === hint.tier
+        
+        // Sequential check: Locked if it's Tier > 1 and the previous tier hint has not been used yet
+        const isLocked = hint.tier > 1 && !hintsUsed.includes(hint.tier - 1)
+
         return (
           <div key={hint.tier} style={{
-            border: `1px solid ${used ? 'var(--amber-dim)' : isConfirming ? 'var(--red-dim)' : 'var(--border-dim)'}`,
-            background: used ? 'rgba(255,184,0,0.05)' : isConfirming ? 'rgba(255,60,60,0.04)' : 'var(--bg-raised)',
+            border: used 
+              ? '1px solid var(--amber-dim)' 
+              : isConfirming 
+                ? '1px solid var(--red-dim)' 
+                : isLocked 
+                  ? '1px dashed rgba(255, 255, 255, 0.15)' 
+                  : '1px solid var(--border-dim)',
+            background: used 
+              ? 'rgba(255,184,0,0.05)' 
+              : isConfirming 
+                ? 'rgba(255,60,60,0.04)' 
+                : isLocked 
+                  ? 'rgba(255,255,255,0.01)' 
+                  : 'var(--bg-raised)',
             borderRadius: 'var(--radius-sm)', padding: '8px 10px',
             transition: 'all 0.15s',
+            opacity: isLocked ? 0.45 : 1,
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: used || isConfirming ? 6 : 0 }}>
-              <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>TIER {hint.tier}</span>
-              <span style={{ fontSize: '9px', color: 'var(--red-alert)' }}>−{hint.cost} pts</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: used || isConfirming || isLocked ? 6 : 0 }}>
+              <span style={{ fontSize: '9px', color: isLocked ? 'var(--text-ghost)' : 'var(--text-muted)' }}>
+                TIER {hint.tier} {isLocked && '[LOCKED]'}
+              </span>
+              <span style={{ fontSize: '9px', color: isLocked ? 'var(--text-ghost)' : 'var(--red-alert)' }}>
+                −{hint.cost} pts
+              </span>
             </div>
             {used ? (
               <p style={{ fontSize: '10px', color: 'var(--amber-main)', margin: 0, lineHeight: 1.5 }}>{hint.text}</p>
@@ -521,7 +540,11 @@ function HintsList({ hints, hintsUsed, useHint }) {
                   fontSize: '10px', color: 'var(--amber-main)', lineHeight: 1.5, marginBottom: 8,
                 }}>
                   <AlertTriangle size={11} style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span>Using a hint means all future wrong guesses will cost −5 pts immediately. Are you sure?</span>
+                  <span>
+                    {hintsUsed.length === 0 
+                      ? 'Using a hint means all future wrong guesses will cost −5 pts immediately. Are you sure?' 
+                      : `Are you sure you want to reveal Tier ${hint.tier} hint? This will cost −${hint.cost} pts immediately.`}
+                  </span>
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button
@@ -546,15 +569,20 @@ function HintsList({ hints, hintsUsed, useHint }) {
                   </button>
                 </div>
               </div>
+            ) : isLocked ? (
+              <div style={{ fontSize: '9px', color: 'var(--text-ghost)', fontStyle: 'italic' }}>
+                Unlock Tier {hint.tier - 1} hint first to access.
+              </div>
             ) : (
               <button
                 onClick={() => handleReveal(hint.tier)}
                 style={{
-                  fontSize: '10px', color: 'var(--text-muted)', background: 'none',
+                  fontSize: '10px', color: 'var(--green-main)', background: 'none',
                   border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-mono)',
+                  display: 'flex', alignItems: 'center', gap: 4,
                 }}
               >
-                Reveal (−{hint.cost} pts)
+                Reveal Hint (−{hint.cost} pts)
               </button>
             )}
           </div>

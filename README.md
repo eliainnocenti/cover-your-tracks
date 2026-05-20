@@ -56,7 +56,7 @@ Each scenario follows a structured learning loop:
 ```bash
 # Clone the repository
 git clone https://github.com/eliainnocenti/cover-your-tracks.git
-cd cover-your-tracks
+cd cover-your-tracks/app
 
 # Install dependencies
 npm install
@@ -65,14 +65,26 @@ npm install
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173/`.
+The app will be available at `http://localhost:5173/cover-your-tracks/` (or `http://localhost:5173/` depending on local dev server bindings).
 
 ### Build for Production
 
 ```bash
+cd app
 npm run build
 npm run preview  # Preview the production build locally
 ```
+
+### GitHub Pages Deployment
+
+The repository is pre-configured for automated deployment to GitHub Pages. To deploy the application:
+
+```bash
+cd app
+npm run deploy
+```
+
+This will automatically trigger the build pipeline (`npm run build`) and push the production bundle under `dist/` directly to your `gh-pages` branch.
 
 ## Project Structure
 
