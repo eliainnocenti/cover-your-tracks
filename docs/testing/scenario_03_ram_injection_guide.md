@@ -249,14 +249,17 @@ The fact that PID 4812 appears in `psscan` but NOT in `pslist` proves:
 
 ### Step 6: Check the malfind Evidence
 
-The `malfind_output` section shows:
-- **PAGE_EXECUTE_READWRITE** at address `0x00400000` in PID 4812
-- **MZ header** (4D 5A) — a PE executable is loaded into a writable+executable memory region
-- This confirms **code injection** into the hidden svchost.exe process
+Since a rootkit that hides processes often also injects code into them, click the new **`malfind`** button in the RAM view toolbar. This runs the virtual address descriptor (VAD) memory scanner in the game UI.
+- Select the row for **PID 4812** at address **0x00400000**.
+- In the right-hand details panel, observe that the memory protection is set to **`PAGE_EXECUTE_READWRITE`** (writable and executable, which is highly anomalous since normal code pages are read-execute only).
+- Inspect the **Hex Header** area. Notice the magic bytes `4D 5A` which translate to the **"MZ"** signature of a Windows PE executable.
+- This confirms active **code injection** inside the hidden `svchost.exe` process.
 
 ### Step 7: Tag Evidence
 
-Tag the suspicious processes and the malfind results in your notebook.
+While viewing the respective processes and injected regions:
+1. In the **`psscan`** list, select **`svchost.exe (PID 4812)`** and click the **`Tag`** button in the details panel to save it in your investigator notebook.
+2. In the **`malfind`** list, select the injected region for **`PID 4812`** at address **`0x00400000`** and click **`Tag`** to save it as `RWX memory region at 0x00400000 (PID 4812)` to your notebook.
 
 
 ## 6. Flags — What to Submit and Why

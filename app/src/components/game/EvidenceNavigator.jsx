@@ -807,10 +807,12 @@ function HexView() {
 // pslist only shows processes where pslist_visible !== false.
 // psscan shows all processes (carves raw EPROCESS structures).
 // The count discrepancy is surfaced explicitly as a clue.
+// Plus, supports 'malfind' view if the scenario contains injected memory data.
 function RamView() {
   const { state, tagEvidence, untagEvidence } = useEngine()
   const data = state.scenario?.ram_dump
-  const [scanMode, setScanMode] = useState('pslist') // 'pslist' | 'psscan'
+  const malfindData = state.scenario?.malfind_output
+  const [scanMode, setScanMode] = useState('pslist') // 'pslist' | 'psscan' | 'malfind'
   const [selected, setSelected] = useState(null)
 
   if (!data) return <EmptyPanel msg="No RAM dump in this scenario" />
@@ -820,8 +822,18 @@ function RamView() {
   const shown = scanMode === 'pslist' ? pslistProcs : psscanProcs
   const delta = psscanProcs.length - pslistProcs.length
 
-  const isTagged = (proc) =>
-    !!state.taggedEvidence.find(e => e.id === `ram_${proc.pid}`)
+  const isTagged = (item) => {
+    if (scanMode === 'malfind') {
+      return !!state.taggedEvidence.find(e => e.id === `malfind_${item.pid}_${item.address}`)
+    }
+    return !!state.taggedEvidence.find(e => e.id === `ram_${item.pid}`)
+  }
+
+  const toggleButtons = [
+    { id: 'pslist', label: 'pslist', icon: <List size={10} />, title: 'Walks the kernel ActiveProcessLinks list' },
+    { id: 'psscan', label: 'psscan', icon: <ScanSearch size={10} />, title: 'Scans raw memory for EPROCESS pool tags' },
+    ...(malfindData ? [{ id: 'malfind', label: 'malfind', icon: <Eye size={10} />, title: 'Scans for injected code (writable+executable memory regions)' }] : [])
+  ]
 
   return (
     <div style={{ display: 'flex', height: '100%', flexDirection: 'column' }}>
@@ -832,12 +844,9 @@ function RamView() {
         padding: '8px 12px', borderBottom: '1px solid var(--border-dim)',
         background: 'var(--bg-raised)', flexShrink: 0,
       }}>
-        {/* pslist / psscan toggle */}
+        {/* pslist / psscan / malfind toggle */}
         <div style={{ display: 'flex', gap: 4 }}>
-          {[
-            { id: 'pslist', label: 'pslist', icon: <List size={10} />, title: 'Walks the kernel ActiveProcessLinks list' },
-            { id: 'psscan', label: 'psscan', icon: <ScanSearch size={10} />, title: 'Scans raw memory for EPROCESS pool tags' },
-          ].map(({ id, label, icon, title }) => (
+          {toggleButtons.map(({ id, label, icon, title }) => (
             <button
               key={id}
               title={title}
@@ -860,20 +869,28 @@ function RamView() {
 
         {/* Process count — delta is the key clue */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-            {shown.length} process{shown.length !== 1 ? 'es' : ''}
-          </span>
-          {delta > 0 && (
-            <span style={{
-              fontSize: '10px', fontFamily: 'var(--font-mono)',
-              color: 'var(--amber-main)',
-              background: 'rgba(255,184,0,0.08)',
-              border: '1px solid var(--amber-dim)',
-              padding: '2px 8px', borderRadius: 'var(--radius-sm)',
-              display: 'flex', alignItems: 'center', gap: 4,
-            }}>
-              <AlertTriangle size={9} />
-              pslist: {pslistProcs.length} — psscan: {psscanProcs.length} (+{delta} hidden)
+          {scanMode !== 'malfind' ? (
+            <>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                {shown.length} process{shown.length !== 1 ? 'es' : ''}
+              </span>
+              {delta > 0 && (
+                <span style={{
+                  fontSize: '10px', fontFamily: 'var(--font-mono)',
+                  color: 'var(--amber-main)',
+                  background: 'rgba(255,184,0,0.08)',
+                  border: '1px solid var(--amber-dim)',
+                  padding: '2px 8px', borderRadius: 'var(--radius-sm)',
+                  display: 'flex', alignItems: 'center', gap: 4,
+                }}>
+                  <AlertTriangle size={9} />
+                  pslist: {pslistProcs.length} — psscan: {psscanProcs.length} (+{delta} hidden)
+                </span>
+              )}
+            </>
+          ) : (
+            <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--red-alert)', background: 'rgba(255,60,60,0.06)', border: '1px solid var(--red-dim)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
+              {malfindData.length} injected region{malfindData.length !== 1 ? 's' : ''} found
             </span>
           )}
         </div>
@@ -882,113 +899,216 @@ function RamView() {
       {/* Table + Detail split */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-        {/* Process table */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
-            <thead>
-              <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border-dim)' }}>
-                {['PID', 'PPID', 'PROCESS', 'OFFSET', 'THR', 'FLAGS'].map(h => (
-                  <td key={h} style={{ padding: '4px 10px 6px 0' }}>{h}</td>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {shown.map((proc, i) => {
-                const hidden = proc.pslist_visible === false
-                const isHiddenInCurrentMode = hidden && scanMode === 'pslist'
-                const rowColor = proc.suspicious ? 'var(--red-alert)' : 'var(--text-secondary)'
-                const isActive = selected?.pid === proc.pid
+        {scanMode !== 'malfind' ? (
+          /* Process table */
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+              <thead>
+                <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border-dim)' }}>
+                  {['PID', 'PPID', 'PROCESS', 'OFFSET', 'THR', 'FLAGS'].map(h => (
+                    <td key={h} style={{ padding: '4px 10px 6px 0' }}>{h}</td>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {shown.map((proc, i) => {
+                  const hidden = proc.pslist_visible === false
+                  const rowColor = proc.suspicious ? 'var(--red-alert)' : 'var(--text-secondary)'
+                  const isActive = selected?.pid === proc.pid && !selected.address
 
-                return (
-                  <tr
-                    key={i}
-                    onClick={() => setSelected(proc)}
-                    style={{
-                      borderBottom: '1px solid var(--bg-raised)',
-                      color: rowColor,
-                      cursor: 'pointer',
-                      background: isActive ? 'rgba(0,200,100,0.06)' : 'transparent',
-                    }}
-                  >
-                    <td style={{ padding: '4px 10px 4px 0' }}>{proc.pid}</td>
-                    <td style={{ padding: '4px 10px 4px 0' }}>{proc.ppid}</td>
-                    <td style={{ padding: '4px 10px 4px 0', color: proc.suspicious ? 'var(--red-alert)' : 'var(--text-primary)' }}>
-                      {proc.name}
-                      {hidden && scanMode === 'psscan' && (
-                        <span style={{ marginLeft: 6, fontSize: '9px', color: 'var(--amber-main)', background: 'rgba(255,184,0,0.1)', padding: '1px 5px', borderRadius: 3 }}>
-                          DKOM-hidden
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ padding: '4px 10px 4px 0', color: 'var(--text-muted)' }}>{proc.offset}</td>
-                    <td style={{ padding: '4px 10px 4px 0' }}>{proc.threads ?? '—'}</td>
-                    <td style={{ padding: '4px 0 4px 0' }}>
-                      {proc.suspicious && (
-                        <span style={{ color: 'var(--red-alert)', fontSize: '10px', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <AlertTriangle size={10} /> SUSPICIOUS
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                  return (
+                    <tr
+                      key={i}
+                      onClick={() => setSelected(proc)}
+                      style={{
+                        borderBottom: '1px solid var(--bg-raised)',
+                        color: rowColor,
+                        cursor: 'pointer',
+                        background: isActive ? 'rgba(0,200,100,0.06)' : 'transparent',
+                      }}
+                    >
+                      <td style={{ padding: '4px 10px 4px 0' }}>{proc.pid}</td>
+                      <td style={{ padding: '4px 10px 4px 0' }}>{proc.ppid}</td>
+                      <td style={{ padding: '4px 10px 4px 0', color: proc.suspicious ? 'var(--red-alert)' : 'var(--text-primary)' }}>
+                        {proc.name}
+                        {hidden && scanMode === 'psscan' && (
+                          <span style={{ marginLeft: 6, fontSize: '9px', color: 'var(--amber-main)', background: 'rgba(255,184,0,0.1)', padding: '1px 5px', borderRadius: 3 }}>
+                            DKOM-hidden
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: '4px 10px 4px 0', color: 'var(--text-muted)' }}>{proc.offset}</td>
+                      <td style={{ padding: '4px 10px 4px 0' }}>{proc.threads ?? '—'}</td>
+                      <td style={{ padding: '4px 0 4px 0' }}>
+                        {proc.suspicious && (
+                          <span style={{ color: 'var(--red-alert)', fontSize: '10px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <AlertTriangle size={10} /> SUSPICIOUS
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          /* Malfind table */
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+              <thead>
+                <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border-dim)' }}>
+                  {['PID', 'PROCESS', 'ADDRESS', 'PROTECTION', 'SIZE'].map(h => (
+                    <td key={h} style={{ padding: '4px 10px 6px 0' }}>{h}</td>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {malfindData.map((item, i) => {
+                  const isActive = selected?.pid === item.pid && selected?.address === item.address
+                  return (
+                    <tr
+                      key={i}
+                      onClick={() => setSelected(item)}
+                      style={{
+                        borderBottom: '1px solid var(--bg-raised)',
+                        color: 'var(--red-alert)',
+                        cursor: 'pointer',
+                        background: isActive ? 'rgba(255,60,60,0.06)' : 'transparent',
+                      }}
+                    >
+                      <td style={{ padding: '4px 10px 4px 0' }}>{item.pid}</td>
+                      <td style={{ padding: '4px 10px 4px 0', color: 'var(--text-primary)' }}>{item.process}</td>
+                      <td style={{ padding: '4px 10px 4px 0', color: 'var(--amber-main)' }}>{item.address}</td>
+                      <td style={{ padding: '4px 10px 4px 0' }}>{item.protection}</td>
+                      <td style={{ padding: '4px 0 4px 0' }}>{item.size}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-        {/* Process detail panel */}
+        {/* Detail panel */}
         {selected && (
           <div style={{
-            width: '220px', flexShrink: 0,
+            width: '240px', flexShrink: 0,
             borderLeft: '1px solid var(--border-dim)',
             padding: '12px', overflowY: 'auto',
             background: 'var(--bg-raised)',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-              <div style={{ fontSize: '12px', color: selected.suspicious ? 'var(--red-alert)' : 'var(--text-primary)', fontWeight: 700 }}>
-                {selected.name}
-              </div>
-              <button
-                className={`btn-tag ${isTagged(selected) ? 'tagged' : ''}`}
-                onClick={() => isTagged(selected) ? untagEvidence(`ram_${selected.pid}`) : tagEvidence({
-                  id: `ram_${selected.pid}`,
-                  name: `${selected.name} (PID ${selected.pid})`,
-                  type: 'process',
-                  note: selected.suspicious ? '⚠ Suspicious process' : '',
-                  path: `RAM:${selected.offset}`,
-                })}
-              >
-                <Tag size={9} />
-                {isTagged(selected) ? 'Tagged' : 'Tag'}
-              </button>
-            </div>
+            {scanMode !== 'malfind' ? (
+              /* Process details */
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                  <div style={{ fontSize: '12px', color: selected.suspicious ? 'var(--red-alert)' : 'var(--text-primary)', fontWeight: 700 }}>
+                    {selected.name}
+                  </div>
+                  <button
+                    className={`btn-tag ${isTagged(selected) ? 'tagged' : ''}`}
+                    onClick={() => isTagged(selected) ? untagEvidence(`ram_${selected.pid}`) : tagEvidence({
+                      id: `ram_${selected.pid}`,
+                      name: `${selected.name} (PID ${selected.pid})`,
+                      type: 'process',
+                      note: selected.suspicious ? '⚠ Suspicious process' : '',
+                      path: `RAM:${selected.offset}`,
+                    })}
+                  >
+                    <Tag size={9} />
+                    {isTagged(selected) ? 'Tagged' : 'Tag'}
+                  </button>
+                </div>
 
-            <table className="ft" style={{ fontSize: '10px' }}>
-              <tbody>
-                {[
-                  ['PID', selected.pid],
-                  ['PPID', selected.ppid],
-                  ['Offset', selected.offset],
-                  ['Threads', selected.threads ?? '—'],
-                  ['pslist', selected.pslist_visible === false ? '✗ HIDDEN' : '✓ visible'],
-                  ['psscan', '✓ visible'],
-                ].map(([k, v]) => (
-                  <tr key={k}
-                    className={
-                      (k === 'pslist' && selected.pslist_visible === false) ||
-                        (k === 'PPID' && selected.ppid === 0 && selected.suspicious)
-                        ? 'anomaly' : ''}>
-                    <td className="k">{k}</td>
-                    <td className="v">{String(v)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                <table className="ft" style={{ fontSize: '10px' }}>
+                  <tbody>
+                    {[
+                      ['PID', selected.pid],
+                      ['PPID', selected.ppid],
+                      ['Offset', selected.offset],
+                      ['Threads', selected.threads ?? '—'],
+                      ['pslist', selected.pslist_visible === false ? '✗ HIDDEN' : '✓ visible'],
+                      ['psscan', '✓ visible'],
+                    ].map(([k, v]) => (
+                      <tr key={k}
+                        className={
+                          (k === 'pslist' && selected.pslist_visible === false) ||
+                            (k === 'PPID' && selected.ppid === 0 && selected.suspicious)
+                            ? 'anomaly' : ''}>
+                        <td className="k">{k}</td>
+                        <td className="v">{String(v)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
 
-            {selected.notes && (
-              <p style={{ fontSize: '10px', color: 'var(--amber-main)', marginTop: 10, lineHeight: 1.5 }}>
-                {selected.notes}
-              </p>
+                {selected.notes && (
+                  <p style={{ fontSize: '10px', color: 'var(--amber-main)', marginTop: 10, lineHeight: 1.5 }}>
+                    {selected.notes}
+                  </p>
+                )}
+              </>
+            ) : (
+              /* Malfind details */
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                  <div style={{ fontSize: '12px', color: 'var(--red-alert)', fontWeight: 700 }}>
+                    {selected.process} (PID {selected.pid})
+                  </div>
+                  <button
+                    className={`btn-tag ${isTagged(selected) ? 'tagged' : ''}`}
+                    onClick={() => isTagged(selected)
+                      ? untagEvidence(`malfind_${selected.pid}_${selected.address}`)
+                      : tagEvidence({
+                          id: `malfind_${selected.pid}_${selected.address}`,
+                          name: `RWX memory region at ${selected.address} (PID ${selected.pid})`,
+                          type: 'file',  // Must be 'file' to match target string parsing perfectly in Notebook
+                          note: `PAGE_EXECUTE_READWRITE injection in ${selected.process}`,
+                          path: `RAM:${selected.address}`,
+                        })}
+                  >
+                    <Tag size={9} />
+                    {isTagged(selected) ? 'Tagged' : 'Tag'}
+                  </button>
+                </div>
+
+                <table className="ft" style={{ fontSize: '10px' }}>
+                  <tbody>
+                    {[
+                      ['PID', selected.pid],
+                      ['Process', selected.process],
+                      ['Address', selected.address],
+                      ['Protection', selected.protection],
+                      ['Size', selected.size],
+                    ].map(([k, v]) => (
+                      <tr key={k} className={k === 'Protection' && v === 'PAGE_EXECUTE_READWRITE' ? 'anomaly' : ''}>
+                        <td className="k">{k}</td>
+                        <td className="v">{String(v)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: '9px', color: 'var(--text-ghost)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+                    Hex Header
+                  </div>
+                  <div style={{
+                    fontFamily: 'var(--font-mono)', fontSize: '10px',
+                    background: 'var(--bg-base)', padding: '6px 8px',
+                    borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-dim)',
+                    color: 'var(--text-primary)', letterSpacing: '0.05em',
+                  }}>
+                    {selected.header}
+                  </div>
+                </div>
+
+                {selected.notes && (
+                  <p style={{ fontSize: '10px', color: 'var(--red-alert)', marginTop: 10, lineHeight: 1.5 }}>
+                    {selected.notes}
+                  </p>
+                )}
+              </>
             )}
           </div>
         )}
