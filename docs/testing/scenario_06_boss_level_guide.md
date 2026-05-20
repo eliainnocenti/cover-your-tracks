@@ -218,16 +218,19 @@ This scenario features cross-reference links where players can combine evidence 
 - **Evidence 1:** `wevtutil_clear.bat`
 - **Evidence 2:** `Security.evtx`
 - **Description:** Links the batch script's execution time (03:14 AM) with the exact last-modified timestamp of the truncated event log file.
+- **Matching Behavior:** Matches display name `wevtutil_clear.bat` against `Security.evtx` case-insensitively.
 
 ### Connection 2: Exfiltration Source (15 points)
 - **Evidence 1:** `winlogon_helper.exe`
-- **Evidence 2:** `ICMP to 185.220.101.47`
+- **Evidence 2:** `185.220.101.47` (Any tagged ICMP packet containing this Tor exit node destination IP)
 - **Description:** Connects the DKOM-hidden rootkit process to the ICMP tunneling exfiltration traffic (both ran as SYSTEM during the same active window).
+- **Matching Behavior:** The process is tagged in the UI as `"winlogon_helper.exe (PID 3580)"`, which includes `"winlogon_helper.exe"`. The exfiltration network packet is tagged with a display name containing the Tor IP `"185.220.101.47"`. The connection engine successfully matches these using case-insensitive substring matching.
 
 ### Connection 3: The Blind Spot (15 points)
 - **Evidence 1:** `Security.evtx`
-- **Evidence 2:** `ICMP to 185.220.101.47`
+- **Evidence 2:** `185.220.101.47` (Any tagged ICMP packet containing this Tor exit node destination IP)
 - **Description:** Correlates the 4-hour event log gap (23:02–03:08) with the exact timeframe of the ICMP exfiltration (02:15).
+- **Matching Behavior:** Matches the tagged event log `"Security.evtx"` against any tagged network packet containing `"185.220.101.47"` case-insensitively.
 
 ## 7. Flags — What to Submit and Why
 
@@ -303,7 +306,7 @@ This is the only scenario that uses **ALL THREE data sources** (filesystem + RAM
 ## 11. Post-Quiz — Answers and Rationale
 
 ### Question 1
-> "How can an attacker truncate Windows Event Logs without triggering Event ID 1102?"
+> "How can an attacker truncate Windows Event Logs without triggering Event ID 1102 (audit log cleared)?"
 
 | # | Option | Correct? |
 |---|--------|----------|
@@ -318,44 +321,56 @@ This is the only scenario that uses **ALL THREE data sources** (filesystem + RAM
 | # | Option | Correct? |
 |---|--------|----------|
 | 0 | ICMP is encrypted by default | ❌ |
-| **1** | **ICMP traffic is rarely inspected by firewalls and IDS, and the protocol allows arbitrary payload data** | **✅** |
+| **1** | **ICMP traffic is rarely inspected by firewalls and IDS, and the protocol allows arbitrary payload data in echo requests** | **✅** |
 | 2 | ICMP has no maximum payload size limit | ❌ |
 | 3 | ICMP packets cannot be captured by sniffers | ❌ |
 
 ### Question 3
-> **"What specific anomaly proved that winlogon_helper.exe was a hidden rootkit?"**
+> **"How did the three attack layers in this scenario work together to maximize the attacker's operational security?"**
 
 | # | Option | Correct? |
 |---|--------|----------|
-| 0 | Its memory utilization was unusually high | ❌ |
-| **1** | **It appeared in the psscan results but was missing from the pslist results** | **✅** |
-| 2 | It was communicating directly with a known malicious domain | ❌ |
-| 3 | It was digitally signed with a revoked certificate | ❌ |
+| 0 | Each layer encrypted a different part of the stolen data | ❌ |
+| **1** | **The rootkit hid the exfiltration process, ICMP tunneled the data past the firewall, and log wiping erased the evidence trail** | **✅** |
+| 2 | The layers were independent and did not interact | ❌ |
+| 3 | Each layer targeted a different victim machine on the network | ❌ |
 
-**Why:** Legitimate processes appear in both the ActiveProcessLinks list (checked by pslist) and physical memory (checked by psscan). A process that only appears in psscan has been deliberately unlinked via DKOM — a classic rootkit technique.
+**Why:** The DKOM rootkit hid the malicious processes from system tools, ICMP tunneling bypassed network monitoring by using a rarely-inspected protocol, and log wiping removed the audit trail — each layer covering for the others.
 
 ### Question 4
-> **"How did the attacker create a 'blind spot' during their operational window?"**
+> **"What evidence proved the event logs had been deliberately truncated rather than simply rolled over by normal retention?"**
 
 | # | Option | Correct? |
 |---|--------|----------|
-| 0 | By physically disconnecting the network cable | ❌ |
-| **1** | **By executing wevtutil_clear.bat to wipe the Security Event Log, destroying the records of their activities** | **✅** |
-| 2 | By changing the system clock to a future date | ❌ |
-| 3 | By encrypting the entire hard drive with ransomware | ❌ |
+| 0 | The log file was encrypted | ❌ |
+| **1** | **The file was only 512 KB (expected ~18 MB for 90-day retention), was modified at 3:14 AM, and a log-clearing batch script was found** | **✅** |
+| 2 | The log file had a different file extension | ❌ |
+| 3 | Windows reported an error when opening the log file | ❌ |
 
-**Why:** The `wevtutil_clear.bat` script cleared the Security, System, and Application logs at 03:14 AM. This erased the event records from 23:02 to 03:08 (the 4-hour operational window), leaving a suspicious gap and a truncated 512 KB log file.
+**Why:** Three corroborating indicators: the file was 97% smaller than expected, was modified during off-hours (03:14 AM), and a self-deleting batch script (wevtutil_clear.bat) containing 'wevtutil cl Security' was found in the user's AppData.
 
 
 ## 12. Common Mistakes and Edge Cases
 
-| Test | Expected |
-|------|----------|
-| Only finding 1-2 layers | Students must check all three tabs |
-| Missing the typosquatting bonus | Requires comparing `winlogon_helper.exe` to `winlogon.exe` |
-| Confusing normal traffic with ICMP exfil | DNS/ARP/TCP packets are decoys |
-| Not checking wevtutil_clear.bat | Confirms the log-wiping technique but is not a flag itself |
-| Submitting all 4 flags | Phase transitions to post_quiz after all 4 |
+### Testing Edge Cases
+
+| Test Input / Action | Expected Engine Behavior & Rationale |
+|---------------------|--------------------------------------|
+| **Navigating all tabs (Filesystem, RAM, Network)** | All panels (Explorer, RAM List, Network Packet Viewer, Terminal, HEX) are active in this combined scenario and must show correct data states. |
+| **Submitting "Security.evtx" vs "security"** | **Success**. Normalizes to `securityevtx` or matches finding `log wiping` directly. Case-insensitive substring matching succeeds. |
+| **Submitting "winlogon_helper.exe" vs "winlogon_helper"** | **Success**. Case-insensitive substring matching maps both to the target or typosquatting flag. |
+| **Submitting "ICMP 185.220.101.47" (Network Exfil)** | **Success**. Stripping spaces/punctuation normalizes this to `icmp18522010147` which matches Flag 3. |
+| **Connecting "Security.evtx" and "185.220.101.47"** | **Success**. Connecting evidence pairs in the CrossReference panel rewards +15 pts. The engine checks literal case-insensitive matches. |
+| **Submitting "wevtutil_clear.bat" as a flag** | **Failure**. The batch script is a key corroborating artifact, but it is not a direct flag (properly rejected). |
+| **Submitting normal processes (e.g., "explorer.exe")** | **Failure**. Legitimate processes are control elements and are rejected. |
+
+### Common Student Mistakes
+
+1. **Only inspecting one or two tabs** — Since this is a combined boss-level scenario, students may stop after finding one or two vectors (e.g., filesystem log wiping and RAM processes) and miss the network exfiltration layer entirely.
+2. **Missing the typosquatting bonus** — Students might find `winlogon_helper.exe` but fail to recognize or submit the typosquatting technique name, missing out on the bonus points (Flag 4).
+3. **Confusing normal traffic with ICMP tunneling** — Students may spend time analyzing the TCP, ARP, or DNS queries (packets 6, 10, 13) which are standard decoy background traffic, instead of focusing on the oversized 1400-byte ICMP packets.
+4. **Failing to link evidence pairs** — Forgetting to use the Cross-Reference component to draw connection lines between files, RAM processes, and IPs, which prevents them from getting the full set of bonus points (+15 pts per link, 45 pts total).
+5. **Thinking Event ID 1102 is the only indicator of log clearing** — The post-quiz tests this concept. Attackers can truncate `.evtx` files or suspend Event Log services to prevent Event ID 1102 from being generated, leaving size mismatch and timestamp off-hour changes as the primary clues.
 
 
 ## Quick Reference Card

@@ -467,6 +467,27 @@ After completing the post-quiz, verify the debriefing screen shows:
 - **Further Reading:** NTFS MFT, Sleuth Kit istat, Event 4663/4664, Metasploit timestomp
 
 
+## 12. Common Mistakes and Edge Cases
+
+### Testing Edge Cases
+
+| Test Input / Action | Expected Engine Behavior & Rationale |
+|---------------------|--------------------------------------|
+| **Clicking RAM / Network tabs** | Correctly shows "No data/No files in this scenario" empty panel states since this is a pure filesystem forensic scenario. |
+| **Submitting "Q2_Report" (Partial Target)** | **Success**. The substring matching algorithm accepts partial names like `Q2_Report` and matches Flag 1. |
+| **Submitting "TIMESTOMPING" (Uppercase Technique)** | **Success**. Case-insensitivity ensures that uppercase submissions map perfectly to the flag target/finding. |
+| **Submitting "personal_notes.txt"** | **Failure (Proper Rejection)**. This is a control file with matching $SI and $FN timestamps, so it is clean. |
+| **Submitting absolute paths in terminal commands** | **Failure (Path Constraint)**. Commands like `stat Users/kmartin/Documents/Q2_Report_FINAL.docx` will fail. The terminal requires `cd` navigation before running file inspection commands. |
+
+### Common Student Mistakes
+
+1. **Not checking the $FN timestamps in `istat`** — Students might inspect the files in Explorer or use `stat` and miss the matching $FN timestamps which confirm the original dates.
+2. **Missing the AppData tool log** — The `timestomp_log.tmp` is a vital piece of evidence (Flag 3) that proves the deliberate use of anti-forensic tools rather than simple file creation.
+3. **Failing to navigate (cd) in the terminal** — Attempting to run `cat timestomp_log.tmp` from the root directory will fail due to the simplified terminal pathing model. Students must first run `cd Users/kmartin/AppData/Roaming`.
+4. **Confusing timestomping with normal modification** — Normal edits update Modified and MFT Changed timestamps but leave Created untouched. Timestomping overwrites all four $SI timestamps to the exact same second.
+5. **Submitting wrong techniques** — Submitting "E5 Deletion" or "Steganography" instead of "Timestomping" or "Tool Artifact" will be correctly rejected.
+
+
 ## Quick Reference Card
 
 ```

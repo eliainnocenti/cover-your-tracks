@@ -425,6 +425,29 @@ Verify the debriefing shows:
 - **Case Connection:** Employee deleted CSV, smaller PDF written over same clusters, slack retained fragments, 0xE5 confirmed deletion
 - **Further Reading:** NTFS cluster allocation, FAT directory entries, foremost/scalpel file carving
 
+
+## 12. Common Mistakes and Edge Cases
+
+### Testing Edge Cases
+
+| Test Input / Action | Expected Engine Behavior & Rationale |
+|---------------------|--------------------------------------|
+| **Clicking RAM / Network tabs** | Correctly shows "No data/No files in this scenario" empty panel states since this is a pure filesystem forensic scenario. |
+| **Submitting "å5alary_export.csv" vs "salary_export.csv"** | **Success**. The notebook normalizer dynamically strips any leading `å` or `å5` characters, allowing students to submit either string correctly. |
+| **Submitting "file.pdf" (Partial Match)** | **Success**. The substring matcher accepts simple names like `file.pdf` to match Flag 1. |
+| **Submitting "slack" or "carving" techniques** | **Success**. The normalizer strips punctuation and lowercase inputs to support wide submissions of `slack space` or `file carving`. |
+| **Submitting "meeting_notes.docx"** | **Failure (Proper Rejection)**. This is a control file with normal size-to-allocation attributes, so it is clean. |
+| **Submitting absolute paths in terminal commands** | **Failure (Path Constraint)**. Commands like `stat Projects/file.pdf` will fail. The terminal requires `cd` navigation before running file inspection commands. |
+
+### Common Student Mistakes
+
+1. **Ignoring the Recycle Bin directory** — Students might inspect the `Projects` folder and find the PDF slack space but miss the deleted directory entry `å5alary_export.csv` which confirms what file was deleted.
+2. **Confusing file size with cluster size** — Students must realize that a file's logical size (bytes) is different from its allocated disk size (clusters), which is what creates the slack space boundary.
+3. **Failing to navigate (cd) in the terminal** — Attempting to run `xxd file.pdf` from the root directory will fail due to the simplified terminal pathing model. Students must first run `cd Projects`.
+4. **Not checking the foremost output log** — The carved CSV file fragment is detailed inside `/forensics_output/foremost_output.txt`. Students who do not inspect this will miss the specific salary content (Flag 2).
+5. **Thinking E5 deletion overwrites clusters** — Deleting a file in FAT only marks the directory entry as deleted (`0xE5`) and marks the clusters as free; it does not zero out or destroy the data immediately.
+
+
 ## Quick Reference Card
 
 ```
