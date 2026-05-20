@@ -6,6 +6,7 @@ import ChainOfCustody from './ChainOfCustody'
 export default function Debrief({ onNext }) {
   const { state, metrics } = useEngine()
   const { scenario } = state
+  if (!scenario) return null
   const d = scenario.debriefing
   const delta = metrics?.knowledgeDelta
   const quizSkipped = metrics?.quizSkipped

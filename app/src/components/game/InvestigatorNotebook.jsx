@@ -65,9 +65,12 @@ export default function InvestigatorNotebook() {
       let targetMatch = false
 
       if (eType === 'file') {
+        const normEName = eName.split(/[\\/]/).pop()?.replace(/^å\d?/, '') ?? eName.replace(/^å\d?/, '')
+        const normFTarget = fTarget.split(/[\\/]/).pop()?.replace(/^å\d?/, '') ?? fTarget.replace(/^å\d?/, '')
         targetMatch =
           eName.includes(fTarget) ||
-          fTarget.includes(eName.split('\\').pop() ?? eName)  // basename match
+          fTarget.includes(eName.split('\\').pop() ?? eName) ||
+          (normEName && normFTarget && (normFTarget.endsWith(normEName) || normEName.endsWith(normFTarget)))
       } else if (eType === 'process') {
         // evidence name is "winlogon_helper.exe (PID 3580)"
         // flag target might be "winlogon_helper.exe" or "svchost.exe PID 4812"
@@ -116,7 +119,11 @@ export default function InvestigatorNotebook() {
         if (flagsFound.find(ff => ff.flagId === f.id)) return false
         const fTarget = (f.target ?? '').toLowerCase()
         const eName = evidence.name.toLowerCase()
-        if (evidence.type === 'file') return eName.includes(fTarget) || fTarget.includes(eName.split('\\').pop() ?? eName)
+        if (evidence.type === 'file') {
+          const normEName = eName.split(/[\\/]/).pop()?.replace(/^å\d?/, '') ?? eName.replace(/^å\d?/, '')
+          const normFTarget = fTarget.split(/[\\/]/).pop()?.replace(/^å\d?/, '') ?? fTarget.replace(/^å\d?/, '')
+          return eName.includes(fTarget) || fTarget.includes(eName.split('\\').pop() ?? eName) || (normEName && normFTarget && (normFTarget.endsWith(normEName) || normEName.endsWith(normFTarget)))
+        }
         if (evidence.type === 'process') {
           const procName = eName.split(' (pid')[0].trim()
           const ePid = eName.match(/\(pid\s*(\d+)\)/i)?.[1]

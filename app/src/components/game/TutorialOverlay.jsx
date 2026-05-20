@@ -93,7 +93,9 @@ export default function TutorialOverlay({ scenario, onDismiss }) {
             fontSize: '13px', color: 'var(--text-secondary)',
             lineHeight: 1.7, margin: 0, textAlign: 'left',
           }}>
-            {current.description}
+            {step === 0 && scenario?.id !== 'scenario_01'
+              ? 'Browse the filesystem tree on the left panel. Click any file to inspect its metadata — timestamps, sizes, permissions, and magic bytes.'
+              : current.description}
           </p>
         </div>
 

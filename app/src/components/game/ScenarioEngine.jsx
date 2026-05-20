@@ -90,6 +90,9 @@ function engineReducer(state, action) {
   switch (action.type) {
 
     case 'LOAD_SCENARIO':
+      if (!action.payload) {
+        return initialState
+      }
       return {
         ...initialState,
         phase: 'pre_quiz',
