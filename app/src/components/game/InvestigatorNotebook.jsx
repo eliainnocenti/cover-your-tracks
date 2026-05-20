@@ -16,6 +16,16 @@ const MASTER_TAXONOMY = [
   "Timestomping", "Tool Artifact", "Typosquatting", "Zero-Day Exploit", "/etc/passwd"
 ].sort()
 
+const normalizeString = (str) => {
+  if (!str) return ''
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/^\/+/, '')              // remove leading slashes
+    .replace(/\/+$/, '')              // remove trailing slashes
+    .replace(/[\s_\-\.]/g, '')        // remove spaces, underscores, hyphens, and periods
+}
+
 export default function InvestigatorNotebook() {
   const { state, untagEvidence, useHint, submitFlag, wrongSubmission } = useEngine()
   const { scenario, taggedEvidence, hintsUsed, score, flagsFound } = state
@@ -47,6 +57,7 @@ export default function InvestigatorNotebook() {
 
     const sanitize = s => (s || '').toLowerCase().replace(/[\s_\-]/g, '')
     const q = sanitize(techniqueInput)
+    const qNorm = normalizeString(techniqueInput)
 
     const match = scenario.flags.find(f => {
       if (flagsFound.find(ff => ff.flagId === f.id)) return false
@@ -97,14 +108,24 @@ export default function InvestigatorNotebook() {
         const protoMatch = fTarget.split(' ')[0]  // "ICMP", "DNS", etc.
         targetMatch =
           (ipMatch.length > 0 && ipMatch.some(ip => eName.includes(ip))) ||
-          (protoMatch && eName.includes(protoMatch.toLowerCase()) && fTarget.length >= 4)
+          (protoMatch && eName.includes(protoMatch.toLowerCase()) && fTarget.length >= 4) ||
+          // Special fallback for Scenario 4 Content/Domain/Technique flag matches on tagged DNS packets:
+          (fTarget.includes('passwd') && eName.includes('dns') && eName.includes('exfil-c2'))
       }
 
       if (!targetMatch) return false
 
       // ── technique matching ─────────────────────────────────────────────────
       const fFinding = sanitize(f.finding)
-      return q.includes(fFinding) || (fFinding.includes(q) && q.length > 3)
+      const fFindingNorm = normalizeString(f.finding)
+      const fTargetNorm = normalizeString(f.target)
+
+      const isFindingMatch = q.includes(fFinding) || (fFinding.includes(q) && q.length > 3) ||
+        qNorm.includes(fFindingNorm) || (fFindingNorm.includes(qNorm) && qNorm.length >= 3)
+      
+      const isTargetMatch = qNorm.includes(fTargetNorm) || (fTargetNorm.includes(qNorm) && qNorm.length >= 3)
+
+      return isFindingMatch || isTargetMatch
     })
 
     if (match) {
@@ -133,7 +154,10 @@ export default function InvestigatorNotebook() {
         }
         if (evidence.type === 'network') {
           const ipMatch = fTarget.match(/\b(\d{1,3}(?:\.\d{1,3}){3})\b/g) ?? []
-          return ipMatch.some(ip => eName.includes(ip))
+          const protoMatch = fTarget.split(' ')[0]
+          return (ipMatch.length > 0 && ipMatch.some(ip => eName.includes(ip))) ||
+            (protoMatch && eName.includes(protoMatch.toLowerCase()) && fTarget.length >= 4) ||
+            (fTarget.includes('passwd') && eName.includes('dns') && eName.includes('exfil-c2'))
         }
         return false
       })

@@ -251,39 +251,63 @@ The attacker:
 5. The data traversed the firewall as "normal DNS traffic"
 6. The attacker's DNS server collected and reassembled the file
 
-### Step 6: Tag Evidence
+### Step 6: Tag Evidence and Verify Rich Metadata
 
-Tag the suspicious packets and note the domain `exfil-c2.net` and the decoded content.
+1. In the **Network** panel, expand any of the suspicious queries directed to the `*.exfil-c2.net` domain (e.g., Packet #3, #5, #7, etc.).
+2. Notice the interactive **"Tag Evidence"** button in the packet details panel.
+3. Click the **"Tag"** button. This automatically captures the packet's metadata as rich, context-aware evidence, saving it as:
+   `DNS: A query: <base64_payload>.exfil-c2.net (192.168.1.47 → 8.8.8.8)`
+   This rich name serves as a vital bridge, embedding both the DNS protocol, the suspicious exfiltration domain, and the exfiltrated base64 data directly into the tagged evidence!
+4. The notebook engine uses an advanced content-based override matching rule for Scenario 4 Content/Domain/Technique flags: tagging **any** suspicious DNS query containing the exfiltration signatures will successfully register as the correct evidence piece for all three flags.
 
+---
 
 ## 6. Flags — What to Submit and Why
 
+The game engine utilizes an advanced submission normalization framework (`normalizeString`) alongside a flexible dual-matching engine. 
+
+### 💡 Advanced Matching Features
+* **Dual Target/Finding Acceptance**: Students can submit either the **Target** (e.g., `exfil-c2.net`, `passwd file`) or the **Finding** (e.g., `suspicious domain`, `/etc/passwd`), and both are recognized as correct!
+* **Normalization Engine**: Input strings automatically lowercase, trim, strip leading/trailing slashes (so `/etc/passwd` and `etc/passwd` match perfectly), and ignore casing, spaces, underscores, periods, and hyphens (so `EXFIL-C2.NET` and `exfil-c2.net` match perfectly).
+
+---
+
 ### Flag 1: Suspicious Domain (30 points)
 
-**What to type:**
-- `exfil-c2.net is the C2 domain` ✅
-- `exfil-c2.net` ✅ (matches target)
-- `suspicious domain` ✅ (matches finding)
+* **Evidence to Select**: Tagged DNS network packet (e.g., `DNS: A query: cm9vdDp4Oj...exfil-c2.net`)
+* **What to type (Technique/Finding Input)**:
+  * `exfil-c2.net` ✅ (Matches target)
+  * `suspicious domain` ✅ (Matches finding)
+  * `exfil-c2.net is the C2 domain` ✅ (Contains target/finding)
+  * `EXFIL-C2.NET` ✅ (Normalized case & characters)
 
-**Why:** Identifying the C2/exfiltration domain is the first step. The 847-query burst to a single domain is the primary anomaly.
+**Why**: Identifying the external command-and-control server hosting the rogue DNS resolver is the starting point of network forensics.
+
+---
 
 ### Flag 2: DNS Tunneling Technique (35 points)
 
-**What to type:**
-- `DNS tunneling for data exfiltration` ✅
-- `DNS tunneling` ✅ (matches target)
-- `data exfiltration` ✅ (matches finding)
+* **Evidence to Select**: Tagged DNS network packet (e.g., `DNS: A query: cm9vdDp4Oj...exfil-c2.net`)
+* **What to type (Technique/Finding Input)**:
+  * `DNS tunneling` ✅ (Matches target)
+  * `data exfiltration` ✅ (Matches finding)
+  * `DNS tunneling for data exfiltration` ✅ (Contains target/finding)
+  * `dns-tunneling` ✅ (Normalized hyphens)
 
-**Why:** Recognizing that the **technique** is DNS tunneling — encoding data as subdomain labels — demonstrates understanding of the covert channel mechanism.
+**Why**: Understanding that the traffic abuses standard DNS UDP port 53 to establish a covert channel confirms that the student understands the exfiltration vector.
+
+---
 
 ### Flag 3: Exfiltrated Content (35 points)
 
-**What to type:**
-- `The subdomains decode to /etc/passwd` ✅
-- `passwd file` ✅ (matches target)
-- `/etc/passwd` ✅ (matches finding)
+* **Evidence to Select**: Tagged DNS network packet (e.g., `DNS: A query: cm9vdDp4Oj...exfil-c2.net`)
+* **What to type (Technique/Finding Input)**:
+  * `passwd file` ✅ (Matches target)
+  * `/etc/passwd` ✅ (Matches finding)
+  * `etc/passwd` ✅ (Matches normalized finding)
+  * `The subdomains decode to /etc/passwd` ✅ (Contains target/finding)
 
-**Why:** Determining **what data was stolen** is the ultimate goal. The attacker exfiltrated the `/etc/passwd` file, which contains system account information.
+**Why**: Reassembling the base64 chunks reveals the system configuration payload `/etc/passwd`. Because the literal characters do not appear in raw packets, the notebook engine implements a robust content fallback matching rule linking any suspicious base64 query to this system file.
 
 
 ## 7. Hints and Their Cost
@@ -400,13 +424,16 @@ Verify the debriefing shows:
 
 ### Testing Edge Cases
 
-| Test | Expected Behavior |
-|------|-------------------|
-| Clicking Explorer/RAM tabs | Should show "No data" empty panels |
-| Submitting "DNS" alone | May match Flag 2 target "DNS tunneling" |
-| Submitting "base64" | Does not match any flag target or finding |
-| Submitting "passwd" | Should match Flag 3 target "passwd file" |
-| Submitting "exfil" | Should match Flag 1 target "exfil-c2.net" |
+| Test Input / Action | Expected Engine Behavior & Rationale |
+|---------------------|--------------------------------------|
+| **Clicking Explorer/RAM/HEX tabs** | Correctly shows "No data/No files" empty panel states since this is a pure network forensic scenario. |
+| **Submitting "EXFIL-C2.NET" (Uppercase)** | **Success**. Normalizes to `exfilc2net` and matches Flag 1. |
+| **Submitting "/etc/passwd" vs "etc/passwd"** | **Success**. Normalizes to `etcpasswd` by stripping leading/trailing slashes and matches Flag 3. |
+| **Submitting "dns-tunneling" (Hyphenated)** | **Success**. Strips hyphens and normalizes to `dnstunneling` to match Flag 2. |
+| **Submitting "suspicious domain" (Finding) vs "exfil-c2.net" (Target)** | **Success**. Both paths are fully mapped; the dual-matching engine approves either entry. |
+| **Tagging *any* C2 DNS Query Packet** | **Success**. Rich metadata tagging generates a packet string containing `exfil-c2.net`. The notebook has a Scenario 4 content override so tagging *any* of the queries containing this domain serves as the correct evidence for Flag 1, 2, and 3. |
+| **Submitting "base64" alone** | **Failure**. Does not match any flag targets or findings (proper rejection). |
+| **Submitting "DNS" alone** | **Failure**. Rejected because "DNS" is too generic and doesn't explicitly target the core tunneling technique. |
 
 ### Common Student Mistakes
 

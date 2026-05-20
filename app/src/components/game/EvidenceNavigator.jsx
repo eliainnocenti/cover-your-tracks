@@ -1180,7 +1180,9 @@ function NetworkView() {
         const pkt = data[selected]
         if (!pkt) return null
         const tagId = `net_${pkt.id ?? selected}`
-        const tagName = `${pkt.protocol} ${pkt.src} → ${pkt.dst}`
+        const tagName = pkt.info
+          ? `${pkt.protocol}: ${pkt.info} (${pkt.src} → ${pkt.dst})`
+          : `${pkt.protocol} ${pkt.src} → ${pkt.dst}`
         const tagged = isTagged(pkt, selected)
         return (
           <div style={{
