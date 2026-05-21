@@ -5,19 +5,19 @@
   "difficulty": 2,
   "domain": "filesystem",
   "estimatedMinutes": 20,
-  "narrative": "An employee at Meridian Corp is suspected of exfiltrating trade secrets before jumping to a competitor. The IT team imaged her workstation. The filesystem looks clean — all files appear normal. But a junior analyst noticed something odd: some file sizes don't match their cluster allocations. Your job: investigate the slack space and find what's hiding between the sectors.",
+  "narrative": "All files appear clean and standard at first glance, but forensic investigators suspect sensitive trade data was packaged in an unallocated area of an active document. Your job is to locate the sector discrepancy and extract the payload.",
   "learningObjective": "Understand how slack space works in FAT/NTFS filesystems, how data can persist in unallocated cluster space after a file is written, and how forensic tools like foremost perform file carving to recover hidden content.",
   "preQuiz": [
     {
       "id": "s2_pq1",
       "question": "What is 'slack space' in a filesystem?",
       "options": [
-        "Unused space at the end of a disk partition",
         "The difference between a file's logical size and the space actually allocated to it on disk",
+        "Unused space at the end of a disk partition",
         "A reserved area for the operating system swap file",
         "Empty space between directory entries in the MFT"
       ],
-      "correct": 1,
+      "correct": 0,
       "explanation": "Slack space is the difference between the end of a file's actual data and the end of the last cluster allocated to that file. Since filesystems allocate space in fixed-size clusters, a file rarely fills its last cluster completely — the leftover bytes are slack space."
     },
     {
@@ -66,6 +66,28 @@
           "name": "Projects",
           "type": "directory",
           "children": {
+            "readme.txt": {
+              "name": "readme.txt",
+              "type": "file",
+              "size": 184,
+              "extension": "txt",
+              "magic_bytes": "EFBBBF",
+              "metadata": {
+                "si_created": "2024-08-15 10:30:00",
+                "si_modified": "2024-08-15 10:30:00",
+                "si_accessed": "2024-10-20 09:00:00",
+                "si_mft_changed": "2024-08-15 10:30:00",
+                "fn_created": "2024-08-15 10:30:00",
+                "fn_modified": "2024-08-15 10:30:00",
+                "fn_accessed": "2024-10-20 09:00:00",
+                "fn_mft_changed": "2024-08-15 10:30:00",
+                "permissions": "-rw-r--r--",
+                "owner": "ajiang",
+                "inode": 44101,
+                "tampered": false
+              },
+              "content_preview": "Meridian Corp - Projects Workspace\nThis directory contains active draft materials and budget logs for Project Helios.\nEnsure confidentiality protocols are observed."
+            },
             "file.pdf": {
               "name": "file.pdf",
               "type": "file",
@@ -91,6 +113,31 @@
                 "tamper_note": "File itself is not tampered, but its slack space contains hidden data. 2,400 bytes used of a 4,096-byte cluster = 1,696 bytes of slack."
               },
               "content_preview": "[PDF Document] Project Helios — Phase 2 Status Report\nAuthor: A. Jiang | Pages: 3\nContent: Quarterly review of R&D milestones..."
+            },
+            "presentation_draft.pptx": {
+              "name": "presentation_draft.pptx",
+              "type": "file",
+              "size": 3100,
+              "extension": "pptx",
+              "magic_bytes": "504B0304",
+              "cluster_size": 4096,
+              "allocated_size": 4096,
+              "slack_bytes": 996,
+              "metadata": {
+                "si_created": "2024-10-18 14:00:00",
+                "si_modified": "2024-10-18 14:35:12",
+                "si_accessed": "2024-10-20 09:02:11",
+                "si_mft_changed": "2024-10-18 14:35:12",
+                "fn_created": "2024-10-18 14:00:00",
+                "fn_modified": "2024-10-18 14:35:12",
+                "fn_accessed": "2024-10-20 09:02:11",
+                "fn_mft_changed": "2024-10-20 09:02:11",
+                "permissions": "-rw-r--r--",
+                "owner": "ajiang",
+                "inode": 44105,
+                "tampered": false
+              },
+              "content_preview": "[PowerPoint Presentation] Q3 Sales Strategy Draft\nAuthor: A. Jiang\nSlides: 8 | Draft comments: check Q4 projections"
             },
             "meeting_notes.docx": {
               "name": "meeting_notes.docx",
@@ -260,11 +307,11 @@
       "question": "Why can data persist in slack space even after a new file is written?",
       "options": [
         "The filesystem encrypts old data before overwriting",
-        "The OS only writes the bytes needed for the new file, leaving the remainder of the cluster untouched",
         "Slack space is in a protected partition that cannot be overwritten",
-        "The MFT prevents cluster reuse for 30 days"
+        "The MFT prevents cluster reuse for 30 days",
+        "The OS only writes the bytes needed for the new file, leaving the remainder of the cluster untouched"
       ],
-      "correct": 1,
+      "correct": 3,
       "explanation": "The operating system writes only the exact number of bytes needed for the new file. The remaining bytes in the last cluster (the slack space) retain whatever data was there before — often from a previously deleted file."
     },
     {
@@ -272,23 +319,23 @@
       "question": "What forensic technique is used to recover files or fragments from unallocated disk space?",
       "options": [
         "Timestomping",
-        "File carving (e.g., using foremost or scalpel)",
         "Registry analysis",
+        "File carving (e.g., using foremost or scalpel)",
         "Memory dump analysis"
       ],
-      "correct": 1,
+      "correct": 2,
       "explanation": "File carving scans raw disk data for known file signatures (magic bytes) to reconstruct files, even when the filesystem metadata has been deleted. Tools like foremost, scalpel, and PhotoRec are commonly used."
     },
     {
       "id": "s2_postq3",
       "question": "In this scenario, how was the deleted salary_export.csv identified in the filesystem?",
       "options": [
-        "It appeared in the Recycle Bin with its full original name",
         "Its directory entry had the first byte replaced with 0xE5, the FAT deletion marker",
+        "It appeared in the Recycle Bin with its full original name",
         "It was listed in the Windows event logs as a deleted file",
         "The MFT entry was completely removed from disk"
       ],
-      "correct": 1,
+      "correct": 0,
       "explanation": "In FAT, the first byte of a deleted file's directory entry is replaced with 0xE5. The rest of the entry (including timestamps and cluster chain) remains intact, allowing forensic recovery."
     },
     {
@@ -296,11 +343,11 @@
       "question": "What connected the slack space data in file.pdf to the deleted salary_export.csv?",
       "options": [
         "They had the same file hash",
-        "The foremost carving output showed the CSV fragment matched the deleted file's header structure",
         "They were in the same directory",
-        "The slack space contained a pointer to the deleted file's inode"
+        "The slack space contained a pointer to the deleted file's inode",
+        "The foremost carving output showed the CSV fragment matched the deleted file's header structure"
       ],
-      "correct": 1,
+      "correct": 3,
       "explanation": "The foremost tool carved a CSV fragment from file.pdf's slack space whose header ('Employee,Department,Base Salary...') matched the structure of the deleted salary_export.csv — proving the same data existed in both locations."
     }
   ]

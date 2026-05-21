@@ -13,23 +13,23 @@
       "question": "What is LSB steganography?",
       "options": [
         "Encrypting an image file with a password",
-        "Hiding data by modifying the least significant bits of pixel color values",
         "Compressing image metadata to reduce file size",
+        "Hiding data by modifying the least significant bits of pixel color values",
         "Embedding a watermark in the image header"
       ],
-      "correct": 1,
+      "correct": 2,
       "explanation": "LSB steganography hides data by replacing the least significant bit of each color channel (R, G, B) in a pixel. Since changing the LSB only alters the color value by 1 (e.g., from 200 to 201), the visual difference is imperceptible to the human eye — but the bits can encode arbitrary data."
     },
     {
       "id": "s5_pq2",
       "question": "How does pixel color depth work in a standard 24-bit PNG image?",
       "options": [
-        "Each pixel has one 24-bit value for brightness",
         "Each pixel has three 8-bit channels (R, G, B), with each channel ranging from 0 to 255",
+        "Each pixel has one 24-bit value for brightness",
         "Each pixel stores 24 separate color entries",
         "Color depth only applies to JPEG, not PNG"
       ],
-      "correct": 1,
+      "correct": 0,
       "explanation": "In a 24-bit PNG, each pixel has three color channels (Red, Green, Blue), each represented by 8 bits (0-255). This means each pixel carries 24 bits of color data — and an LSB steganography tool can hide 3 bits of secret data per pixel (one bit per channel)."
     },
     {
@@ -49,11 +49,11 @@
       "question": "What is EXIF metadata in a digital image?",
       "options": [
         "The raw pixel data stored in the file",
-        "Embedded information about the camera, date, GPS location, and capture settings",
         "A digital signature proving the image has not been modified",
-        "The compression algorithm used to reduce file size"
+        "The compression algorithm used to reduce file size",
+        "Embedded information about the camera, date, GPS location, and capture settings"
       ],
-      "correct": 1,
+      "correct": 3,
       "explanation": "EXIF (Exchangeable Image File Format) metadata records information like camera model, capture date/time, GPS coordinates, and exposure settings. Its absence or inconsistency can be a forensic clue."
     }
   ],
@@ -157,6 +157,66 @@
                 "tamper_note": "This image is 14% larger than expected for its visual content (286KB vs ~250KB average for 1920x1080 cat photos). EXIF stripped. LSB chi-square anomaly. Steganographic payload detected."
               },
               "content_preview": "[PNG Image] 1920x1080 — Black cat on a bookshelf\nEXIF: *** STRIPPED *** (no camera, date, or GPS data)\nFile size: 286,450 bytes — 14% LARGER than expected\nLSB analysis: chi-square = 0.48 (ANOMALOUS)\nLSB entropy: 7.98 (near-maximum — structured data detected)\n\nzsteg output:\n  b1,rgb,lsb,xy: file: Zip archive data, at least v2.0 to extract\n  Embedded payload: product_designs_v4.zip (approx 38KB)\n  Archive contents: CAD files, specification PDFs"
+            },
+            "cat_04.png": {
+              "name": "cat_04.png",
+              "type": "file",
+              "size": 248900,
+              "extension": "png",
+              "magic_bytes": "89504E47",
+              "metadata": {
+                "si_created": "2024-11-04 10:14:22",
+                "si_modified": "2024-11-04 10:14:22",
+                "si_accessed": "2024-11-05 21:15:08",
+                "si_mft_changed": "2024-11-04 10:14:22",
+                "fn_created": "2024-11-04 10:14:22",
+                "fn_modified": "2024-11-04 10:14:22",
+                "fn_accessed": "2024-11-05 21:15:08",
+                "fn_mft_changed": "2024-11-04 10:14:22",
+                "permissions": "-rw-r--r--",
+                "owner": "dchen",
+                "inode": 91004,
+                "tampered": false,
+                "image_width": 1920,
+                "image_height": 1080,
+                "exif_camera": "iPhone 15 Pro",
+                "exif_date": "2024-11-04 10:14:20",
+                "exif_gps": "37.7749, -122.4194",
+                "lsb_chi_square": 0.94,
+                "lsb_entropy": 7.15,
+                "lsb_notes": "Normal statistical distribution. Chi-square value close to 1.0 indicates natural image."
+              },
+              "content_preview": "[PNG Image] 1920x1080 — Siamese cat playing with a yarn ball\nEXIF: iPhone 15 Pro, 2024-11-04 10:14:20\nGPS: 37.7749, -122.4194 (San Francisco)\nFile size: 248,900 bytes — consistent with resolution\nLSB analysis: chi-square = 0.94 (natural)"
+            },
+            "project_logo.png": {
+              "name": "project_logo.png",
+              "type": "file",
+              "size": 115200,
+              "extension": "png",
+              "magic_bytes": "89504E47",
+              "metadata": {
+                "si_created": "2024-10-15 14:02:11",
+                "si_modified": "2024-10-15 14:02:11",
+                "si_accessed": "2024-11-05 21:15:10",
+                "si_mft_changed": "2024-10-15 14:02:11",
+                "fn_created": "2024-10-15 14:02:11",
+                "fn_modified": "2024-10-15 14:02:11",
+                "fn_accessed": "2024-11-05 21:15:10",
+                "fn_mft_changed": "2024-10-15 14:02:11",
+                "permissions": "-rw-r--r--",
+                "owner": "dchen",
+                "inode": 91005,
+                "tampered": false,
+                "image_width": 800,
+                "image_height": 800,
+                "exif_camera": "Adobe Photoshop 2024",
+                "exif_date": "2024-10-15 14:00:00",
+                "exif_gps": null,
+                "lsb_chi_square": 0.96,
+                "lsb_entropy": 6.85,
+                "lsb_notes": "Normal statistical distribution for synthetic logo graphic."
+              },
+              "content_preview": "[PNG Image] 800x800 — Prism Design corporate logo\nEXIF: Adobe Photoshop 2024, 2024-10-15 14:00:00\nFile size: 115,200 bytes — consistent with resolution\nLSB analysis: chi-square = 0.96 (natural/clean)"
             }
           }
         },
@@ -248,35 +308,35 @@
       "question": "What statistical test is commonly used to detect LSB steganography?",
       "options": [
         "SHA-256 hash comparison",
-        "Chi-square analysis of LSB distribution",
         "CRC32 checksum verification",
+        "Chi-square analysis of LSB distribution",
         "Entropy measurement of file headers"
       ],
-      "correct": 1,
+      "correct": 2,
       "explanation": "Chi-square analysis compares the observed distribution of LSB values against the expected distribution in a natural image. Natural images have near-random LSB patterns (chi-square ≈ 1.0), while LSB steganography creates structured patterns that lower the chi-square value significantly."
     },
     {
       "id": "s5_postq2",
       "question": "Why is it suspicious when an image has its EXIF metadata stripped?",
       "options": [
-        "EXIF removal always indicates steganography",
         "It may indicate the image was processed to remove identifying metadata before embedding hidden data",
+        "EXIF removal always indicates steganography",
         "EXIF can only be removed using forensic tools",
         "Stripped EXIF means the image file is corrupted"
       ],
-      "correct": 1,
+      "correct": 0,
       "explanation": "While there are legitimate reasons to strip EXIF (privacy), in a forensic context it's suspicious — especially when other images from the same device retain their EXIF. Stripping EXIF removes timestamps, camera info, and GPS that could help trace the image's origin, and some steganography tools automatically strip it."
     },
     {
       "id": "s5_postq3",
       "question": "Why did cat_03.png have its EXIF metadata stripped while cat_01 and cat_02 retained theirs?",
       "options": [
+        "PNG files do not support EXIF metadata, so stripping is automatic.",
         "The image was uploaded to social media, which strips EXIF automatically",
         "The steganography embedding tool (Steghide) stripped EXIF during the embedding process",
-        "The camera malfunctioned when taking the third photo",
         "EXIF is only stored in JPEG files, not PNG"
       ],
-      "correct": 1,
+      "correct": 2,
       "explanation": "Many steganography tools strip EXIF during embedding because the metadata can conflict with the modified pixel data. The steghide_history.log confirmed: 'EXIF metadata stripped from output.'"
     },
     {
@@ -284,11 +344,11 @@
       "question": "Why did cat_03.png's LSB chi-square value (0.48) differ so significantly from cat_01 (0.92) and cat_02 (0.89)?",
       "options": [
         "cat_03 was taken with a lower-quality camera sensor",
-        "The embedded zip archive replaced the natural LSB distribution with structured data, changing the statistical signature",
         "cat_03 used a different color space (CMYK instead of RGB)",
-        "PNG compression artifacts lowered the chi-square value"
+        "PNG compression artifacts lowered the chi-square value",
+        "The embedded zip archive replaced the natural LSB distribution with structured data, changing the statistical signature"
       ],
-      "correct": 1,
+      "correct": 3,
       "explanation": "Natural images have semi-random LSBs (chi-square ≈ 1.0). When a compressed file (like a zip) replaces those LSBs, it introduces structured patterns that significantly lower the chi-square statistic."
     }
   ]

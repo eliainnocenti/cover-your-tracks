@@ -1,5 +1,5 @@
 // Debrief.jsx
-import { BookOpen, TrendingUp, TrendingDown, Clock, Target, Lightbulb, Award, ChevronRight, Minus, Link2 } from 'lucide-react'
+import { BookOpen, TrendingUp, TrendingDown, Clock, Target, Lightbulb, Award, ChevronRight, Minus, Link2, Shield } from 'lucide-react'
 import { useEngine } from './ScenarioEngine'
 import ChainOfCustody from './ChainOfCustody'
 
@@ -91,6 +91,52 @@ export default function Debrief({ onNext }) {
           startTime={state.startTime}
         />
       )}
+
+      {/* Forensic Chain of Custody Review Card */}
+      {(() => {
+        const filesTagged = taggedEvidence?.filter(e => e.type === 'file') || []
+        const filesAnalyzedCount = filesTagged.filter(f => state.analyzedFiles?.includes(f.path)).length
+        const custodyPercent = filesTagged.length > 0
+          ? Math.round((filesAnalyzedCount / filesTagged.length) * 100)
+          : 100
+
+        return (
+          <div style={{
+            border: `1px solid ${custodyPercent === 100 ? 'var(--green-muted)' : 'var(--amber-dim)'}`,
+            borderRadius: 'var(--radius-md)',
+            background: custodyPercent === 100 ? 'rgba(0,200,100,0.04)' : 'rgba(255,184,0,0.04)',
+            padding: '12px 14px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Shield size={12} style={{ color: custodyPercent === 100 ? 'var(--green-main)' : 'var(--amber-main)' }} />
+                <span style={{ fontSize: '9px', color: custodyPercent === 100 ? 'var(--green-main)' : 'var(--amber-main)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
+                  Forensic Custody Review
+                </span>
+              </div>
+              <span style={{
+                fontSize: '9px',
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+                padding: '2px 6px',
+                borderRadius: 'var(--radius-sm)',
+                background: custodyPercent === 100 ? 'rgba(0,200,100,0.12)' : 'rgba(255,184,0,0.12)',
+                color: custodyPercent === 100 ? 'var(--green-main)' : 'var(--amber-main)',
+                border: `1px solid ${custodyPercent === 100 ? 'var(--green-dim)' : 'var(--amber-dim)'}`
+              }}>
+                {custodyPercent === 100 ? '[ SECURE CUSTODY — 100% ]' : `[ UNVERIFIED CUSTODY — ${custodyPercent}% ]`}
+              </span>
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              {custodyPercent === 100 ? (
+                <span>Excellent work! You verified all submitted file findings using low-level terminal diagnostics (<code>stat</code>, <code>istat</code>, <code>zsteg</code>, <code>exiftool</code>, or <code>blkls</code>) before documenting them in your notebook. The chain of custody is structurally intact and court-admissible.</span>
+              ) : (
+                <span>Warning: You submitted file evidence without performing low-level terminal verification. In real-world digital forensics, GUI file attributes can be easily altered or spoofed. Always run terminal commands to verify deep sector structures and MFT records.</span>
+              )}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Cross-reference connections summary */}
       {metrics?.connectionsFound > 0 && (

@@ -12,12 +12,12 @@
       "id": "pq1",
       "question": "In NTFS, which metadata attribute stores the timestamps visible in Windows Explorer?",
       "options": [
-        "$FILE_NAME ($FN)",
         "$STANDARD_INFORMATION ($SI)",
+        "$FILE_NAME ($FN)",
         "$DATA",
         "$OBJECT_ID"
       ],
-      "correct": 1,
+      "correct": 0,
       "explanation": "$STANDARD_INFORMATION stores the timestamps shown in Windows Explorer and most forensic tools by default. This is also the attribute most commonly targeted by timestomping tools."
     },
     {
@@ -25,11 +25,11 @@
       "question": "What is 'timestomping'?",
       "options": [
         "Encrypting file timestamps with AES",
-        "Modifying MAC times to hide when a file was really created or accessed",
         "Deleting the MFT entry for a file",
+        "Modifying MAC times to hide when a file was really created or accessed",
         "Compressing timestamps to save disk space"
       ],
-      "correct": 1,
+      "correct": 2,
       "explanation": "Timestomping is the deliberate modification of a file's MAC (Modified, Accessed, Created) timestamps to mislead investigators about the true timeline of events."
     },
     {
@@ -48,12 +48,12 @@
       "id": "pq4",
       "question": "Which Windows API call is commonly used by timestomping tools to alter file timestamps?",
       "options": [
-        "CreateFile()",
-        "SetFileTime()",
-        "ReadFile()",
-        "DeleteFile()"
+        "GetFileTime()",
+        "SetFileAttributes()",
+        "NtSetInformationFile()",
+        "SetFileTime()"
       ],
-      "correct": 1,
+      "correct": 3,
       "explanation": "SetFileTime() allows user-space programs to set the Created, Modified, and Accessed timestamps of a file. Timestomping tools call this API to falsify $SI timestamps."
     }
   ],
@@ -74,6 +74,28 @@
                   "name": "Documents",
                   "type": "directory",
                   "children": {
+                    "Q1_Report_v2.docx": {
+                      "name": "Q1_Report_v2.docx",
+                      "type": "file",
+                      "size": 39500,
+                      "extension": "docx",
+                      "magic_bytes": "504B0304",
+                      "metadata": {
+                        "si_created":  "2024-06-12 14:30:00",
+                        "si_modified": "2024-06-12 15:45:10",
+                        "si_accessed": "2024-06-12 15:45:10",
+                        "si_mft_changed": "2024-06-12 15:45:10",
+                        "fn_created":  "2024-06-12 14:30:00",
+                        "fn_modified": "2024-06-12 15:45:10",
+                        "fn_accessed": "2024-06-12 15:45:10",
+                        "fn_mft_changed": "2024-06-12 15:45:10",
+                        "permissions": "-rw-r--r--",
+                        "owner": "kmartin",
+                        "inode": 78210,
+                        "tampered": false
+                      },
+                      "content_preview": "[Word Document] Q1 Performance Review and Goals\nAuthor: K. Martin | Last saved by: K. Martin\nRevision: 3 | Total editing time: 1h 15m"
+                    },
                     "Q2_Report_FINAL.docx": {
                       "name": "Q2_Report_FINAL.docx",
                       "type": "file",
@@ -97,6 +119,28 @@
                       },
                       "content_preview": "[Word Document] Q2 Financial Summary — Project Helios\nAuthor: K. Martin | Last saved by: K. Martin\nRevision: 14 | Total editing time: 4h 22m\n\n[Metadata embedded]: Created 2024-09-03, last printed 2024-11-11"
                     },
+                    "performance_review_2024.docx": {
+                      "name": "performance_review_2024.docx",
+                      "type": "file",
+                      "size": 41200,
+                      "extension": "docx",
+                      "magic_bytes": "504B0304",
+                      "metadata": {
+                        "si_created":  "2024-09-18 10:15:22",
+                        "si_modified": "2024-09-18 11:22:04",
+                        "si_accessed": "2024-09-18 11:22:04",
+                        "si_mft_changed": "2024-09-18 11:22:04",
+                        "fn_created":  "2024-09-18 10:15:22",
+                        "fn_modified": "2024-09-18 11:22:04",
+                        "fn_accessed": "2024-09-18 11:22:04",
+                        "fn_mft_changed": "2024-09-18 11:22:04",
+                        "permissions": "-rw-r--r--",
+                        "owner": "kmartin",
+                        "inode": 78245,
+                        "tampered": false
+                      },
+                      "content_preview": "[Word Document] Annual Performance Evaluation 2024\nAuthor: K. Martin | Reviewer: J. Doe\nStatus: APPROVED"
+                    },
                     "personal_notes.txt": {
                       "name": "personal_notes.txt",
                       "type": "file",
@@ -118,6 +162,28 @@
                         "tampered": false
                       },
                       "content_preview": "Reminder: submit PTO request before Dec\nLunch with Sarah - Tues 12pm\nCall back IT about the VPN issue"
+                    },
+                    "outlook_archive.pst": {
+                      "name": "outlook_archive.pst",
+                      "type": "file",
+                      "size": 254800000,
+                      "extension": "pst",
+                      "magic_bytes": "2142444E",
+                      "metadata": {
+                        "si_created":  "2024-01-10 08:00:00",
+                        "si_modified": "2024-11-12 17:30:45",
+                        "si_accessed": "2024-11-12 17:30:45",
+                        "si_mft_changed": "2024-11-12 17:30:45",
+                        "fn_created":  "2024-01-10 08:00:00",
+                        "fn_modified": "2024-11-12 17:30:45",
+                        "fn_accessed": "2024-11-12 17:30:45",
+                        "fn_mft_changed": "2024-11-12 17:30:45",
+                        "permissions": "-rw-------",
+                        "owner": "kmartin",
+                        "inode": 78299,
+                        "tampered": false
+                      },
+                      "content_preview": "[Outlook Personal Storage File - Binary Archive]"
                     },
                     "HR_Termination_Draft_v3.docx": {
                       "name": "HR_Termination_Draft_v3.docx",
@@ -282,11 +348,11 @@
       "question": "Which NTFS attribute is most resistant to timestomping tools and why?",
       "options": [
         "$DATA, because it stores the actual file content",
-        "$FILE_NAME, because it is updated by the NTFS kernel driver rather than user-space APIs",
         "$STANDARD_INFORMATION, because it requires admin privileges to modify",
+        "$FILE_NAME, because it is updated by the NTFS kernel driver rather than user-space APIs",
         "$OBJECT_ID, because it is write-protected by default"
       ],
-      "correct": 1,
+      "correct": 2,
       "explanation": "$FILE_NAME timestamps are maintained directly by the NTFS driver and cannot be changed through standard Windows API calls. This makes them a reliable forensic reference point even after timestomping."
     },
     {
@@ -305,12 +371,12 @@
       "id": "postq3",
       "question": "In this investigation, what corroborating evidence confirmed the timestamps were deliberately altered?",
       "options": [
-        "The files had mismatched magic bytes",
         "A tool artifact (timestomp_log.tmp) was found in AppData",
+        "The files had mismatched magic bytes",
         "The files were encrypted with a suspicious key",
         "The Windows registry showed anti-forensic software installed"
       ],
-      "correct": 1,
+      "correct": 0,
       "explanation": "The timestomp_log.tmp file in the user's AppData folder was a leftover from the timestomping tool itself. It named both tampered files and the exact timestamp applied — the strongest evidence of deliberate manipulation."
     },
     {

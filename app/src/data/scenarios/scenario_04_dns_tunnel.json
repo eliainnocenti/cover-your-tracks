@@ -25,23 +25,23 @@
       "question": "What is the primary purpose of the DNS protocol?",
       "options": [
         "Encrypting web traffic between browser and server",
-        "Translating human-readable domain names into IP addresses",
         "Managing email routing between servers",
-        "Authenticating users on a corporate network"
+        "Authenticating users on a corporate network",
+        "Translating human-readable domain names into IP addresses"
       ],
-      "correct": 1,
+      "correct": 3,
       "explanation": "DNS (Domain Name System) resolves domain names to IP addresses. Because DNS traffic is rarely blocked by firewalls and often not inspected, attackers abuse it as a covert channel for command-and-control communication and data exfiltration."
     },
     {
       "id": "s4_pq3",
       "question": "Why is DNS traffic rarely blocked by firewalls?",
       "options": [
-        "DNS uses encryption by default, so firewalls cannot inspect it",
         "DNS is essential for network operation — blocking it would prevent all domain name resolution",
+        "DNS uses encryption by default, so firewalls cannot inspect it",
         "DNS only operates on the local network segment",
         "Firewalls are not designed to filter UDP traffic"
       ],
-      "correct": 1,
+      "correct": 0,
       "explanation": "DNS is fundamental infrastructure — without it, no domain name can be resolved. This makes it an attractive covert channel because it's almost always allowed through firewalls."
     },
     {
@@ -139,23 +139,23 @@
       "question": "How do DNS tunneling tools like iodine and dnscat2 implement data exfiltration?",
       "options": [
         "They encrypt DNS responses with TLS",
-        "They encode data as subdomain labels in DNS queries and receive responses via TXT records",
         "They replace DNS packets with TCP packets at the network layer",
+        "They encode data as subdomain labels in DNS queries and receive responses via TXT records",
         "They use DNS over HTTPS (DoH) to hide traffic"
       ],
-      "correct": 1,
+      "correct": 2,
       "explanation": "DNS tunneling tools encode outbound data as subdomain labels in DNS queries (e.g., base64 chunks as subdomains of an attacker-controlled domain). Inbound data comes back as DNS TXT record responses. This works because DNS traffic is rarely blocked or deeply inspected."
     },
     {
       "id": "s4_postq2",
       "question": "Which of the following is the strongest indicator of DNS tunneling?",
       "options": [
-        "DNS queries using TCP instead of UDP",
         "A high volume of queries with long, random-looking subdomains to a single external domain",
+        "DNS queries using TCP instead of UDP",
         "DNS responses with NXDOMAIN (not found) errors",
         "DNS queries from multiple source IP addresses"
       ],
-      "correct": 1,
+      "correct": 0,
       "explanation": "The hallmark of DNS tunneling is many queries to one domain with unusually long, high-entropy subdomains (base64 or hex-encoded data). Normal DNS subdomains are short and human-readable (e.g., 'www', 'mail', 'api')."
     },
     {
@@ -163,11 +163,11 @@
       "question": "What was the strongest indicator that the DNS traffic in this scenario was malicious rather than normal browsing?",
       "options": [
         "The queries used TCP instead of UDP",
-        "847 queries with long, high-entropy subdomains were sent to a single domain in 4 minutes",
         "The DNS server responded with NXDOMAIN errors",
-        "The queries came from multiple source IP addresses"
+        "The queries came from multiple source IP addresses",
+        "847 queries with long, high-entropy subdomains were sent to a single domain in 4 minutes"
       ],
-      "correct": 1,
+      "correct": 3,
       "explanation": "The combination of extreme volume (847 queries in 4 minutes), long random-looking subdomains (base64-encoded data), and a single destination domain (exfil-c2.net) is the hallmark of DNS tunneling."
     },
     {

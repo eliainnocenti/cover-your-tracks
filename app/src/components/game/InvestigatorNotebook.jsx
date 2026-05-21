@@ -285,6 +285,30 @@ export default function InvestigatorNotebook() {
               onChange={setSelectedEvidenceId}
               placeholder="-- Select Tagged Evidence --"
             />
+            {(() => {
+              const selectedEvidence = taggedEvidence.find(e => e.id === selectedEvidenceId)
+              if (selectedEvidence && selectedEvidence.type === 'file' && !state.analyzedFiles?.includes(selectedEvidence.path)) {
+                return (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    background: 'rgba(255, 184, 0, 0.05)',
+                    border: '1px solid var(--amber-dim)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '6px 8px',
+                    margin: '2px 0',
+                    fontSize: '10px',
+                    color: 'var(--amber-main)',
+                    fontFamily: 'var(--font-mono)',
+                  }}>
+                    <AlertTriangle size={10} style={{ flexShrink: 0 }} />
+                    <span>Unverified Chain of Custody: Terminal stat/istat analysis not recorded for this file.</span>
+                  </div>
+                )
+              }
+              return null
+            })()}
             <CustomAutocomplete
               value={techniqueInput}
               options={MASTER_TAXONOMY}

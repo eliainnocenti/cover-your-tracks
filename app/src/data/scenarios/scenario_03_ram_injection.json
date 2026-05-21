@@ -13,23 +13,23 @@
       "question": "What is the difference between Volatility's pslist and psscan plugins?",
       "options": [
         "pslist shows running processes; psscan shows terminated processes",
-        "pslist walks the kernel's ActiveProcessLinks list; psscan scans raw memory for EPROCESS structures",
+        "They are identical but psscan is the newer version",
         "pslist shows user-mode processes; psscan shows kernel-mode processes",
-        "They are identical but psscan is the newer version"
+        "pslist walks the kernel's ActiveProcessLinks list; psscan scans raw memory for EPROCESS structures"
       ],
-      "correct": 1,
-      "explanation": "pslist traverses the doubly-linked list (ActiveProcessLinks) maintained by the Windows kernel. psscan performs a brute-force scan of physical memory looking for EPROCESS pool tags. If a rootkit unlinks a process from the kernel list, pslist will miss it — but psscan will still find the EPROCESS structure in memory."
+      "correct": 3,
+      "explanation": "pslist traverses the doubly-linked list (ActiveProcessLinks) maintained by the Windows kernel. psscan performs a brute-force scan of physical memory looking for EPROCESS pool tags. If a rootkit unlinks a process from the active list, pslist will miss it — but psscan will still find the EPROCESS structure in memory."
     },
     {
       "id": "s3_pq2",
       "question": "What is the EPROCESS structure in Windows?",
       "options": [
-        "A user-space data structure that tracks DLL loads",
         "A kernel data structure representing a process, containing PID, token, and linked-list pointers",
+        "A user-space data structure that tracks DLL loads",
         "An encrypted process descriptor stored in the registry",
         "A structure used only by anti-virus software"
       ],
-      "correct": 1,
+      "correct": 0,
       "explanation": "EPROCESS is the kernel's representation of a process. It contains the process ID, security token, handle table, memory management info, and — critically — the ActiveProcessLinks pointers that chain all processes together. DKOM rootkits modify these pointers to 'unlink' a process from the chain."
     },
     {
@@ -48,12 +48,12 @@
       "id": "s3_pq4",
       "question": "Why might an attacker name their malicious process 'svchost.exe'?",
       "options": [
+        "because svchost.exe is always excluded from anti-virus scanning by default.",
         "Because svchost.exe has higher privileges than other processes",
         "Because the name is common on Windows systems, making the malicious process blend in",
-        "Because only processes named svchost.exe can access the network",
-        "Because Windows will automatically restart any process named svchost.exe"
+        "Because only processes named svchost.exe can access the network"
       ],
-      "correct": 1,
+      "correct": 2,
       "explanation": "svchost.exe is a legitimate Windows service host with many instances running simultaneously. Naming malware 'svchost.exe' makes it difficult to spot among the legitimate copies."
     }
   ],
@@ -292,11 +292,11 @@
       "question": "What is DKOM (Direct Kernel Object Manipulation)?",
       "options": [
         "A technique that encrypts kernel memory to prevent forensic analysis",
-        "A rootkit technique that modifies kernel data structures (like process linked lists) to hide malicious activity",
         "A Windows API for managing device driver objects",
+        "A rootkit technique that modifies kernel data structures (like process linked lists) to hide malicious activity",
         "A memory compression algorithm used by the Windows kernel"
       ],
-      "correct": 1,
+      "correct": 2,
       "explanation": "DKOM involves directly modifying kernel objects in memory — such as unlinking an EPROCESS structure from the ActiveProcessLinks doubly-linked list — to hide processes, drivers, or other objects from standard enumeration methods."
     },
     {
@@ -315,12 +315,12 @@
       "id": "s3_postq3",
       "question": "In this scenario, what proved PID 4812 was hidden via DKOM rather than simply terminated?",
       "options": [
-        "Its entry in the Windows registry was deleted",
         "It appeared in psscan (raw memory scan) but not in pslist (linked list walk), while still having active threads",
+        "Its entry in the Windows registry was deleted",
         "Its executable file was missing from disk",
         "The Windows Event Log showed it was killed by the kernel"
       ],
-      "correct": 1,
+      "correct": 0,
       "explanation": "DKOM hides a process by unlinking its EPROCESS from the ActiveProcessLinks chain (making pslist miss it), but the process continues running. Finding it via psscan with active threads proves it's hidden, not terminated."
     },
     {
@@ -328,11 +328,11 @@
       "question": "What did the 'MZ' header (4D 5A) found in the RWX memory region of PID 4812 indicate?",
       "options": [
         "The memory region contained compressed data",
-        "A Windows PE executable was loaded into writable+executable memory — a sign of code injection",
         "The process was a legitimate Microsoft application",
-        "The memory region was part of the Windows swap file"
+        "The memory region was part of the Windows swap file",
+        "A Windows PE executable was loaded into writable+executable memory — a sign of code injection"
       ],
-      "correct": 1,
+      "correct": 3,
       "explanation": "'MZ' (4D 5A) is the magic signature of a Windows PE (Portable Executable) file. Finding a PE header inside an RWX memory region means executable code was injected at runtime — it was not loaded normally by the OS."
     }
   ]

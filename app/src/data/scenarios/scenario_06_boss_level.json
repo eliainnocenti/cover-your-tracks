@@ -5,7 +5,7 @@
   "difficulty": 5,
   "domain": "combined",
   "estimatedMinutes": 35,
-  "narrative": "Apex Technologies suffered a breach of unknown duration. The attacker was meticulous. The IR team found anomalies across every layer: the Windows Event Log is suspiciously short, the memory dump shows extra processes, and network captures reveal unusual ICMP traffic. Three attack vectors. Three layers of anti-forensics. One attacker. Your job: peel back each layer, identify every technique, and reconstruct the full kill chain.",
+  "narrative": "The IR team's initial triage came back clean. No obvious intrusion. No flagged files. And yet something is wrong — the machine's behaviour doesn't match its records. Your job is to find out why.",
   "learningObjective": "Combine filesystem, memory, and network forensics skills to analyze a multi-vector attack. Detect log wiping (truncated event logs), rootkit activity (DKOM-hidden processes with typosquatting names), and covert network exfiltration (oversized ICMP payloads to known Tor exit nodes).",
   "preQuiz": [
     {
@@ -25,23 +25,23 @@
       "question": "What is ICMP primarily used for?",
       "options": [
         "Transferring files between servers",
-        "Sending diagnostic messages like ping (echo request/reply) and error reports",
         "Encrypting network traffic",
-        "Managing DNS records"
+        "Managing DNS records",
+        "Sending diagnostic messages like ping (echo request/reply) and error reports"
       ],
-      "correct": 1,
+      "correct": 3,
       "explanation": "ICMP (Internet Control Message Protocol) is used for network diagnostic and error reporting — most commonly the 'ping' command (echo request/reply). Normal ICMP echo payloads are small (32 bytes). Attackers abuse ICMP by stuffing large data payloads into echo packets for covert exfiltration — a technique called ICMP tunneling."
     },
     {
       "id": "s6_pq3",
       "question": "What is the normal payload size of a standard ICMP echo request (ping)?",
       "options": [
-        "0 bytes (header only)",
         "32 bytes",
+        "0 bytes (header only)",
         "1,400 bytes",
         "65,535 bytes"
       ],
-      "correct": 1,
+      "correct": 0,
       "explanation": "A standard ping sends 32 bytes of padding data. Significantly larger payloads can indicate covert data exfiltration through ICMP tunneling."
     },
     {
@@ -49,11 +49,11 @@
       "question": "What is 'typosquatting' in the context of process names?",
       "options": [
         "Encrypting a process name to avoid detection",
-        "Naming a malicious process similarly to a legitimate one to avoid suspicion",
         "Running a process with no name at all",
+        "Naming a malicious process similarly to a legitimate one to avoid suspicion",
         "Changing a process name after it has started executing"
       ],
-      "correct": 1,
+      "correct": 2,
       "explanation": "Typosquatting uses names that look similar to legitimate processes (e.g., 'winlogon_helper.exe' mimicking 'winlogon.exe') to evade visual inspection by analysts."
     }
   ],
@@ -376,7 +376,7 @@
       "src": "10.1.1.50",
       "dst": "185.220.101.47",
       "protocol": "ICMP",
-      "info": "Echo request, payload=1400 bytes (normal: 32 bytes)",
+      "info": "Echo request, payload=1400 bytes",
       "suspicious": true
     },
     {
@@ -394,7 +394,7 @@
       "src": "10.1.1.50",
       "dst": "185.220.101.47",
       "protocol": "ICMP",
-      "info": "Echo request, payload=1400 bytes — contains printable ASCII",
+      "info": "Echo request, payload=1400 bytes",
       "suspicious": true
     },
     {
@@ -412,7 +412,7 @@
       "src": "10.1.1.50",
       "dst": "185.220.101.47",
       "protocol": "ICMP",
-      "info": "Echo request, payload=1400 bytes — printable ASCII",
+      "info": "Echo request, payload=1400 bytes",
       "suspicious": true
     },
     {
@@ -466,7 +466,7 @@
       "src": "10.1.1.50",
       "dst": "185.220.101.47",
       "protocol": "ICMP",
-      "info": "Echo request, payload=1400 bytes — known Tor exit node",
+      "info": "Echo request, payload=1400 bytes",
       "suspicious": true
     },
     {
@@ -591,23 +591,23 @@
       "question": "What makes ICMP tunneling effective for covert exfiltration?",
       "options": [
         "ICMP is encrypted by default",
-        "ICMP traffic is rarely inspected by firewalls and IDS, and the protocol allows arbitrary payload data in echo requests",
         "ICMP has no maximum payload size limit",
+        "ICMP traffic is rarely inspected by firewalls and IDS, and the protocol allows arbitrary payload data in echo requests",
         "ICMP packets cannot be captured by packet sniffers"
       ],
-      "correct": 1,
+      "correct": 2,
       "explanation": "ICMP is a diagnostic protocol that most firewalls allow by default (for ping). The protocol permits arbitrary data in the payload field of echo requests/replies. Since most security tools don't inspect ICMP payload content or size, attackers can embed exfiltrated data in oversized payloads without triggering alerts."
     },
     {
       "id": "s6_postq3",
       "question": "How did the three attack layers in this scenario work together to maximize the attacker's operational security?",
       "options": [
-        "Each layer encrypted a different part of the stolen data",
         "The rootkit hid the exfiltration process, ICMP tunneled the data past the firewall, and log wiping erased the evidence trail",
+        "Each layer encrypted a different part of the stolen data",
         "The layers were independent and did not interact",
         "Each layer targeted a different victim machine on the network"
       ],
-      "correct": 1,
+      "correct": 0,
       "explanation": "The DKOM rootkit hid the malicious processes from system tools, ICMP tunneling bypassed network monitoring by using a rarely-inspected protocol, and log wiping removed the audit trail — each layer covering for the others."
     },
     {
@@ -615,11 +615,11 @@
       "question": "What evidence proved the event logs had been deliberately truncated rather than simply rolled over by normal retention?",
       "options": [
         "The log file was encrypted",
-        "The file was only 512 KB (expected ~18 MB for 90-day retention), was modified at 3:14 AM, and a log-clearing batch script was found",
         "The log file had a different file extension",
-        "Windows reported an error when opening the log file"
+        "Windows reported an error when opening the log file",
+        "The file was only 512 KB (expected ~18 MB for 90-day retention), was modified at 3:14 AM, and a log-clearing batch script was found"
       ],
-      "correct": 1,
+      "correct": 3,
       "explanation": "Three corroborating indicators: the file was 97% smaller than expected, was modified during off-hours (03:14 AM), and a self-deleting batch script (wevtutil_clear.bat) containing 'wevtutil cl Security' was found in the user's AppData."
     }
   ]
