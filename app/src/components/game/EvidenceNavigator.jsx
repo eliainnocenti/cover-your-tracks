@@ -64,8 +64,8 @@ export default function EvidenceNavigator() {
 
 // ── File Explorer ─────────────────────────────────────────────────────────────
 function FileExplorerView() {
-  const { state, selectNode } = useEngine()
-  const { scenario, selectedNode } = state
+  const { state, selectNode, toggleDirectory } = useEngine()
+  const { scenario, selectedNode, openedDirectories } = state
   if (!scenario?.filesystem) return <EmptyPanel msg="No filesystem data in this scenario" />
 
   return (
@@ -85,6 +85,8 @@ function FileExplorerView() {
           depth={0}
           selectedPath={selectedNode?.path}
           onSelect={selectNode}
+          openedDirectories={openedDirectories || {}}
+          onToggle={toggleDirectory}
         />
       </div>
 
@@ -101,8 +103,10 @@ function FileExplorerView() {
   )
 }
 
-function TreeNode({ node, path, depth, selectedPath, onSelect }) {
-  const [open, setOpen] = useState(depth < 2)
+function TreeNode({ node, path, depth, selectedPath, onSelect, openedDirectories, onToggle }) {
+  const open = openedDirectories[path] !== undefined 
+    ? openedDirectories[path] 
+    : depth < 2
   const isDir = node.type === 'directory'
   const isSelected = !isDir && selectedPath === path
   const indent = 8 + depth * 14
@@ -113,7 +117,7 @@ function TreeNode({ node, path, depth, selectedPath, onSelect }) {
         className={`tree-item ${isSelected ? 'active' : ''} ${isDir ? 'dir' : ''}`}
         style={{ paddingLeft: indent }}
         onClick={() => {
-          if (isDir) setOpen(o => !o)
+          if (isDir) onToggle(path, depth)
           else onSelect({ ...node, path })
         }}
       >
@@ -135,6 +139,8 @@ function TreeNode({ node, path, depth, selectedPath, onSelect }) {
             depth={depth + 1}
             selectedPath={selectedPath}
             onSelect={onSelect}
+            openedDirectories={openedDirectories}
+            onToggle={onToggle}
           />
         ))
       }
@@ -166,6 +172,9 @@ function FileDetail({ node }) {
 
   const siVals = siTimes.map(t => t[1]).filter(Boolean)
   const allSiSame = siVals.length > 1 && siVals.every(v => v === siVals[0])
+
+  const isAnalyzed = state.analyzedFiles.includes(node.path)
+  const hasAdvanced = node.slack_bytes != null || meta.lsb_chi_square != null || meta.si_created != null || node.content_preview != null
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }} className="fade-up">
@@ -206,97 +215,128 @@ function FileDetail({ node }) {
         </table>
       </Section>
 
-      {/* Slack space info (scenario 02) */}
-      {node.slack_bytes != null && (
-        <Section title="CLUSTER ALLOCATION"
-          warning={node.slack_bytes > 0 ? `⚠ ${node.slack_bytes.toLocaleString()} bytes of slack space` : null}>
-          <table className="ft">
-            <tbody>
-              {[
-                ['Logical size', `${node.size?.toLocaleString()} bytes`],
-                ['Allocated size', `${node.allocated_size?.toLocaleString()} bytes`],
-                ['Cluster size', `${node.cluster_size?.toLocaleString()} bytes`],
-                ['Slack space', `${node.slack_bytes?.toLocaleString()} bytes`],
-              ].map(([k, v]) => (
-                <tr key={k} className={k === 'Slack space' && node.slack_bytes > 0 ? 'anomaly' : ''}>
-                  <td className="k">{k}</td><td className="v">{v}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Section>
+      {hasAdvanced && !isAnalyzed && (
+        <div style={{
+          background: 'rgba(255, 60, 60, 0.03)',
+          border: '1px dashed var(--red-dim)',
+          borderRadius: 'var(--radius-sm)',
+          padding: '12px',
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          color: 'var(--red-alert)',
+          lineHeight: 1.5,
+        }}>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>[!] ADVANCED FORENSIC ANALYSIS REQUIRED</div>
+          <div>Deep sector structures are currently locked. Run the appropriate terminal tool to parse this evidence:</div>
+          <ul style={{ margin: '8px 0 0 16px', padding: 0, color: 'var(--text-secondary)' }}>
+            {meta.lsb_chi_square != null && (
+              <li>Run <code>zsteg {node.name}</code> or <code>exiftool {node.name}</code> to analyze image bits</li>
+            )}
+            {node.slack_bytes != null && (
+              <li>Run <code>blkls {node.name}</code> to carve block cluster allocations</li>
+            )}
+            {meta.si_created != null && (
+              <li>Run <code>stat {node.name}</code> or <code>istat {meta.inode}</code> to parse MFT attributes</li>
+            )}
+          </ul>
+        </div>
       )}
 
-      {/* LSB steganography info (scenario 05) */}
-      {meta.lsb_chi_square != null && (
-        <Section title="LSB ANALYSIS"
-          warning={meta.lsb_chi_square < 0.7 ? `⚠ Chi-square ${meta.lsb_chi_square} — anomalous LSB distribution` : null}>
-          <table className="ft">
-            <tbody>
-              {[
-                ['Chi-square', meta.lsb_chi_square],
-                ['LSB entropy', meta.lsb_entropy],
-                ['EXIF present', meta.exif_stripped ? '✗ STRIPPED' : '✓ Present'],
-                ['Camera', meta.exif_camera ?? '—'],
-                ['Date taken', meta.exif_date ?? '—'],
-                ['GPS Coordinates', meta.exif_gps ?? '—'],
-              ].map(([k, v]) => (
-                <tr key={k} className={
-                  (k === 'Chi-square' && meta.lsb_chi_square < 0.7) ||
-                    (k === 'EXIF present' && meta.exif_stripped)
-                    ? 'anomaly' : ''}>
-                  <td className="k">{k}</td><td className="v">{String(v)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {meta.lsb_notes && (
-            <p style={{ fontSize: '10px', color: meta.lsb_chi_square < 0.7 ? 'var(--amber-main)' : 'var(--text-muted)', marginTop: 6, lineHeight: 1.5 }}>
-              {meta.lsb_notes}
-            </p>
+      {isAnalyzed && (
+        <>
+          {/* Slack space info (scenario 02) */}
+          {node.slack_bytes != null && (
+            <Section title="CLUSTER ALLOCATION"
+              warning={node.slack_bytes > 0 ? `⚠ ${node.slack_bytes.toLocaleString()} bytes of slack space` : null}>
+              <table className="ft">
+                <tbody>
+                  {[
+                    ['Logical size', `${node.size?.toLocaleString()} bytes`],
+                    ['Allocated size', `${node.allocated_size?.toLocaleString()} bytes`],
+                    ['Cluster size', `${node.cluster_size?.toLocaleString()} bytes`],
+                    ['Slack space', `${node.slack_bytes?.toLocaleString()} bytes`],
+                  ].map(([k, v]) => (
+                    <tr key={k} className={k === 'Slack space' && node.slack_bytes > 0 ? 'anomaly' : ''}>
+                      <td className="k">{k}</td><td className="v">{v}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Section>
           )}
-        </Section>
-      )}
 
-      {/* $SI timestamps */}
-      <Section title="$STANDARD_INFORMATION Timestamps"
-        warning={allSiSame ? '⚠ ALL FOUR IDENTICAL — possible timestomping' : null}>
-        <table className="ft">
-          <tbody>
-            {siTimes.map(([k, v]) => (
-              <tr key={k} className={allSiSame ? 'anomaly' : ''}>
-                <td className="k">{k}</td><td className="v">{v ?? '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Section>
+          {/* LSB steganography info (scenario 05) */}
+          {meta.lsb_chi_square != null && (
+            <Section title="LSB ANALYSIS"
+              warning={meta.lsb_chi_square < 0.7 ? `⚠ Chi-square ${meta.lsb_chi_square} — anomalous LSB distribution` : null}>
+              <table className="ft">
+                <tbody>
+                  {[
+                    ['Chi-square', meta.lsb_chi_square],
+                    ['LSB entropy', meta.lsb_entropy],
+                    ['EXIF present', meta.exif_stripped ? '✗ STRIPPED' : '✓ Present'],
+                    ['Camera', meta.exif_camera ?? '—'],
+                    ['Date taken', meta.exif_date ?? '—'],
+                    ['GPS Coordinates', meta.exif_gps ?? '—'],
+                  ].map(([k, v]) => (
+                    <tr key={k} className={
+                      (k === 'Chi-square' && meta.lsb_chi_square < 0.7) ||
+                        (k === 'EXIF present' && meta.exif_stripped)
+                        ? 'anomaly' : ''}>
+                      <td className="k">{k}</td><td className="v">{String(v)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {meta.lsb_notes && (
+                <p style={{ fontSize: '10px', color: meta.lsb_chi_square < 0.7 ? 'var(--amber-main)' : 'var(--text-muted)', marginTop: 6, lineHeight: 1.5 }}>
+                  {meta.lsb_notes}
+                </p>
+              )}
+            </Section>
+          )}
 
-      {/* $FN timestamps */}
-      {fnTimes && (
-        <Section title="$FILE_NAME Timestamps">
-          <table className="ft">
-            <tbody>
-              {fnTimes.map(([k, v]) => (
-                <tr key={k}><td className="k">{k}</td><td className="v">{v ?? '—'}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        </Section>
-      )}
+          {/* $SI timestamps */}
+          <Section title="$STANDARD_INFORMATION Timestamps"
+            warning={allSiSame ? '⚠ ALL FOUR IDENTICAL — possible timestomping' : null}>
+            <table className="ft">
+              <tbody>
+                {siTimes.map(([k, v]) => (
+                  <tr key={k} className={allSiSame ? 'anomaly' : ''}>
+                    <td className="k">{k}</td><td className="v">{v ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Section>
 
-      {/* Content preview */}
-      {node.content_preview && (
-        <Section title="Content Preview" icon={<Eye size={11} />}>
-          <pre style={{
-            fontSize: '10px', color: 'var(--text-secondary)',
-            background: 'var(--bg-raised)', border: '1px solid var(--border-dim)',
-            borderRadius: 'var(--radius-sm)', padding: '10px',
-            whiteSpace: 'pre-wrap', lineHeight: 1.6, margin: 0,
-          }}>
-            {node.content_preview}
-          </pre>
-        </Section>
+          {/* $FN timestamps */}
+          {fnTimes && (
+            <Section title="$FILE_NAME Timestamps">
+              <table className="ft">
+                <tbody>
+                  {fnTimes.map(([k, v]) => (
+                    <tr key={k}><td className="k">{k}</td><td className="v">{v ?? '—'}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </Section>
+          )}
+
+          {/* Content preview */}
+          {node.content_preview && (
+            <Section title="Content Preview" icon={<Eye size={11} />}>
+              <pre style={{
+                fontSize: '10px', color: 'var(--text-secondary)',
+                background: 'var(--bg-raised)', border: '1px solid var(--border-dim)',
+                borderRadius: 'var(--radius-sm)', padding: '10px',
+                whiteSpace: 'pre-wrap', lineHeight: 1.6, margin: 0,
+              }}>
+                {node.content_preview}
+              </pre>
+            </Section>
+          )}
+        </>
       )}
     </div>
   )
@@ -335,7 +375,7 @@ function isBinaryExt(ext) { return BINARY_EXTENSIONS.has((ext ?? '').toLowerCase
 function isEvtx(ext) { return (ext ?? '').toLowerCase() === 'evtx' }
 
 function TerminalView() {
-  const { state, clearTerminal, updateTerminalState } = useEngine()
+  const { state, clearTerminal, updateTerminalState, analyzeFile } = useEngine()
   const [input, setInput] = useState('')
   const lines = state.terminalLines
   const cmdHistory = state.terminalCmdHistory
@@ -389,6 +429,12 @@ function TerminalView() {
         '  cat <file>            — print text file contents',
         '  xxd <file>            — hex dump first 64 bytes',
         '  file <file>           — determine file type',
+        '  zsteg <file>          — analyze LSB steganography in images',
+        '  exiftool <file>       — inspect image EXIF metadata',
+        '  blkls <file>          — list unallocated file system blocks (slack)',
+        '  base64 -d <arg>       — decode base64 raw string or packet shortcut (e.g. pkt_3)',
+        '  tshark -f <protocol>  — filter network packet streams',
+        '  whois <ip>            — lookup IP address registry information',
         '  history               — show command history',
         '  clear                 — clear terminal',
       )
@@ -457,12 +503,13 @@ function TerminalView() {
       const target = args[0]
       if (!target) { push({ text: 'Usage: stat <filename>', type: 'error' }); setInput(''); return }
       if (scenario?.filesystem) {
-        const found = findFileByName(scenario.filesystem.root, target)
+        const found = findFileAndPathByName(scenario.filesystem.root, target, scenario.filesystem.root.name)
         if (found) {
-          const m = found.metadata
+          analyzeFile(found.path)
+          const m = found.node.metadata
           push(
-            { text: `  File: ${found.name}`, type: 'output' },
-            { text: `  Size: ${found.size?.toLocaleString() ?? '?'} bytes`, type: 'output' },
+            { text: `  File: ${found.node.name}`, type: 'output' },
+            { text: `  Size: ${found.node.size?.toLocaleString() ?? '?'} bytes`, type: 'output' },
             { text: `  Modify: ${m?.si_modified ?? '—'}`, type: m?.si_modified === m?.si_created ? 'warn' : 'output' },
             { text: `  Access: ${m?.si_accessed ?? '—'}`, type: m?.si_accessed === m?.si_created ? 'warn' : 'output' },
             { text: `  Change: ${m?.si_mft_changed ?? '—'}`, type: m?.si_mft_changed === m?.si_created ? 'warn' : 'output' },
@@ -483,9 +530,10 @@ function TerminalView() {
       const inodeArg = args[0]
       if (!inodeArg) { push({ text: 'Usage: istat <inode_number>', type: 'error' }); setInput(''); return }
       if (scenario?.filesystem) {
-        const found = findFileByInode(scenario.filesystem.root, parseInt(inodeArg))
+        const found = findFileAndPathByInode(scenario.filesystem.root, parseInt(inodeArg), scenario.filesystem.root.name)
         if (found) {
-          const m = found.metadata
+          analyzeFile(found.path)
+          const m = found.node.metadata
           push(
             { text: `MFT Entry Number: ${m?.inode}`, type: 'system' },
             { text: `Allocated File`, type: 'output' },
@@ -501,13 +549,186 @@ function TerminalView() {
             `  File Modified: ${m?.fn_modified ?? 'N/A'}`,
             `  MFT Modified:  ${m?.fn_mft_changed ?? 'N/A'}`,
             `  Accessed:      ${m?.fn_accessed ?? 'N/A'}`,
-            `  Name:          ${found.name}`,
+            `  Name:          ${found.node.name}`,
           )
           if (m?.fn_created && m?.si_created !== m?.fn_created) {
             push({ text: `[!] $SI and $FN creation times differ — forensic anomaly`, type: 'warn' })
           }
         } else {
           push({ text: `istat: inode ${inodeArg} not found`, type: 'error' })
+        }
+      }
+    }
+
+    // ── zsteg ──
+    else if (base === 'zsteg') {
+      const target = args[0]
+      if (!target) { push({ text: 'Usage: zsteg <filename>', type: 'error' }); setInput(''); return }
+      if (scenario?.filesystem) {
+        const found = findFileAndPathByName(scenario.filesystem.root, target, scenario.filesystem.root.name)
+        if (found) {
+          analyzeFile(found.path)
+          if (found.node.metadata?.lsb_chi_square != null) {
+            push(
+              { text: `[analyzing LSB steganography for ${found.node.name}]`, type: 'comment' },
+              `Chi-square: ${found.node.metadata.lsb_chi_square}`,
+              `LSB entropy: ${found.node.metadata.lsb_entropy}`,
+              `Notes: ${found.node.metadata.lsb_notes ?? 'No anomalies found.'}`
+            )
+          } else {
+            push({ text: `zsteg: ${found.node.name}: No stego payload or Chi-square anomalies detected.`, type: 'output' })
+          }
+        } else {
+          push({ text: `zsteg: ${target}: No such file or directory`, type: 'error' })
+        }
+      }
+    }
+
+    // ── exiftool ──
+    else if (base === 'exiftool') {
+      const target = args[0]
+      if (!target) { push({ text: 'Usage: exiftool <filename>', type: 'error' }); setInput(''); return }
+      if (scenario?.filesystem) {
+        const found = findFileAndPathByName(scenario.filesystem.root, target, scenario.filesystem.root.name)
+        if (found) {
+          analyzeFile(found.path)
+          const m = found.node.metadata
+          if (m) {
+            push(
+              { text: `[extracting EXIF metadata from ${found.node.name}]`, type: 'comment' },
+              `File Name: ${found.node.name}`,
+              `File Size: ${found.node.size?.toLocaleString() ?? '?'} bytes`,
+              `EXIF Present: ${m.exif_stripped ? 'STRIPPED / REMOVED' : 'Yes'}`,
+              `Camera Model: ${m.exif_camera ?? 'N/A'}`,
+              `Date/Time: ${m.exif_date ?? 'N/A'}`,
+              `GPS Position: ${m.exif_gps ?? 'N/A'}`
+            )
+          } else {
+            push({ text: `exiftool: no metadata for ${found.node.name}`, type: 'error' })
+          }
+        } else {
+          push({ text: `exiftool: ${target}: No such file or directory`, type: 'error' })
+        }
+      }
+    }
+
+    // ── blkls ──
+    else if (base === 'blkls') {
+      const target = args[0]
+      if (!target) { push({ text: 'Usage: blkls <filename>', type: 'error' }); setInput(''); return }
+      if (scenario?.filesystem) {
+        const found = findFileAndPathByName(scenario.filesystem.root, target, scenario.filesystem.root.name)
+        if (found) {
+          analyzeFile(found.path)
+          if (found.node.slack_bytes != null) {
+            push(
+              { text: `[extracting unallocated space cluster block allocations for ${found.node.name}]`, type: 'comment' },
+              `Logical Size: ${found.node.size?.toLocaleString()} bytes`,
+              `Allocated Size: ${found.node.allocated_size?.toLocaleString()} bytes`,
+              `Slack Space: ${found.node.slack_bytes?.toLocaleString()} bytes`,
+              `Cluster Size: ${found.node.cluster_size?.toLocaleString()} bytes`
+            )
+            if (found.node.slack_bytes > 0 && found.node.content_preview) {
+              push(
+                { text: `[!] ALERT: Carved Slack Space Data Found:`, type: 'warn' },
+                found.node.content_preview
+              )
+            }
+          } else {
+            push({ text: `blkls: ${found.node.name}: File is fully allocated (no slack space blocks).`, type: 'output' })
+          }
+        } else {
+          push({ text: `blkls: ${target}: No such file or directory`, type: 'error' })
+        }
+      }
+    }
+
+    // ── base64 ──
+    else if (base === 'base64') {
+      if (args[0] !== '-d' || !args[1]) {
+        push({ text: 'Usage: base64 -d <base64_string_or_pkt_N>', type: 'error' })
+      } else {
+        const targetVal = args[1]
+        const pktMatch = targetVal.match(/^(?:pkt|packet)_?(\d+)$/i)
+        if (pktMatch) {
+          const idx = parseInt(pktMatch[1]) - 1
+          const netLogs = scenario?.network_log
+          if (netLogs && netLogs[idx]) {
+            const queryVal = netLogs[idx].query
+            if (queryVal) {
+              try {
+                const decoded = atob(queryVal)
+                push(
+                  { text: `[decoding query in Packet #${idx + 1}: ${queryVal}]`, type: 'comment' },
+                  `Decoded Value: ${decoded}`
+                )
+              } catch {
+                push({ text: `base64: error: query value is not valid base64`, type: 'error' })
+              }
+            } else {
+              push({ text: `base64: error: Packet #${idx + 1} does not contain a base64 query payload`, type: 'error' })
+            }
+          } else {
+            push({ text: `base64: error: Packet #${idx + 1} not found in network logs`, type: 'error' })
+          }
+        } else {
+          try {
+            const decoded = atob(targetVal)
+            push(
+              { text: `[decoding raw base64 string: ${targetVal}]`, type: 'comment' },
+              `Decoded Value: ${decoded}`
+            )
+          } catch {
+            push({ text: `base64: error: invalid base64 input string`, type: 'error' })
+          }
+        }
+      }
+    }
+
+    // ── tshark ──
+    else if (base === 'tshark') {
+      if (args[0] !== '-f' || !args[1]) {
+        push({ text: 'Usage: tshark -f <icmp|dns>', type: 'error' })
+      } else {
+        const proto = args[1].toLowerCase()
+        const netLogs = scenario?.network_log
+        if (netLogs) {
+          const filtered = netLogs.filter(p => p.protocol.toLowerCase() === proto)
+          if (filtered.length === 0) {
+            push({ text: `tshark: no packets matching filter '-f ${proto}' found`, type: 'output' })
+          } else {
+            push({ text: `[tshark filtering for: ${proto.toUpperCase()}]`, type: 'comment' })
+            filtered.forEach((p, idx) => {
+              push(`  #${idx+1}  ${p.time}  ${p.src} -> ${p.dst}  ${p.protocol}  ${p.info}`)
+            })
+          }
+        } else {
+          push({ text: 'tshark: no network log loaded', type: 'error' })
+        }
+      }
+    }
+
+    // ── whois ──
+    else if (base === 'whois') {
+      const ip = args[0]
+      if (!ip) {
+        push({ text: 'Usage: whois <ip_address>', type: 'error' })
+      } else {
+        push({ text: `[performing whois lookup for ${ip}]`, type: 'comment' })
+        if (ip === '185.220.101.47') {
+          push(
+            `NetRange:       185.220.100.0 - 185.220.103.255`,
+            `OrgName:        Tor Transit Node Project`,
+            `Country:        DE`,
+            `Comment:        This IP is identified as a known Tor exit node router.`,
+            { text: `[!] ALERT: IP corresponds to known Tor exit gateway.`, type: 'warn' }
+          )
+        } else {
+          push(
+            `NetRange:       ${ip.split('.').slice(0, 3).join('.')}.0 - ${ip.split('.').slice(0, 3).join('.')}.255`,
+            `OrgName:        Generic Network Provider`,
+            `Country:        US`
+          )
         }
       }
     }
@@ -739,10 +960,48 @@ function TerminalView() {
 
 // ── HEX Viewer ────────────────────────────────────────────────────────────────
 function HexView() {
-  const { state } = useEngine()
-  const node = state.selectedNode
-  if (!node) return <EmptyPanel msg="Select a file in the Explorer first" />
+  const { state, selectNode, toggleDirectory } = useEngine()
+  const { scenario, selectedNode, openedDirectories } = state
 
+  if (!scenario?.filesystem) return <EmptyPanel msg="No filesystem data in this scenario" />
+
+  return (
+    <div style={{ display: 'flex', height: '100%' }}>
+      {/* Tree sidebar */}
+      <div style={{
+        width: '220px', flexShrink: 0,
+        borderRight: '1px solid var(--border-dim)',
+        overflowY: 'auto', padding: '8px 4px',
+      }}>
+        <div style={{ fontSize: '9px', color: 'var(--text-muted)', padding: '0 8px 6px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          Filesystem
+        </div>
+        <TreeNode
+          node={scenario.filesystem.root}
+          path={scenario.filesystem.root.name}
+          depth={0}
+          selectedPath={selectedNode?.path}
+          onSelect={selectNode}
+          openedDirectories={openedDirectories || {}}
+          onToggle={toggleDirectory}
+        />
+      </div>
+
+      {/* Detail / Dump panel */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+        {selectedNode && selectedNode.type === 'file' ? (
+          <HexDumpPanel node={selectedNode} />
+        ) : (
+          <div style={{ color: 'var(--text-muted)', fontSize: '11px', textAlign: 'center', marginTop: '40px' }}>
+            ← Select a file to inspect its hexadecimal sector dump
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function HexDumpPanel({ node }) {
   const magic = (node.magic_bytes ?? '504B0304').replace(/\s/g, '')
   const magicBytes = []
   for (let i = 0; i < magic.length; i += 2) magicBytes.push(magic.slice(i, i + 2))
@@ -764,7 +1023,7 @@ function HexView() {
   }
 
   return (
-    <div style={{ padding: '12px', overflowY: 'auto', height: '100%' }}>
+    <div className="fade-up">
       <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
         HEX DUMP — {node.name}
       </div>
@@ -810,7 +1069,7 @@ function HexView() {
 // The count discrepancy is surfaced explicitly as a clue.
 // Plus, supports 'malfind' view if the scenario contains injected memory data.
 function RamView() {
-  const { state, tagEvidence, untagEvidence } = useEngine()
+  const { state, tagEvidence, untagEvidence, visitPsscan } = useEngine()
   const data = state.scenario?.ram_dump
   const malfindData = state.scenario?.malfind_output
   const [scanMode, setScanMode] = useState('pslist') // 'pslist' | 'psscan' | 'malfind'
@@ -851,7 +1110,13 @@ function RamView() {
             <button
               key={id}
               title={title}
-              onClick={() => { setScanMode(id); setSelected(null) }}
+              onClick={() => {
+                setScanMode(id)
+                setSelected(null)
+                if (id === 'psscan' || id === 'malfind') {
+                  visitPsscan()
+                }
+              }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 4,
                 padding: '4px 10px', fontFamily: 'var(--font-mono)', fontSize: '10px',
@@ -875,7 +1140,7 @@ function RamView() {
               <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
                 {shown.length} process{shown.length !== 1 ? 'es' : ''}
               </span>
-              {delta > 0 && (
+              {delta > 0 && state.visitedPsscan && (
                 <span style={{
                   fontSize: '10px', fontFamily: 'var(--font-mono)',
                   color: 'var(--amber-main)',
@@ -906,7 +1171,7 @@ function RamView() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
               <thead>
                 <tr style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border-dim)' }}>
-                  {['PID', 'PPID', 'PROCESS', 'OFFSET', 'THR', 'FLAGS'].map(h => (
+                  {['PID', 'PPID', 'PROCESS', 'OFFSET', 'THR'].map(h => (
                     <td key={h} style={{ padding: '4px 10px 6px 0' }}>{h}</td>
                   ))}
                 </tr>
@@ -914,7 +1179,7 @@ function RamView() {
               <tbody>
                 {shown.map((proc, i) => {
                   const hidden = proc.pslist_visible === false
-                  const rowColor = proc.suspicious ? 'var(--red-alert)' : 'var(--text-secondary)'
+                  const rowColor = 'var(--text-secondary)'
                   const isActive = selected?.pid === proc.pid && !selected.address
 
                   return (
@@ -930,7 +1195,7 @@ function RamView() {
                     >
                       <td style={{ padding: '4px 10px 4px 0' }}>{proc.pid}</td>
                       <td style={{ padding: '4px 10px 4px 0' }}>{proc.ppid}</td>
-                      <td style={{ padding: '4px 10px 4px 0', color: proc.suspicious ? 'var(--red-alert)' : 'var(--text-primary)' }}>
+                      <td style={{ padding: '4px 10px 4px 0', color: 'var(--text-primary)' }}>
                         {proc.name}
                         {hidden && scanMode === 'psscan' && (
                           <span style={{ marginLeft: 6, fontSize: '9px', color: 'var(--amber-main)', background: 'rgba(255,184,0,0.1)', padding: '1px 5px', borderRadius: 3 }}>
@@ -940,13 +1205,6 @@ function RamView() {
                       </td>
                       <td style={{ padding: '4px 10px 4px 0', color: 'var(--text-muted)' }}>{proc.offset}</td>
                       <td style={{ padding: '4px 10px 4px 0' }}>{proc.threads ?? '—'}</td>
-                      <td style={{ padding: '4px 0 4px 0' }}>
-                        {proc.suspicious && (
-                          <span style={{ color: 'var(--red-alert)', fontSize: '10px', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <AlertTriangle size={10} /> SUSPICIOUS
-                          </span>
-                        )}
-                      </td>
                     </tr>
                   )
                 })}
@@ -1156,9 +1414,9 @@ function NetworkView() {
                   onClick={() => setSelected(selected === i ? null : i)}
                   style={{
                     borderBottom: '1px solid var(--bg-raised)',
-                    color: pkt.suspicious ? 'var(--amber-main)' : 'var(--text-secondary)',
+                    color: 'var(--text-secondary)',
                     cursor: 'pointer',
-                    background: isActive ? 'rgba(255,184,0,0.06)' : 'transparent',
+                    background: isActive ? 'rgba(0,200,100,0.06)' : 'transparent',
                   }}
                 >
                   <td style={{ padding: '4px 10px 4px 0', color: 'var(--text-muted)' }}>{i + 1}</td>
@@ -1227,6 +1485,46 @@ function NetworkView() {
               </tbody>
             </table>
 
+            {pkt.query && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: '9px', color: 'var(--text-ghost)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+                  DNS Query
+                </div>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 6,
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '10px',
+                  background: 'var(--bg-base)',
+                  padding: '6px 8px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-dim)',
+                  color: 'var(--text-primary)',
+                  wordBreak: 'break-all',
+                }}>
+                  <span>{pkt.query}</span>
+                  <button 
+                    onClick={() => navigator.clipboard.writeText(pkt.query)}
+                    style={{
+                      background: 'rgba(0, 200, 100, 0.1)',
+                      border: '1px solid var(--green-dim)',
+                      color: 'var(--green-main)',
+                      fontSize: '9px',
+                      padding: '2px 6px',
+                      borderRadius: 'var(--radius-sm)',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-mono)',
+                      flexShrink: 0
+                    }}
+                  >
+                    📋 Copy
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div style={{ marginTop: 10, fontSize: '10px', color: pkt.suspicious ? 'var(--amber-main)' : 'var(--text-secondary)', lineHeight: 1.6 }}>
               {pkt.info}
             </div>
@@ -1292,6 +1590,34 @@ function resolvePathNode(root, path) {
     current = child
   }
   return current
+}
+
+export function findFileAndPathByName(node, name, currentPath) {
+  if (!node) return null
+  if (node.type === 'file' && node.name.toLowerCase() === name.toLowerCase()) {
+    return { node, path: currentPath }
+  }
+  if (node.children) {
+    for (const child of Object.values(node.children)) {
+      const found = findFileAndPathByName(child, name, `${currentPath}\\${child.name}`)
+      if (found) return found
+    }
+  }
+  return null
+}
+
+export function findFileAndPathByInode(node, inode, currentPath) {
+  if (!node) return null
+  if (node.metadata?.inode === inode) {
+    return { node, path: currentPath }
+  }
+  if (node.children) {
+    for (const child of Object.values(node.children)) {
+      const found = findFileAndPathByInode(child, inode, `${currentPath}\\${child.name}`)
+      if (found) return found
+    }
+  }
+  return null
 }
 
 function findFileByName(node, name) {

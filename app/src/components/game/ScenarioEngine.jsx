@@ -70,6 +70,9 @@ const initialState = {
   // (wrongs after the first hint is used anywhere cost immediately, like before)
   sessionLog: [],          // append-only audit trail
   foundConnections: [],    // [connectionId]
+  analyzedFiles: [],       // [filePath]
+  visitedPsscan: false,    // true once user toggles to psscan/malfind
+  openedDirectories: {},   // { [path]: boolean }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -154,6 +157,25 @@ function engineReducer(state, action) {
     case 'RESET':
       return initialState
 
+    case 'ANALYZE_FILE': {
+      const { path } = action.payload
+      if (state.analyzedFiles.includes(path)) return state
+      return {
+        ...state,
+        analyzedFiles: [...state.analyzedFiles, path],
+        sessionLog: [
+          ...state.sessionLog,
+          logEntry('FILE_ANALYZED', `Unlocked advanced metadata for ${path}`, { path, method: 'terminal' })
+        ]
+      }
+    }
+
+    case 'VISIT_PSSCAN':
+      return {
+        ...state,
+        visitedPsscan: true
+      }
+
     case 'SET_VIEW':
       return {
         ...state,
@@ -162,6 +184,20 @@ function engineReducer(state, action) {
         logEntry('VIEW_CHANGED', `Switched to ${action.payload.toUpperCase()} view`),
         ],
       }
+
+    case 'TOGGLE_DIRECTORY': {
+      const { path, depth } = action.payload
+      const isOpened = state.openedDirectories[path] !== undefined
+        ? state.openedDirectories[path]
+        : depth < 2
+      return {
+        ...state,
+        openedDirectories: {
+          ...state.openedDirectories,
+          [path]: !isOpened,
+        },
+      }
+    }
 
     case 'SELECT_NODE':
       return {
@@ -403,6 +439,9 @@ export function ScenarioProvider({ children }) {
   const updateTerminalState = useCallback(payload => dispatch({ type: 'UPDATE_TERMINAL_STATE', payload }), [])
   const complete = useCallback(() => dispatch({ type: 'COMPLETE' }), [])
   const registerConnection = useCallback(c => dispatch({ type: 'REGISTER_CONNECTION', payload: c }), [])
+  const analyzeFile = useCallback(path => dispatch({ type: 'ANALYZE_FILE', payload: { path } }), [])
+  const visitPsscan = useCallback(() => dispatch({ type: 'VISIT_PSSCAN' }), [])
+  const toggleDirectory = useCallback((path, depth) => dispatch({ type: 'TOGGLE_DIRECTORY', payload: { path, depth } }), [])
 
   // Derived metrics — available after endTime is set
   const rawDelta = (state.postQuizScore ?? 0) - (state.preQuizScore ?? 0)
@@ -470,6 +509,8 @@ export function ScenarioProvider({ children }) {
       wrongSubmission, startPostQuiz, submitPostQuiz, addTerminalLine, addTerminalCmd,
       clearTerminal, updateTerminalState, complete, registerConnection,
       loadLeaderboard,
+      analyzeFile, visitPsscan,
+      toggleDirectory,
     }}>
       {children}
     </EngineContext.Provider>
