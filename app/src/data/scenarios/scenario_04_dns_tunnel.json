@@ -123,7 +123,7 @@
     {
       "tier": 3,
       "cost": 30,
-      "text": "Those long subdomain labels use a specific character set (A-Z, a-z, 0-9, +, /). What common encoding scheme uses exactly that alphabet? Try mentally decoding the first few characters of one of those subdomains and think about what kind of system file might begin with 'root:x:0:0'."
+      "text": "Those long subdomain labels use a specific character set (A-Z, a-z, 0-9, +, /). What common encoding scheme uses exactly that alphabet? If you can identify the encoding, the terminal has a tool that can decode it for you. Try decoding one of the subdomain labels — what kind of data is being exfiltrated?"
     }
   ],
   "debriefing": {

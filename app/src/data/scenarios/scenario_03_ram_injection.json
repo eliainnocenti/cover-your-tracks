@@ -211,7 +211,7 @@
       "suspicious": true,
       "pslist_visible": false,
       "psscan_visible": true,
-      "notes": "HIDDEN from pslist — only found via psscan. PPID 3021 points to a process no longer in the active list. DKOM rootkit has unlinked this EPROCESS from ActiveProcessLinks."
+      "notes": "This process appears in psscan results but not in pslist. Its parent process (PPID 3021) is no longer in the active process list."
     },
     {
       "pid": 3021,
@@ -222,7 +222,7 @@
       "suspicious": true,
       "pslist_visible": false,
       "psscan_visible": true,
-      "notes": "Parent of hidden PID 4812. Process has been terminated and partially overwritten. Pool tag still present in memory."
+      "notes": "Process terminated and partially overwritten. EPROCESS pool tag still present in physical memory."
     }
   ],
   "malfind_output": [
@@ -233,7 +233,7 @@
       "protection": "PAGE_EXECUTE_READWRITE",
       "size": "0x1000",
       "header": "4D 5A 90 00 03 00 00 00 04 00 00 00 FF FF 00 00",
-      "notes": "MZ header (PE executable) found in RWX memory region — classic code injection signature. Legitimate svchost.exe does not have RWX regions with PE headers."
+      "notes": "Memory region at 0x00400000 has PAGE_EXECUTE_READWRITE protection. Hex header begins with 4D 5A."
     }
   ],
   "flags": [

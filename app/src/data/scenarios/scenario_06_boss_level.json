@@ -355,7 +355,7 @@
       "suspicious": true,
       "pslist_visible": false,
       "psscan_visible": true,
-      "notes": "HIDDEN from pslist. Typosquatting — mimics 'winlogon.exe' but with '_helper' suffix. No visible parent (PPID 0 is invalid for user processes). Running as SYSTEM."
+      "notes": "This process appears in psscan results but not in pslist. PPID is 0, which is atypical for user-mode processes."
     },
     {
       "pid": 3744,
@@ -366,7 +366,7 @@
       "suspicious": true,
       "pslist_visible": false,
       "psscan_visible": true,
-      "notes": "HIDDEN from pslist. cmd.exe running as SYSTEM with no visible parent. Likely spawned by the rootkit for command execution."
+      "notes": "This process appears in psscan results but not in pslist. Running as SYSTEM with no visible parent process."
     }
   ],
   "network_log": [

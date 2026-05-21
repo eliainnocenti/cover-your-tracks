@@ -35,7 +35,7 @@ const DEFAULT_TERMINAL_LINES = [
 ]
 
 // ── Initial state ─────────────────────────────────────────────────────────────
-const initialState = {
+const getInitialState = () => ({
   phase: 'landing',        // landing | pre_quiz | investigation | post_quiz | debrief | complete
   scenario: null,
   score: 100,
@@ -73,7 +73,7 @@ const initialState = {
   analyzedFiles: [],       // [filePath]
   visitedPsscan: false,    // true once user toggles to psscan/malfind
   openedDirectories: {},   // { [path]: boolean }
-}
+})
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -94,10 +94,10 @@ function engineReducer(state, action) {
 
     case 'LOAD_SCENARIO':
       if (!action.payload) {
-        return initialState
+        return getInitialState()
       }
       return {
-        ...initialState,
+        ...getInitialState(),
         phase: 'pre_quiz',
         scenario: action.payload,
         startTime: Date.now(),
@@ -155,7 +155,7 @@ function engineReducer(state, action) {
       }
 
     case 'RESET':
-      return initialState
+      return getInitialState()
 
     case 'ANALYZE_FILE': {
       const { path } = action.payload
@@ -416,7 +416,7 @@ function engineReducer(state, action) {
 const EngineContext = createContext(null)
 
 export function ScenarioProvider({ children }) {
-  const [state, dispatch] = useReducer(engineReducer, initialState)
+  const [state, dispatch] = useReducer(engineReducer, null, getInitialState)
 
   const loadScenario = useCallback(s => dispatch({ type: 'LOAD_SCENARIO', payload: s }), [])
   const submitPreQuiz = useCallback(a => dispatch({ type: 'SUBMIT_PRE_QUIZ', payload: a }), [])

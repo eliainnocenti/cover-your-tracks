@@ -227,16 +227,16 @@ function FileDetail({ node }) {
           lineHeight: 1.5,
         }}>
           <div style={{ fontWeight: 700, marginBottom: 6 }}>[!] ADVANCED FORENSIC ANALYSIS REQUIRED</div>
-          <div>Deep sector structures are currently locked. Run the appropriate terminal tool to parse this evidence:</div>
+          <div>Deep sector structures are currently locked. Use the forensic terminal to parse this evidence.</div>
           <ul style={{ margin: '8px 0 0 16px', padding: 0, color: 'var(--text-secondary)' }}>
             {meta.lsb_chi_square != null && (
-              <li>Run <code>zsteg {node.name}</code> or <code>exiftool {node.name}</code> to analyze image bits</li>
+              <li>This image may contain hidden data in its pixel values. Which terminal tool analyzes bit-level distributions in PNG files?</li>
             )}
             {node.slack_bytes != null && (
-              <li>Run <code>blkls {node.name}</code> to carve block cluster allocations</li>
+              <li>This file's cluster allocation shows a gap between logical and physical size. Which forensic tool extracts data from unallocated block regions?</li>
             )}
             {meta.si_created != null && (
-              <li>Run <code>stat {node.name}</code> or <code>istat {meta.inode}</code> to parse MFT attributes</li>
+              <li>This file's MFT record may contain additional timestamp attributes beyond what is shown here. Which filesystem analysis tool reveals the full record?</li>
             )}
           </ul>
         </div>
@@ -1155,8 +1155,8 @@ function RamView() {
               )}
             </>
           ) : (
-            <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--red-alert)', background: 'rgba(255,60,60,0.06)', border: '1px solid var(--red-dim)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
-              {malfindData.length} injected region{malfindData.length !== 1 ? 's' : ''} found
+            <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--amber-main)', background: 'rgba(255,184,0,0.06)', border: '1px solid var(--amber-dim)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
+              {malfindData.length} suspicious memory region{malfindData.length !== 1 ? 's' : ''}
             </span>
           )}
         </div>
@@ -1199,7 +1199,7 @@ function RamView() {
                         {proc.name}
                         {hidden && scanMode === 'psscan' && (
                           <span style={{ marginLeft: 6, fontSize: '9px', color: 'var(--amber-main)', background: 'rgba(255,184,0,0.1)', padding: '1px 5px', borderRadius: 3 }}>
-                            DKOM-hidden
+                            pslist: NOT FOUND
                           </span>
                         )}
                       </td>
@@ -1302,7 +1302,7 @@ function RamView() {
                 </table>
 
                 {selected.notes && (
-                  <p style={{ fontSize: '10px', color: 'var(--amber-main)', marginTop: 10, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 10, lineHeight: 1.5, fontStyle: 'italic' }}>
                     {selected.notes}
                   </p>
                 )}
@@ -1363,7 +1363,7 @@ function RamView() {
                 </div>
 
                 {selected.notes && (
-                  <p style={{ fontSize: '10px', color: 'var(--red-alert)', marginTop: 10, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 10, lineHeight: 1.5, fontStyle: 'italic' }}>
                     {selected.notes}
                   </p>
                 )}
