@@ -117,9 +117,18 @@ export default function Leaderboard({ loadLeaderboard }) {
                           </td>
                           <td style={{ padding: '6px 8px 6px 0', textAlign: 'center' }}>
                             <span style={{
-                              color: e.knowledgeDelta > 0 ? 'var(--green-main)' : e.knowledgeDelta < 0 ? 'var(--red-alert)' : 'var(--text-muted)',
+                              color: (e.preQuizScore === 100 && e.postQuizScore === 100) || e.knowledgeDelta > 0
+                                ? 'var(--green-main)'
+                                : e.knowledgeDelta < 0
+                                  ? 'var(--red-alert)'
+                                  : 'var(--text-muted)',
                             }}>
-                              {e.knowledgeDelta > 0 ? `+${e.knowledgeDelta}%` : `${e.knowledgeDelta}%`}
+                              {(e.preQuizScore === 100 && e.postQuizScore === 100)
+                                ? 'Mastered'
+                                : e.knowledgeDelta > 0
+                                  ? `+${e.knowledgeDelta}%`
+                                  : `${e.knowledgeDelta}%`
+                              }
                             </span>
                           </td>
                           <td style={{ padding: '6px 0 6px 0', textAlign: 'right', color: 'var(--text-muted)' }}>

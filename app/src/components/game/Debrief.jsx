@@ -37,17 +37,19 @@ export default function Debrief({ onNext }) {
           <MetricCard
             icon={quizSkipped
               ? <Minus size={13} style={{ color: 'var(--text-muted)' }} />
-              : delta > 0
-                ? <TrendingUp size={13} style={{ color: 'var(--green-main)' }} />
-                : <Minus size={13} style={{ color: 'var(--text-muted)' }} />
+              : (metrics.preQuizScore === 100 && metrics.postQuizScore === 100)
+                ? <Award size={13} style={{ color: 'var(--green-main)' }} />
+                : delta > 0
+                  ? <TrendingUp size={13} style={{ color: 'var(--green-main)' }} />
+                  : <Minus size={13} style={{ color: 'var(--text-muted)' }} />
             }
             label="Knowledge Δ"
-            value={quizSkipped ? 'N/A' : delta > 0 ? `+${delta}%` : '±0%'}
+            value={quizSkipped ? 'N/A' : (metrics.preQuizScore === 100 && metrics.postQuizScore === 100) ? '100% (Mastered)' : delta > 0 ? `+${delta}%` : '±0%'}
             sub={quizSkipped
               ? 'Assessment skipped'
               : `${metrics.preQuizScore ?? 0}% → ${metrics.postQuizScore ?? 0}%`
             }
-            valueColor={quizSkipped ? 'var(--text-muted)' : delta > 0 ? 'var(--green-main)' : 'var(--text-muted)'}
+            valueColor={quizSkipped ? 'var(--text-muted)' : (metrics.preQuizScore === 100 && metrics.postQuizScore === 100) || delta > 0 ? 'var(--green-main)' : 'var(--text-muted)'}
           />
           <MetricCard icon={<Target size={13} style={{ color: 'var(--green-main)' }} />} label="Flags Found"
             value={metrics.bonusFlagsFound > 0

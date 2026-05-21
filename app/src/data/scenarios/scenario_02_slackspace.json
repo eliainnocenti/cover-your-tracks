@@ -12,12 +12,12 @@
       "id": "s2_pq1",
       "question": "What is 'slack space' in a filesystem?",
       "options": [
-        "The difference between a file's logical size and the space actually allocated to it on disk",
         "Unused space at the end of a disk partition",
+        "The difference between a file's logical size and the space actually allocated to it on disk",
         "A reserved area for the operating system swap file",
         "Empty space between directory entries in the MFT"
       ],
-      "correct": 0,
+      "correct": 1,
       "explanation": "Slack space is the difference between the end of a file's actual data and the end of the last cluster allocated to that file. Since filesystems allocate space in fixed-size clusters, a file rarely fills its last cluster completely — the leftover bytes are slack space."
     },
     {
@@ -25,11 +25,11 @@
       "question": "In a FAT directory entry, what does the byte value 0xE5 at the start of a filename indicate?",
       "options": [
         "The file is encrypted",
-        "The file is a system file",
         "The file has been deleted (but data may still be on disk)",
+        "The file is a system file",
         "The file is compressed"
       ],
-      "correct": 2,
+      "correct": 1,
       "explanation": "When a file is deleted in FAT, the first byte of its directory entry is replaced with 0xE5. The actual data clusters are marked as available but are NOT overwritten — they remain intact until a new file claims them. This is why forensic tools can often recover 'deleted' files."
     },
     {
@@ -50,10 +50,10 @@
       "options": [
         "The data is immediately overwritten with zeros",
         "The data is encrypted and marked as unreadable",
-        "The data remains on disk until another file overwrites those clusters",
-        "The data is moved to a hidden recovery partition"
+        "The data is moved to a hidden recovery partition",
+        "The data remains on disk until another file overwrites those clusters"
       ],
-      "correct": 2,
+      "correct": 3,
       "explanation": "Deleting a file only modifies the directory entry and marks the clusters as available. The actual data bytes remain on disk until they are overwritten by new data."
     }
   ],
@@ -319,35 +319,35 @@
       "question": "What forensic technique is used to recover files or fragments from unallocated disk space?",
       "options": [
         "Timestomping",
-        "Registry analysis",
         "File carving (e.g., using foremost or scalpel)",
+        "Registry analysis",
         "Memory dump analysis"
       ],
-      "correct": 2,
+      "correct": 1,
       "explanation": "File carving scans raw disk data for known file signatures (magic bytes) to reconstruct files, even when the filesystem metadata has been deleted. Tools like foremost, scalpel, and PhotoRec are commonly used."
     },
     {
       "id": "s2_postq3",
       "question": "In this scenario, how was the deleted salary_export.csv identified in the filesystem?",
       "options": [
-        "Its directory entry had the first byte replaced with 0xE5, the FAT deletion marker",
         "It appeared in the Recycle Bin with its full original name",
         "It was listed in the Windows event logs as a deleted file",
-        "The MFT entry was completely removed from disk"
+        "The MFT entry was completely removed from disk",
+        "Its directory entry had the first byte replaced with 0xE5, the FAT deletion marker"
       ],
-      "correct": 0,
+      "correct": 3,
       "explanation": "In FAT, the first byte of a deleted file's directory entry is replaced with 0xE5. The rest of the entry (including timestamps and cluster chain) remains intact, allowing forensic recovery."
     },
     {
       "id": "s2_postq4",
       "question": "What connected the slack space data in file.pdf to the deleted salary_export.csv?",
       "options": [
-        "They had the same file hash",
+        "The foremost carving output showed the CSV fragment matched the deleted file's header structure",
         "They were in the same directory",
         "The slack space contained a pointer to the deleted file's inode",
-        "The foremost carving output showed the CSV fragment matched the deleted file's header structure"
+        "They had the same file hash"
       ],
-      "correct": 3,
+      "correct": 0,
       "explanation": "The foremost tool carved a CSV fragment from file.pdf's slack space whose header ('Employee,Department,Base Salary...') matched the structure of the deleted salary_export.csv — proving the same data existed in both locations."
     }
   ]

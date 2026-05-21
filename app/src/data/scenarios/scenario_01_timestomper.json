@@ -12,12 +12,12 @@
       "id": "pq1",
       "question": "In NTFS, which metadata attribute stores the timestamps visible in Windows Explorer?",
       "options": [
-        "$STANDARD_INFORMATION ($SI)",
         "$FILE_NAME ($FN)",
+        "$STANDARD_INFORMATION ($SI)",
         "$DATA",
         "$OBJECT_ID"
       ],
-      "correct": 0,
+      "correct": 1,
       "explanation": "$STANDARD_INFORMATION stores the timestamps shown in Windows Explorer and most forensic tools by default. This is also the attribute most commonly targeted by timestomping tools."
     },
     {
@@ -36,12 +36,12 @@
       "id": "pq3",
       "question": "How many distinct timestamps does NTFS store for each file in the $STANDARD_INFORMATION attribute?",
       "options": [
+        "4 (Created, Modified, Accessed, MFT Changed)",
         "1 (Last Modified only)",
         "2 (Created and Modified)",
-        "3 (Created, Modified, Accessed)",
-        "4 (Created, Modified, Accessed, MFT Changed)"
+        "3 (Created, Modified, Accessed)"
       ],
-      "correct": 3,
+      "correct": 0,
       "explanation": "NTFS stores four timestamps in $SI: Created, Modified, Accessed, and MFT Changed. Each captures a different aspect of the file's lifecycle."
     },
     {
@@ -81,11 +81,11 @@
                       "extension": "docx",
                       "magic_bytes": "504B0304",
                       "metadata": {
-                        "si_created":  "2024-06-12 14:30:00",
+                        "si_created": "2024-06-12 14:30:00",
                         "si_modified": "2024-06-12 15:45:10",
                         "si_accessed": "2024-06-12 15:45:10",
                         "si_mft_changed": "2024-06-12 15:45:10",
-                        "fn_created":  "2024-06-12 14:30:00",
+                        "fn_created": "2024-06-12 14:30:00",
                         "fn_modified": "2024-06-12 15:45:10",
                         "fn_accessed": "2024-06-12 15:45:10",
                         "fn_mft_changed": "2024-06-12 15:45:10",
@@ -103,11 +103,11 @@
                       "extension": "docx",
                       "magic_bytes": "504B0304",
                       "metadata": {
-                        "si_created":  "2024-11-14 09:22:11",
+                        "si_created": "2024-11-14 09:22:11",
                         "si_modified": "2024-11-14 09:22:11",
                         "si_accessed": "2024-11-14 09:22:11",
                         "si_mft_changed": "2024-11-14 09:22:11",
-                        "fn_created":  "2024-09-03 14:47:32",
+                        "fn_created": "2024-09-03 14:47:32",
                         "fn_modified": "2024-10-21 16:05:44",
                         "fn_accessed": "2024-11-12 08:30:19",
                         "fn_mft_changed": "2024-11-12 08:30:19",
@@ -126,11 +126,11 @@
                       "extension": "docx",
                       "magic_bytes": "504B0304",
                       "metadata": {
-                        "si_created":  "2024-09-18 10:15:22",
+                        "si_created": "2024-09-18 10:15:22",
                         "si_modified": "2024-09-18 11:22:04",
                         "si_accessed": "2024-09-18 11:22:04",
                         "si_mft_changed": "2024-09-18 11:22:04",
-                        "fn_created":  "2024-09-18 10:15:22",
+                        "fn_created": "2024-09-18 10:15:22",
                         "fn_modified": "2024-09-18 11:22:04",
                         "fn_accessed": "2024-09-18 11:22:04",
                         "fn_mft_changed": "2024-09-18 11:22:04",
@@ -148,11 +148,11 @@
                       "extension": "txt",
                       "magic_bytes": "EFBBBF",
                       "metadata": {
-                        "si_created":  "2024-10-01 11:00:00",
+                        "si_created": "2024-10-01 11:00:00",
                         "si_modified": "2024-11-10 17:45:22",
                         "si_accessed": "2024-11-10 17:45:22",
                         "si_mft_changed": "2024-11-10 17:48:05",
-                        "fn_created":  "2024-10-01 11:00:00",
+                        "fn_created": "2024-10-01 11:00:00",
                         "fn_modified": "2024-11-10 17:45:22",
                         "fn_accessed": "2024-11-10 17:45:22",
                         "fn_mft_changed": "2024-11-10 17:48:05",
@@ -170,11 +170,11 @@
                       "extension": "pst",
                       "magic_bytes": "2142444E",
                       "metadata": {
-                        "si_created":  "2024-01-10 08:00:00",
+                        "si_created": "2024-01-10 08:00:00",
                         "si_modified": "2024-11-12 17:30:45",
                         "si_accessed": "2024-11-12 17:30:45",
                         "si_mft_changed": "2024-11-12 17:30:45",
-                        "fn_created":  "2024-01-10 08:00:00",
+                        "fn_created": "2024-01-10 08:00:00",
                         "fn_modified": "2024-11-12 17:30:45",
                         "fn_accessed": "2024-11-12 17:30:45",
                         "fn_mft_changed": "2024-11-12 17:30:45",
@@ -192,11 +192,11 @@
                       "extension": "docx",
                       "magic_bytes": "504B0304",
                       "metadata": {
-                        "si_created":  "2024-11-14 09:22:11",
+                        "si_created": "2024-11-14 09:22:11",
                         "si_modified": "2024-11-14 09:22:11",
                         "si_accessed": "2024-11-14 09:22:11",
                         "si_mft_changed": "2024-11-14 09:22:11",
-                        "fn_created":  "2024-10-28 10:12:05",
+                        "fn_created": "2024-10-28 10:12:05",
                         "fn_modified": "2024-11-13 19:58:31",
                         "fn_accessed": "2024-11-13 19:58:31",
                         "fn_mft_changed": "2024-11-13 19:58:31",
@@ -225,11 +225,11 @@
                           "extension": "tmp",
                           "magic_bytes": "54494D45",
                           "metadata": {
-                            "si_created":  "2024-11-14 09:18:44",
+                            "si_created": "2024-11-14 09:18:44",
                             "si_modified": "2024-11-14 09:22:15",
                             "si_accessed": "2024-11-14 09:22:15",
                             "si_mft_changed": "2024-11-14 09:22:15",
-                            "fn_created":  "2024-11-14 09:18:44",
+                            "fn_created": "2024-11-14 09:18:44",
                             "fn_modified": "2024-11-14 09:22:15",
                             "fn_accessed": "2024-11-14 09:22:15",
                             "fn_mft_changed": "2024-11-14 09:22:15",
@@ -268,11 +268,11 @@
                       "extension": "evtx",
                       "magic_bytes": "456C6646",
                       "metadata": {
-                        "si_created":  "2023-01-15 10:00:00",
+                        "si_created": "2023-01-15 10:00:00",
                         "si_modified": "2024-11-14 09:25:00",
                         "si_accessed": "2024-11-14 09:25:00",
                         "si_mft_changed": "2024-11-14 09:25:00",
-                        "fn_created":  "2023-01-15 10:00:00",
+                        "fn_created": "2023-01-15 10:00:00",
                         "fn_modified": "2024-11-14 09:25:00",
                         "fn_accessed": "2024-11-14 09:25:00",
                         "fn_mft_changed": "2024-11-14 09:25:00",
@@ -327,7 +327,7 @@
     {
       "tier": 2,
       "cost": 20,
-      "text": "Look at the Documents folder. Notice anything unusual about when the files were supposedly last modified?"
+      "text": "Timestomping tools typically leave runtime artifacts or temporary logs behind in the user's home profile. Where on a Windows system does application-specific configuration and temporary data usually accumulate?"
     },
     {
       "tier": 3,
@@ -348,35 +348,35 @@
       "question": "Which NTFS attribute is most resistant to timestomping tools and why?",
       "options": [
         "$DATA, because it stores the actual file content",
-        "$STANDARD_INFORMATION, because it requires admin privileges to modify",
         "$FILE_NAME, because it is updated by the NTFS kernel driver rather than user-space APIs",
+        "$STANDARD_INFORMATION, because it requires admin privileges to modify",
         "$OBJECT_ID, because it is write-protected by default"
       ],
-      "correct": 2,
+      "correct": 1,
       "explanation": "$FILE_NAME timestamps are maintained directly by the NTFS driver and cannot be changed through standard Windows API calls. This makes them a reliable forensic reference point even after timestomping."
     },
     {
       "id": "postq2",
       "question": "What is a reliable indicator that timestomping has occurred?",
       "options": [
-        "The file size is larger than expected",
-        "The file extension does not match its magic bytes",
         "All four $SI timestamps are identical down to the second",
+        "The file extension does not match its magic bytes",
+        "The file size is larger than expected",
         "The file has no owner assigned"
       ],
-      "correct": 2,
+      "correct": 0,
       "explanation": "When all four $SI timestamps (Created, Modified, Accessed, MFT Changed) are precisely the same, it strongly suggests they were set programmatically in a single operation — the hallmark of a timestomping tool."
     },
     {
       "id": "postq3",
       "question": "In this investigation, what corroborating evidence confirmed the timestamps were deliberately altered?",
       "options": [
-        "A tool artifact (timestomp_log.tmp) was found in AppData",
         "The files had mismatched magic bytes",
         "The files were encrypted with a suspicious key",
-        "The Windows registry showed anti-forensic software installed"
+        "The Windows registry showed anti-forensic software installed",
+        "A tool artifact (timestomp_log.tmp) was found in AppData"
       ],
-      "correct": 0,
+      "correct": 3,
       "explanation": "The timestomp_log.tmp file in the user's AppData folder was a leftover from the timestomping tool itself. It named both tampered files and the exact timestamp applied — the strongest evidence of deliberate manipulation."
     },
     {
@@ -385,10 +385,10 @@
       "options": [
         "The file was copied from a USB drive, which strips timestamp variation",
         "Windows sets all timestamps to the current time when a file is accessed",
-        "The timestomping tool used a single SetFileTime() call that applies the same value to all four fields",
-        "NTFS automatically synchronizes timestamps for files modified by administrators"
+        "NTFS automatically synchronizes timestamps for files modified by administrators",
+        "The timestomping tool used a single SetFileTime() call that applies the same value to all four fields"
       ],
-      "correct": 2,
+      "correct": 3,
       "explanation": "Timestomping tools typically use one API call to set all four $SI timestamps simultaneously. This creates the 'all-identical' pattern that's virtually impossible during normal file operations."
     }
   ]

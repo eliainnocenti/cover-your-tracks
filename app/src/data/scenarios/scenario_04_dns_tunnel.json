@@ -12,12 +12,12 @@
       "id": "s4_pq1",
       "question": "What is the maximum length of a single DNS subdomain label?",
       "options": [
-        "63 characters",
         "128 characters",
+        "63 characters",
         "253 characters",
         "255 characters"
       ],
-      "correct": 0,
+      "correct": 1,
       "explanation": "A single DNS label (the part between dots) can be at most 63 characters. The total domain name (all labels combined) can be up to 253 characters. DNS tunneling tools pack as much data as possible into these labels."
     },
     {
@@ -26,34 +26,34 @@
       "options": [
         "Encrypting web traffic between browser and server",
         "Managing email routing between servers",
-        "Authenticating users on a corporate network",
-        "Translating human-readable domain names into IP addresses"
+        "Translating human-readable domain names into IP addresses",
+        "Authenticating users on a corporate network"
       ],
-      "correct": 3,
-      "explanation": "DNS (Domain Name System) resolves domain names to IP addresses. Because DNS traffic is rarely blocked by firewalls and often not inspected, attackers abuse it as a covert channel for command-and-control communication and data exfiltration."
+      "correct": 2,
+      "explanation": "DNS (Domain Name System) resolves domain names to IP addresses. Because DNS traffic is rarely blocked by firewalls and often not inspected, attackers abuse it as a covert channel for C2 and data exfiltration."
     },
     {
       "id": "s4_pq3",
       "question": "Why is DNS traffic rarely blocked by firewalls?",
       "options": [
-        "DNS is essential for network operation — blocking it would prevent all domain name resolution",
         "DNS uses encryption by default, so firewalls cannot inspect it",
         "DNS only operates on the local network segment",
-        "Firewalls are not designed to filter UDP traffic"
+        "Firewalls are not designed to filter UDP traffic",
+        "DNS is essential for network operation — blocking it would prevent all domain name resolution"
       ],
-      "correct": 0,
+      "correct": 3,
       "explanation": "DNS is fundamental infrastructure — without it, no domain name can be resolved. This makes it an attractive covert channel because it's almost always allowed through firewalls."
     },
     {
       "id": "s4_pq4",
       "question": "What type of DNS record is commonly used by tunneling tools to send data back from the attacker's server to the compromised host?",
       "options": [
-        "A records (IP addresses)",
-        "AAAA records (IPv6 addresses)",
         "TXT records (arbitrary text data)",
+        "AAAA records (IPv6 addresses)",
+        "A records (IP addresses)",
         "NS records (nameserver delegation)"
       ],
-      "correct": 2,
+      "correct": 0,
       "explanation": "TXT records can contain arbitrary text strings up to 255 characters per string. DNS tunneling tools use TXT responses to send commands or data back to the compromised host."
     }
   ],
@@ -139,35 +139,35 @@
       "question": "How do DNS tunneling tools like iodine and dnscat2 implement data exfiltration?",
       "options": [
         "They encrypt DNS responses with TLS",
-        "They replace DNS packets with TCP packets at the network layer",
         "They encode data as subdomain labels in DNS queries and receive responses via TXT records",
+        "They replace DNS packets with TCP packets at the network layer",
         "They use DNS over HTTPS (DoH) to hide traffic"
       ],
-      "correct": 2,
+      "correct": 1,
       "explanation": "DNS tunneling tools encode outbound data as subdomain labels in DNS queries (e.g., base64 chunks as subdomains of an attacker-controlled domain). Inbound data comes back as DNS TXT record responses. This works because DNS traffic is rarely blocked or deeply inspected."
     },
     {
       "id": "s4_postq2",
       "question": "Which of the following is the strongest indicator of DNS tunneling?",
       "options": [
-        "A high volume of queries with long, random-looking subdomains to a single external domain",
         "DNS queries using TCP instead of UDP",
         "DNS responses with NXDOMAIN (not found) errors",
-        "DNS queries from multiple source IP addresses"
+        "DNS queries from multiple source IP addresses",
+        "A high volume of queries with long, random-looking subdomains to a single external domain"
       ],
-      "correct": 0,
+      "correct": 3,
       "explanation": "The hallmark of DNS tunneling is many queries to one domain with unusually long, high-entropy subdomains (base64 or hex-encoded data). Normal DNS subdomains are short and human-readable (e.g., 'www', 'mail', 'api')."
     },
     {
       "id": "s4_postq3",
       "question": "What was the strongest indicator that the DNS traffic in this scenario was malicious rather than normal browsing?",
       "options": [
-        "The queries used TCP instead of UDP",
+        "847 queries with long, high-entropy subdomains were sent to a single domain in 4 minutes",
         "The DNS server responded with NXDOMAIN errors",
         "The queries came from multiple source IP addresses",
-        "847 queries with long, high-entropy subdomains were sent to a single domain in 4 minutes"
+        "The queries used TCP instead of UDP"
       ],
-      "correct": 3,
+      "correct": 0,
       "explanation": "The combination of extreme volume (847 queries in 4 minutes), long random-looking subdomains (base64-encoded data), and a single destination domain (exfil-c2.net) is the hallmark of DNS tunneling."
     },
     {

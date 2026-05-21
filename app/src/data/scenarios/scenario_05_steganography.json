@@ -13,35 +13,35 @@
       "question": "What is LSB steganography?",
       "options": [
         "Encrypting an image file with a password",
-        "Compressing image metadata to reduce file size",
         "Hiding data by modifying the least significant bits of pixel color values",
+        "Compressing image metadata to reduce file size",
         "Embedding a watermark in the image header"
       ],
-      "correct": 2,
+      "correct": 1,
       "explanation": "LSB steganography hides data by replacing the least significant bit of each color channel (R, G, B) in a pixel. Since changing the LSB only alters the color value by 1 (e.g., from 200 to 201), the visual difference is imperceptible to the human eye — but the bits can encode arbitrary data."
     },
     {
       "id": "s5_pq2",
       "question": "How does pixel color depth work in a standard 24-bit PNG image?",
       "options": [
-        "Each pixel has three 8-bit channels (R, G, B), with each channel ranging from 0 to 255",
         "Each pixel has one 24-bit value for brightness",
         "Each pixel stores 24 separate color entries",
+        "Each pixel has three 8-bit channels (R, G, B), with each channel ranging from 0 to 255",
         "Color depth only applies to JPEG, not PNG"
       ],
-      "correct": 0,
+      "correct": 2,
       "explanation": "In a 24-bit PNG, each pixel has three color channels (Red, Green, Blue), each represented by 8 bits (0-255). This means each pixel carries 24 bits of color data — and an LSB steganography tool can hide 3 bits of secret data per pixel (one bit per channel)."
     },
     {
       "id": "s5_pq3",
       "question": "Approximately how much data can be hidden in a 1920×1080 image using single-bit LSB steganography across all three color channels?",
       "options": [
-        "About 8 KB",
-        "About 80 KB",
         "About 760 KB",
+        "About 80 KB",
+        "About 8 KB",
         "About 6 MB"
       ],
-      "correct": 2,
+      "correct": 0,
       "explanation": "A 1920×1080 image has 2,073,600 pixels × 3 channels = 6,220,800 available LSBs. At 1 bit each: 6,220,800 / 8 = 777,600 bytes ≈ 760 KB."
     },
     {
@@ -282,12 +282,12 @@
     {
       "tier": 1,
       "cost": 10,
-      "text": "Consider the physical footprint of digital image storage. If three control files share identical pixel dimensions and depict similar scenes, what does a statistically significant variance in file size indicate about the underlying byte arrangement of one specific file?"
+      "text": "If three cat photos have exactly the same pixel dimensions (e.g., 1024x768) and show similar scenes, they should have very similar file sizes. If one of them is significantly larger than the others, what could be hidden inside its extra bytes?"
     },
     {
       "tier": 2,
       "cost": 20,
-      "text": "Analyze the metadata profiles of the images. While normal digital cameras systematically embed device descriptions, timestamps, and geolocation tags, what diagnostic inference can you draw when an image's EXIF profile is entirely blank? How does this cross-correlate with changes in the MFT timestamps?"
+      "text": "Look at the metadata for all three images. Normal camera photos usually contain EXIF details (like camera model, lens info, and timestamps). Why would one image have its EXIF data completely stripped, and how might that relate to the timing of its creation?"
     },
     {
       "tier": 3,
@@ -319,12 +319,12 @@
       "id": "s5_postq2",
       "question": "Why is it suspicious when an image has its EXIF metadata stripped?",
       "options": [
-        "It may indicate the image was processed to remove identifying metadata before embedding hidden data",
+        "Stripped EXIF means the image file is corrupted",
         "EXIF removal always indicates steganography",
         "EXIF can only be removed using forensic tools",
-        "Stripped EXIF means the image file is corrupted"
+        "It may indicate the image was processed to remove identifying metadata before embedding hidden data"
       ],
-      "correct": 0,
+      "correct": 3,
       "explanation": "While there are legitimate reasons to strip EXIF (privacy), in a forensic context it's suspicious — especially when other images from the same device retain their EXIF. Stripping EXIF removes timestamps, camera info, and GPS that could help trace the image's origin, and some steganography tools automatically strip it."
     },
     {
@@ -332,23 +332,23 @@
       "question": "Why did cat_03.png have its EXIF metadata stripped while cat_01 and cat_02 retained theirs?",
       "options": [
         "PNG files do not support EXIF metadata, so stripping is automatic.",
-        "The image was uploaded to social media, which strips EXIF automatically",
         "The steganography embedding tool (Steghide) stripped EXIF during the embedding process",
+        "The image was uploaded to social media, which strips EXIF automatically",
         "EXIF is only stored in JPEG files, not PNG"
       ],
-      "correct": 2,
+      "correct": 1,
       "explanation": "Many steganography tools strip EXIF during embedding because the metadata can conflict with the modified pixel data. The steghide_history.log confirmed: 'EXIF metadata stripped from output.'"
     },
     {
       "id": "s5_postq4",
       "question": "Why did cat_03.png's LSB chi-square value (0.48) differ so significantly from cat_01 (0.92) and cat_02 (0.89)?",
       "options": [
-        "cat_03 was taken with a lower-quality camera sensor",
+        "The embedded zip archive replaced the natural LSB distribution with structured data, changing the statistical signature",
         "cat_03 used a different color space (CMYK instead of RGB)",
         "PNG compression artifacts lowered the chi-square value",
-        "The embedded zip archive replaced the natural LSB distribution with structured data, changing the statistical signature"
+        "cat_03 was taken with a lower-quality camera sensor"
       ],
-      "correct": 3,
+      "correct": 0,
       "explanation": "Natural images have semi-random LSBs (chi-square ≈ 1.0). When a compressed file (like a zip) replaces those LSBs, it introduces structured patterns that significantly lower the chi-square statistic."
     }
   ]

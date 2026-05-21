@@ -25,23 +25,23 @@
       "question": "What is ICMP primarily used for?",
       "options": [
         "Transferring files between servers",
-        "Encrypting network traffic",
+        "Sending diagnostic messages like ping (echo request/reply) and error reports",
         "Managing DNS records",
-        "Sending diagnostic messages like ping (echo request/reply) and error reports"
+        "Encrypting network traffic"
       ],
-      "correct": 3,
+      "correct": 1,
       "explanation": "ICMP (Internet Control Message Protocol) is used for network diagnostic and error reporting — most commonly the 'ping' command (echo request/reply). Normal ICMP echo payloads are small (32 bytes). Attackers abuse ICMP by stuffing large data payloads into echo packets for covert exfiltration — a technique called ICMP tunneling."
     },
     {
       "id": "s6_pq3",
       "question": "What is the normal payload size of a standard ICMP echo request (ping)?",
       "options": [
-        "32 bytes",
-        "0 bytes (header only)",
         "1,400 bytes",
+        "0 bytes (header only)",
+        "32 bytes",
         "65,535 bytes"
       ],
-      "correct": 0,
+      "correct": 2,
       "explanation": "A standard ping sends 32 bytes of padding data. Significantly larger payloads can indicate covert data exfiltration through ICMP tunneling."
     },
     {
@@ -50,10 +50,10 @@
       "options": [
         "Encrypting a process name to avoid detection",
         "Running a process with no name at all",
-        "Naming a malicious process similarly to a legitimate one to avoid suspicion",
-        "Changing a process name after it has started executing"
+        "Changing a process name after it has started executing",
+        "Naming a malicious process similarly to a legitimate one to avoid suspicion"
       ],
-      "correct": 2,
+      "correct": 3,
       "explanation": "Typosquatting uses names that look similar to legitimate processes (e.g., 'winlogon_helper.exe' mimicking 'winlogon.exe') to evade visual inspection by analysts."
     }
   ],
@@ -591,11 +591,11 @@
       "question": "What makes ICMP tunneling effective for covert exfiltration?",
       "options": [
         "ICMP is encrypted by default",
-        "ICMP has no maximum payload size limit",
         "ICMP traffic is rarely inspected by firewalls and IDS, and the protocol allows arbitrary payload data in echo requests",
+        "ICMP has no maximum payload size limit",
         "ICMP packets cannot be captured by packet sniffers"
       ],
-      "correct": 2,
+      "correct": 1,
       "explanation": "ICMP is a diagnostic protocol that most firewalls allow by default (for ping). The protocol permits arbitrary data in the payload field of echo requests/replies. Since most security tools don't inspect ICMP payload content or size, attackers can embed exfiltrated data in oversized payloads without triggering alerts."
     },
     {
