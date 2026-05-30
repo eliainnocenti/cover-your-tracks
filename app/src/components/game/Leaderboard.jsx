@@ -1,6 +1,7 @@
 // Leaderboard.jsx — Local high-scores & past runs
 import { useState } from 'react'
 import { Trophy, Clock, Target, ChevronDown, ChevronRight, Trash2, TrendingUp } from 'lucide-react'
+import { QUIZ_TIER_META } from './ScenarioEngine'
 
 function fmtTime(s) {
   if (!s) return '—'
@@ -8,12 +9,7 @@ function fmtTime(s) {
   return m > 0 ? `${m}m ${sec}s` : `${sec}s`
 }
 
-function getTier(score) {
-  if (score >= 160) return { label: 'Expert Investigator', emoji: '🥇', color: '#f59e0b' }
-  if (score >= 120) return { label: 'Senior Analyst', emoji: '🥈', color: '#94a3b8' }
-  if (score >= 80) return  { label: 'Junior Analyst', emoji: '🥉', color: '#92400e' }
-  return { label: 'Novice', emoji: '📋', color: '#6b7280' }
-}
+
 
 export default function Leaderboard({ loadLeaderboard }) {
   const [open, setOpen] = useState(false)
@@ -22,7 +18,7 @@ export default function Leaderboard({ loadLeaderboard }) {
   const refresh = () => setEntries(loadLeaderboard())
 
   const handleClear = () => {
-    try { localStorage.removeItem('cyt_leaderboard') } catch {}
+    try { localStorage.removeItem('cyt_leaderboard') } catch { }
     setEntries([])
   }
 
@@ -82,15 +78,13 @@ export default function Leaderboard({ loadLeaderboard }) {
                       <td style={{ padding: '4px 8px 8px 0', width: 24 }}>#</td>
                       <td style={{ padding: '4px 8px 8px 0' }}>SCENARIO</td>
                       <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>SCORE</td>
-                      <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>TIER</td>
                       <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>FLAGS</td>
-                      <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>K.Δ</td>
+                      <td style={{ padding: '4px 8px 8px 0', textAlign: 'center' }}>MASTERY</td>
                       <td style={{ padding: '4px 8px 8px 0', textAlign: 'right' }}>TIME</td>
                     </tr>
                   </thead>
                   <tbody>
                     {entries.map((e, i) => {
-                      const tier = getTier(e.finalScore)
                       const isGold = i === 0
                       return (
                         <tr key={e.id} style={{
@@ -109,27 +103,19 @@ export default function Leaderboard({ loadLeaderboard }) {
                           <td style={{ padding: '6px 8px 6px 0', textAlign: 'center', fontWeight: 700, color: isGold ? 'var(--amber-main)' : 'var(--text-primary)' }}>
                             {e.finalScore}
                           </td>
-                          <td style={{ padding: '6px 8px 6px 0', textAlign: 'center', fontSize: '10px' }}>
-                            <span title={tier.label}>{tier.emoji}</span>
-                          </td>
                           <td style={{ padding: '6px 8px 6px 0', textAlign: 'center', color: e.flagsFound === e.totalFlags ? 'var(--green-main)' : 'var(--text-secondary)' }}>
                             {e.flagsFound}/{e.totalFlags}
                           </td>
                           <td style={{ padding: '6px 8px 6px 0', textAlign: 'center' }}>
-                            <span style={{
-                              color: (e.preQuizScore === 100 && e.postQuizScore === 100) || e.knowledgeDelta > 0
-                                ? 'var(--green-main)'
-                                : e.knowledgeDelta < 0
-                                  ? 'var(--red-alert)'
-                                  : 'var(--text-muted)',
-                            }}>
-                              {(e.preQuizScore === 100 && e.postQuizScore === 100)
-                                ? 'Mastered'
-                                : e.knowledgeDelta > 0
-                                  ? `+${e.knowledgeDelta}%`
-                                  : `${e.knowledgeDelta}%`
-                              }
-                            </span>
+                            {(() => {
+                              const tierKey = e.quizTier ?? (e.knowledgeDelta == null ? 'skipped' : e.knowledgeDelta >= 100 ? 'mastered' : 'unchanged')
+                              const meta = QUIZ_TIER_META[tierKey] ?? QUIZ_TIER_META.unchanged
+                              return (
+                                <span title={meta.label} style={{ color: meta.color, fontSize: '12px' }}>
+                                  {meta.emoji}
+                                </span>
+                              )
+                            })()}
                           </td>
                           <td style={{ padding: '6px 0 6px 0', textAlign: 'right', color: 'var(--text-muted)' }}>
                             {fmtTime(e.totalTimeSeconds)}

@@ -119,7 +119,7 @@ export default function Quiz({ type }) {
                 <>
                   Skipping the assessment means:
                   <ul style={{ margin: '8px 0 0 16px', padding: 0 }}>
-                    <li>Your Knowledge Delta won't be measured</li>
+                    <li>Your Quiz Mastery won't be evaluated</li>
                     <li>You won't receive the post-quiz bonus (up to +20 pts)</li>
                     <li>Your instructor may require the assessment for grading</li>
                   </ul>
@@ -128,7 +128,7 @@ export default function Quiz({ type }) {
                 <>
                   Skipping the post-quiz means:
                   <ul style={{ margin: '8px 0 0 16px', padding: 0 }}>
-                    <li>Your Knowledge Delta won't be measured</li>
+                    <li>Your Quiz Mastery won't be evaluated</li>
                     <li>You will forfeit the post-quiz score and bonus (up to +20 pts)</li>
                     <li>Your final report will mark the post-assessment as skipped</li>
                   </ul>

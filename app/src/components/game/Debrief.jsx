@@ -1,6 +1,7 @@
 // Debrief.jsx
 import { BookOpen, TrendingUp, TrendingDown, Clock, Target, Lightbulb, Award, ChevronRight, Minus, Link2, Shield } from 'lucide-react'
 import { useEngine } from './ScenarioEngine'
+import { QUIZ_TIER_META } from './ScenarioEngine'
 import ChainOfCustody from './ChainOfCustody'
 
 export default function Debrief({ onNext }) {
@@ -8,8 +9,8 @@ export default function Debrief({ onNext }) {
   const { scenario } = state
   if (!scenario) return null
   const d = scenario.debriefing
-  const delta = metrics?.knowledgeDelta
   const quizSkipped = metrics?.quizSkipped
+  const tierMeta = QUIZ_TIER_META[metrics?.quizTier ?? 'skipped']
 
   return (
     <div style={{ maxWidth: 620, margin: '0 auto', padding: '32px 20px', display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -35,21 +36,14 @@ export default function Debrief({ onNext }) {
             value={fmtTime(metrics.totalTimeSeconds)} valueColor="var(--blue-accent)"
           />
           <MetricCard
-            icon={quizSkipped
-              ? <Minus size={13} style={{ color: 'var(--text-muted)' }} />
-              : (metrics.preQuizScore === 100 && metrics.postQuizScore === 100)
-                ? <Award size={13} style={{ color: 'var(--green-main)' }} />
-                : delta > 0
-                  ? <TrendingUp size={13} style={{ color: 'var(--green-main)' }} />
-                  : <Minus size={13} style={{ color: 'var(--text-muted)' }} />
-            }
-            label="Knowledge Δ"
-            value={quizSkipped ? 'N/A' : (metrics.preQuizScore === 100 && metrics.postQuizScore === 100) ? '100% (Mastered)' : delta > 0 ? `+${delta}%` : '±0%'}
+            icon={<span style={{ fontSize: 15 }}>{tierMeta.emoji}</span>}
+            label="Quiz Mastery"
+            value={tierMeta.label}
             sub={quizSkipped
               ? 'Assessment skipped'
               : `${metrics.preQuizScore ?? 0}% → ${metrics.postQuizScore ?? 0}%`
             }
-            valueColor={quizSkipped ? 'var(--text-muted)' : (metrics.preQuizScore === 100 && metrics.postQuizScore === 100) || delta > 0 ? 'var(--green-main)' : 'var(--text-muted)'}
+            valueColor={tierMeta.color}
           />
           <MetricCard icon={<Target size={13} style={{ color: 'var(--green-main)' }} />} label="Flags Found"
             value={metrics.bonusFlagsFound > 0
@@ -198,6 +192,8 @@ export default function Debrief({ onNext }) {
               {metrics?.postQuizDurationSeconds != null && (
                 <span style={{ color: 'var(--text-muted)' }}> ({fmtTime(metrics.postQuizDurationSeconds)})</span>
               )}
+              {' · '}
+              Mastery: <b style={{ color: tierMeta.color }}>{tierMeta.label}</b>
             </>
           )}
           &nbsp;|&nbsp;

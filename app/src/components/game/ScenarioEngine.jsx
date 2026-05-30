@@ -88,6 +88,30 @@ function hintsUsedForFlag(hintsUsed) {
   return hintsUsed.length > 0
 }
 
+// ── Quiz mastery tier ─────────────────────────────────────────────────────────
+// With only 4 questions, a numeric delta is statistically meaningless.
+// Instead we classify the pre→post combination into a qualitative tier.
+//   pre=100 & post=100  → 'mastered'   (already knew it, confirmed it)
+//   pre<100  & post=100 → 'learned'    (clear gain to full marks)
+//   pre<100  & post>pre → 'improved'   (some gain, not perfect)
+//   pre=post (both<100) → 'unchanged'  (no measurable movement)
+//   post<pre            → 'unchanged'  (noise / bad luck — never show as regression)
+export function getQuizTier(pre, post) {
+  if (pre === null || post === null) return 'skipped'
+  if (pre === 100 && post === 100) return 'mastered'
+  if (post === 100) return 'learned'
+  if (post > pre) return 'improved'
+  return 'unchanged'
+}
+
+export const QUIZ_TIER_META = {
+  mastered: { label: 'Mastered', color: 'var(--green-main)', emoji: '★', bonus: 10 },
+  learned: { label: 'Learned', color: 'var(--cyan-accent)', emoji: '↑', bonus: 5 },
+  improved: { label: 'Improved', color: 'var(--amber-main)', emoji: '↗', bonus: 0 },
+  unchanged: { label: 'Unchanged', color: 'var(--text-muted)', emoji: '—', bonus: 0 },
+  skipped: { label: 'Skipped', color: 'var(--text-ghost)', emoji: '·', bonus: 0 },
+}
+
 // ── Reducer ───────────────────────────────────────────────────────────────────
 function engineReducer(state, action) {
   switch (action.type) {
@@ -135,7 +159,7 @@ function engineReducer(state, action) {
         preQuizEndTime: Date.now(),
         phase: 'investigation',
         sessionLog: [...state.sessionLog,
-        logEntry('PRE_ASSESSMENT_SKIPPED', 'Pre-quiz skipped — Knowledge Delta will not be measured, post-quiz bonus forfeited'),
+        logEntry('PRE_ASSESSMENT_SKIPPED', 'Pre-quiz skipped — Quiz Mastery will not be measured, post-quiz bonus forfeited'),
         logEntry('INVESTIGATION_START', 'Investigation phase started — evidence access granted'),
         ],
       }
@@ -149,7 +173,7 @@ function engineReducer(state, action) {
         phase: 'debrief',
         endTime: Date.now(),
         sessionLog: [...state.sessionLog,
-        logEntry('POST_ASSESSMENT_SKIPPED', 'Post-quiz skipped — Knowledge Delta will not be measured, post-quiz bonus forfeited'),
+        logEntry('POST_ASSESSMENT_SKIPPED', 'Post-quiz skipped — Quiz Mastery will not be measured, post-quiz bonus forfeited'),
         logEntry('INVESTIGATION_END', 'Investigation session concluded — generating debrief'),
         ],
       }
@@ -351,17 +375,21 @@ function engineReducer(state, action) {
       const qs = state.scenario.postQuiz
       const correct = qs.filter(q => answers[q.id] === q.correct).length
       const postScore = Math.round((correct / qs.length) * 100)
-      const bonus = Math.round(postScore * 0.2)
+      const postBonus = Math.round(postScore * 0.2)
+      const tier = getQuizTier(state.preQuizScore, postScore)
+      const masteryBonus = QUIZ_TIER_META[tier].bonus
+      const totalBonus = postBonus + masteryBonus
+      const bonusNote = masteryBonus > 0 ? `, mastery bonus: +${masteryBonus} pts` : ''
       return {
         ...state,
         postQuizAnswers: answers,
         postQuizScore: postScore,
         postQuizEndTime: Date.now(),
-        score: state.score + bonus,
+        score: state.score + totalBonus,
         phase: 'debrief',
         endTime: Date.now(),
         sessionLog: [...state.sessionLog,
-        logEntry('POST_ASSESSMENT', `Post-quiz completed — Score: ${postScore}% (${correct}/${qs.length}), bonus: +${bonus} pts`, { score: postScore, bonus }),
+        logEntry('POST_ASSESSMENT', `Post-quiz completed — Score: ${postScore}% (${correct}/${qs.length}), performance bonus: +${postBonus} pts${bonusNote}`, { score: postScore, bonus: totalBonus }),
         logEntry('INVESTIGATION_END', 'Investigation session concluded — generating debrief'),
         ],
       }
@@ -444,7 +472,7 @@ export function ScenarioProvider({ children }) {
   const toggleDirectory = useCallback((path, depth) => dispatch({ type: 'TOGGLE_DIRECTORY', payload: { path, depth } }), [])
 
   // Derived metrics — available after endTime is set
-  const rawDelta = (state.postQuizScore ?? 0) - (state.preQuizScore ?? 0)
+  const quizTier = getQuizTier(state.preQuizScore, state.postQuizScore)
   const metrics = state.endTime ? {
     scenarioId: state.scenario?.id,
     scenarioTitle: state.scenario?.title,
@@ -453,7 +481,9 @@ export function ScenarioProvider({ children }) {
     quizSkipped: state.quizSkipped,
     preQuizScore: state.preQuizScore,
     postQuizScore: state.postQuizScore,
-    knowledgeDelta: state.quizSkipped ? null : Math.max(0, rawDelta),
+    quizTier,                                  // 'mastered' | 'learned' | 'improved' | 'unchanged' | 'skipped'
+    // knowledgeDelta removed — 4-question resolution is too coarse for a numeric delta.
+    // Use quizTier for display and scoring instead.
     hintsUsedCount: state.hintsUsed.length,
     wrongAttempts: state.wrongAttempts,
     flagsFound: state.flagsFound.length,
@@ -488,7 +518,7 @@ export function ScenarioProvider({ children }) {
         finalScore: metrics.finalScore,
         preQuizScore: metrics.preQuizScore,
         postQuizScore: metrics.postQuizScore,
-        knowledgeDelta: metrics.knowledgeDelta,
+        quizTier: metrics.quizTier,
         flagsFound: metrics.flagsFound,
         totalFlags: metrics.totalFlags,
         hintsUsed: metrics.hintsUsedCount,
