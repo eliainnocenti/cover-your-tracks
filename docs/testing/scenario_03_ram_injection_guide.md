@@ -412,6 +412,8 @@ Verify the debriefing shows:
 | Submitting "svchost" (partial match) | Should match target "svchost.exe PID 4812" (contains "svchost") |
 | Submitting "PID 4812" | Should match (contained in target string) |
 | Submitting "rootkit" | Should match Flag 2 if "DKOM" not yet found (check if "rootkit" is in finding string — **it's NOT**, finding is "EPROCESS unlinking") |
+| Submitting Flag 2 (DKOM) with PID 4812 or PID 3021 | **Observed:** returns "Incorrect evidence or technique" even when using "DKOM" or "EPROCESS unlinking" (reproducible) |
+| Tagging the RWX memory region | Shows "Unverified Chain of Custody" warning about missing Terminal stat/istat analysis (expected due to no filesystem) |
 
 ### Common Student Mistakes
 
@@ -460,8 +462,8 @@ PID 4812's PPID points to PID 3021, which is terminated. In normal Windows opera
 │  Technique: DKOM (ActiveProcessLinks unlink)      │
 │  Evidence: malfind — MZ header in RWX at 0x400000 │
 │                                                   │
-│  Pre-Quiz: 1→B, 2→B, 3→C, 4→B                             │
-│  Post-Quiz: 1→B, 2→C, 3→B, 4→B                            │
+│  Pre-Quiz: 1→A, 2→C, 3→B, 4→D                             │
+│  Post-Quiz: 1→B, 2→D, 3→C, 4→A                            │
 │                                                   │
 │  NO filesystem, NO network log                    │
 └───────────────────────────────────────────────────┘

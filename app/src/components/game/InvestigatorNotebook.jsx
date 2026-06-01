@@ -113,6 +113,15 @@ export default function InvestigatorNotebook() {
           (fTarget.includes('passwd') && eName.includes('dns') && eName.includes('exfil-c2'))
       }
 
+      // ── Abstract flag types (technique, artifact, content) ──────────────
+      // These flags represent conceptual findings (e.g. "DKOM", "LSB steganography",
+      // "PE header injection") that don't map to a specific evidence name.
+      // For these, we skip the targetMatch requirement entirely — the student
+      // proves understanding by correctly naming the technique/finding, regardless
+      // of which specific evidence item they selected.
+      const isAbstractFlag = ['technique', 'artifact', 'content'].includes(f.type)
+      if (isAbstractFlag) targetMatch = true
+
       if (!targetMatch) return false
 
       // ── technique matching ─────────────────────────────────────────────────

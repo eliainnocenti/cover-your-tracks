@@ -62,8 +62,10 @@ export default function CrossReference() {
       border: `1px solid ${foundCount > 0 ? 'var(--cyan-accent)' : 'var(--border-dim)'}`,
       borderRadius: 'var(--radius-sm)',
       background: foundCount > 0 ? 'rgba(0,229,204,0.03)' : 'var(--bg-raised)',
-      overflow: 'hidden',
+      overflow: 'visible',
       transition: 'border-color 0.3s',
+      position: 'relative',
+      zIndex: 1,
     }}>
       {/* Header */}
       <button

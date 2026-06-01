@@ -55,12 +55,12 @@ const normalizeString = (str) => {
     .trim()
     .replace(/^\/+/, '')           // remove leading slashes
     .replace(/\/+$/, '')           // remove trailing slashes
-    .replace(/[\s_\-]/g, '')       // remove spaces, underscores, and hyphens
+    .replace(/[\s_\-\.]/g, '')     // remove spaces, underscores, hyphens, and periods
 }
 ```
 
 A submission is successful if:
-1. The tagged evidence type matches the flag target type (`file`, `process`, `network`, etc.).
+1. For `file`, `process`, and `network` flags, the tagged evidence type matches the flag target. For abstract flag types (`technique`, `artifact`, `content`), any tagged evidence is accepted — the technique/finding match alone proves understanding.
 2. The normalized submission string matches *either* the normalized flag **finding** (e.g. `0xE5 deletion`, `timestomping`, `DNS tunneling`) *or* the normalized flag **target** (e.g. `salary_export.csv`, `exfil-c2.net`, `Security.evtx`).
 3. Suffix comparisons are performed on filename base paths to allow inputs like `etc/passwd` or `å5alary_export.csv` to seamlessly match `/etc/passwd` or `salary_export.csv` respectively.
 
@@ -99,7 +99,7 @@ Phase auto-advances to `post_quiz` when all flags are found.
 | 02 — Slack Space | B (index 1) | B (index 1) | B (index 1) | B (index 1) |
 | 03 — RAM Injection | B (index 1) | C (index 2) | B (index 1) | B (index 1) |
 | 04 — DNS Tunnel | B (index 1) | B (index 1) | B (index 1) | C (index 2) |
-| 05 — Steganography | B (index 1) | B (index 1) | B (index 1) | B (index 1) |
+| 05 — Steganography | C (index 2) | B (index 1) | B (index 1) | B (index 1) |
 | 06 — Boss Level | C (index 2) | B (index 1) | B (index 1) | B (index 1) |
 
 ### All Flags Summary

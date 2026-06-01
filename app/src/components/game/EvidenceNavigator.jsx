@@ -375,7 +375,7 @@ function isBinaryExt(ext) { return BINARY_EXTENSIONS.has((ext ?? '').toLowerCase
 function isEvtx(ext) { return (ext ?? '').toLowerCase() === 'evtx' }
 
 function TerminalView() {
-  const { state, clearTerminal, updateTerminalState, analyzeFile } = useEngine()
+  const { state, clearTerminal, updateTerminalState, analyzeFile, analyzeProcess, analyzePacket } = useEngine()
   const [input, setInput] = useState('')
   const lines = state.terminalLines
   const cmdHistory = state.terminalCmdHistory
@@ -435,6 +435,7 @@ function TerminalView() {
         '  base64 -d <arg>       — decode base64 raw string or packet shortcut (e.g. pkt_3)',
         '  tshark -f <protocol>  — filter network packet streams',
         '  whois <ip>            — lookup IP address registry information',
+        '  volatility <plugin>   — RAM forensics analysis (pslist, psscan, malfind)',
         '  history               — show command history',
         '  clear                 — clear terminal',
       )
@@ -656,6 +657,7 @@ function TerminalView() {
           if (netLogs && netLogs[idx]) {
             const queryVal = netLogs[idx].query
             if (queryVal) {
+              analyzePacket(netLogs[idx].id ?? String(idx))
               try {
                 const decoded = atob(queryVal)
                 push(
@@ -698,8 +700,11 @@ function TerminalView() {
             push({ text: `tshark: no packets matching filter '-f ${proto}' found`, type: 'output' })
           } else {
             push({ text: `[tshark filtering for: ${proto.toUpperCase()}]`, type: 'comment' })
-            filtered.forEach((p, idx) => {
-              push(`  #${idx+1}  ${p.time}  ${p.src} -> ${p.dst}  ${p.protocol}  ${p.info}`)
+            filtered.forEach((p) => {
+              const origIdx = netLogs.indexOf(p)
+              const pktId = p.id ?? String(origIdx)
+              analyzePacket(pktId)
+              push(`  #${origIdx + 1}  ${p.time}  ${p.src} -> ${p.dst}  ${p.protocol}  ${p.info}`)
             })
           }
         } else {
@@ -715,6 +720,13 @@ function TerminalView() {
         push({ text: 'Usage: whois <ip_address>', type: 'error' })
       } else {
         push({ text: `[performing whois lookup for ${ip}]`, type: 'comment' })
+        if (scenario?.network_log) {
+          scenario.network_log.forEach((p, origIdx) => {
+            if (p.src === ip || p.dst === ip) {
+              analyzePacket(p.id ?? String(origIdx))
+            }
+          })
+        }
         if (ip === '185.220.101.47') {
           push(
             `NetRange:       185.220.100.0 - 185.220.103.255`,
@@ -729,6 +741,59 @@ function TerminalView() {
             `OrgName:        Generic Network Provider`,
             `Country:        US`
           )
+        }
+      }
+    }
+
+    // ── volatility ──
+    else if (base === 'volatility' || base === 'vol') {
+      const plugin = args[0]?.toLowerCase()
+      if (!plugin || !['pslist', 'psscan', 'malfind'].includes(plugin)) {
+        push({ text: 'Usage: volatility <pslist|psscan|malfind>', type: 'error' })
+      } else if (!scenario?.ram_dump) {
+        push({ text: 'volatility: error: no RAM dump loaded in this scenario', type: 'error' })
+      } else {
+        if (plugin === 'pslist') {
+          push(
+            { text: `[running volatility pslist plugin]`, type: 'comment' },
+            `Offset(V)  Name                PID   PPID   Thds`,
+            `------------------------------------------------`
+          )
+          const list = scenario.ram_dump.filter(p => p.pslist_visible !== false)
+          list.forEach(p => {
+            push(`  ${p.offset.padEnd(10)} ${p.name.padEnd(18)} ${String(p.pid).padEnd(5)} ${String(p.ppid).padEnd(5)} ${String(p.threads ?? 0)}`)
+            analyzeProcess(p.pid)
+          })
+        } else if (plugin === 'psscan') {
+          push(
+            { text: `[running volatility psscan plugin]`, type: 'comment' },
+            `Offset(P)  Name                PID   PPID   Thds   pslist`,
+            `---------------------------------------------------------`
+          )
+          scenario.ram_dump.forEach(p => {
+            const inPslist = p.pslist_visible !== false ? 'present' : 'HIDDEN'
+            push(`  ${p.offset.padEnd(10)} ${p.name.padEnd(18)} ${String(p.pid).padEnd(5)} ${String(p.ppid).padEnd(5)} ${String(p.threads ?? 0).padEnd(5)}  ${inPslist}`)
+            analyzeProcess(p.pid)
+          })
+          const delta = scenario.ram_dump.length - scenario.ram_dump.filter(p => p.pslist_visible !== false).length
+          if (delta > 0) {
+            push({ text: `[!] WARNING: psscan found ${delta} process(es) unlisted in pslist (hidden process anomaly)`, type: 'warn' })
+          }
+        } else if (plugin === 'malfind') {
+          if (!scenario.malfind_output || scenario.malfind_output.length === 0) {
+            push({ text: 'volatility malfind: No injected code regions detected.', type: 'output' })
+          } else {
+            push({ text: `[running volatility malfind plugin]`, type: 'comment' })
+            scenario.malfind_output.forEach(item => {
+              push(
+                `Process: ${item.process} Pid: ${item.pid} Address: ${item.address} Protection: ${item.protection}`,
+                `Hex Dump: ${item.header}`,
+                `----------------------------------------------------------------------`
+              )
+              analyzeProcess(item.pid)
+            })
+            push({ text: `[!] WARNING: Writable+Executable (PAGE_EXECUTE_READWRITE) memory detected in svchost.exe`, type: 'warn' })
+          }
         }
       }
     }
@@ -1179,6 +1244,8 @@ function RamView() {
               <tbody>
                 {shown.map((proc, i) => {
                   const hidden = proc.pslist_visible === false
+                  const isAnalyzed = state.analyzedProcesses?.includes(String(proc.pid))
+                  const showAnomaly = hidden && isAnalyzed
                   const rowColor = 'var(--text-secondary)'
                   const isActive = selected?.pid === proc.pid && !selected.address
 
@@ -1197,7 +1264,7 @@ function RamView() {
                       <td style={{ padding: '4px 10px 4px 0' }}>{proc.ppid}</td>
                       <td style={{ padding: '4px 10px 4px 0', color: 'var(--text-primary)' }}>
                         {proc.name}
-                        {hidden && scanMode === 'psscan' && (
+                        {showAnomaly && scanMode === 'psscan' && (
                           <span style={{ marginLeft: 6, fontSize: '9px', color: 'var(--amber-main)', background: 'rgba(255,184,0,0.1)', padding: '1px 5px', borderRadius: 3 }}>
                             pslist: NOT FOUND
                           </span>
@@ -1225,13 +1292,14 @@ function RamView() {
               <tbody>
                 {malfindData.map((item, i) => {
                   const isActive = selected?.pid === item.pid && selected?.address === item.address
+                  const isAnalyzed = state.analyzedProcesses?.includes(String(item.pid))
                   return (
                     <tr
                       key={i}
                       onClick={() => setSelected(item)}
                       style={{
                         borderBottom: '1px solid var(--bg-raised)',
-                        color: 'var(--red-alert)',
+                        color: isAnalyzed ? 'var(--red-alert)' : 'var(--text-secondary)',
                         cursor: 'pointer',
                         background: isActive ? 'rgba(255,60,60,0.06)' : 'transparent',
                       }}
@@ -1250,127 +1318,159 @@ function RamView() {
         )}
 
         {/* Detail panel */}
-        {selected && (
-          <div style={{
-            width: '240px', flexShrink: 0,
-            borderLeft: '1px solid var(--border-dim)',
-            padding: '12px', overflowY: 'auto',
-            background: 'var(--bg-raised)',
-          }}>
-            {scanMode !== 'malfind' ? (
-              /* Process details */
-              <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                  <div style={{ fontSize: '12px', color: selected.suspicious ? 'var(--red-alert)' : 'var(--text-primary)', fontWeight: 700 }}>
-                    {selected.name}
-                  </div>
-                  <button
-                    className={`btn-tag ${isTagged(selected) ? 'tagged' : ''}`}
-                    onClick={() => isTagged(selected) ? untagEvidence(`ram_${selected.pid}`) : tagEvidence({
-                      id: `ram_${selected.pid}`,
-                      name: `${selected.name} (PID ${selected.pid})`,
-                      type: 'process',
-                      note: selected.suspicious ? '⚠ Suspicious process' : '',
-                      path: `RAM:${selected.offset}`,
-                    })}
-                  >
-                    <Tag size={9} />
-                    {isTagged(selected) ? 'Tagged' : 'Tag'}
-                  </button>
+        {selected && (() => {
+          const isProcessSuspicious = selected.suspicious || selected.pslist_visible === false || selected.protection === 'PAGE_EXECUTE_READWRITE' || scanMode === 'malfind'
+          const isProcAnalyzed = !isProcessSuspicious || state.analyzedProcesses?.includes(String(selected.pid))
+
+          return (
+            <div style={{
+              width: '240px', flexShrink: 0,
+              borderLeft: '1px solid var(--border-dim)',
+              padding: '12px', overflowY: 'auto',
+              background: 'var(--bg-raised)',
+            }}>
+              {!isProcAnalyzed && (
+                <div style={{
+                  background: 'rgba(255, 60, 60, 0.03)',
+                  border: '1px dashed var(--red-dim)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '12px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  color: 'var(--red-alert)',
+                  lineHeight: 1.5,
+                  marginBottom: '12px'
+                }}>
+                  <div style={{ fontWeight: 700, marginBottom: 6 }}>[!] ADVANCED RAM ANALYSIS REQUIRED</div>
+                  <div>Deep memory sector signatures are locked. Run volatility in the forensic terminal to analyze this process.</div>
+                  <ul style={{ margin: '8px 0 0 16px', padding: 0, color: 'var(--text-secondary)' }}>
+                    {selected.pslist_visible === false && (
+                      <li>This process may have been unlinked from kernel ActiveProcessLinks. Which volatility plugin scans raw memory structures?</li>
+                    )}
+                    {scanMode === 'malfind' && (
+                      <li>This memory region has suspicious PAGE_EXECUTE_READWRITE protection. Which volatility plugin detects injected shellcode signature regions?</li>
+                    )}
+                  </ul>
                 </div>
+              )}
 
-                <table className="ft" style={{ fontSize: '10px' }}>
-                  <tbody>
-                    {[
-                      ['PID', selected.pid],
-                      ['PPID', selected.ppid],
-                      ['Offset', selected.offset],
-                      ['Threads', selected.threads ?? '—'],
-                      ['pslist', selected.pslist_visible === false ? '✗ HIDDEN' : '✓ visible'],
-                      ['psscan', '✓ visible'],
-                    ].map(([k, v]) => (
-                      <tr key={k}
-                        className={
-                          (k === 'pslist' && selected.pslist_visible === false) ||
-                            (k === 'PPID' && selected.ppid === 0 && selected.suspicious)
-                            ? 'anomaly' : ''}>
-                        <td className="k">{k}</td>
-                        <td className="v">{String(v)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                {selected.notes && (
-                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 10, lineHeight: 1.5, fontStyle: 'italic' }}>
-                    {selected.notes}
-                  </p>
-                )}
-              </>
-            ) : (
-              /* Malfind details */
-              <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                  <div style={{ fontSize: '12px', color: 'var(--red-alert)', fontWeight: 700 }}>
-                    {selected.process} (PID {selected.pid})
+              {scanMode !== 'malfind' ? (
+                /* Process details */
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                    <div style={{ fontSize: '12px', color: (selected.suspicious && isProcAnalyzed) ? 'var(--red-alert)' : 'var(--text-primary)', fontWeight: 700 }}>
+                      {selected.name}
+                    </div>
+                    <button
+                      className={`btn-tag ${isTagged(selected) ? 'tagged' : ''}`}
+                      onClick={() => isTagged(selected) ? untagEvidence(`ram_${selected.pid}`) : tagEvidence({
+                        id: `ram_${selected.pid}`,
+                        name: `${selected.name} (PID ${selected.pid})`,
+                        type: 'process',
+                        note: selected.suspicious ? '⚠ Suspicious process' : '',
+                        path: `RAM:${selected.offset}`,
+                      })}
+                    >
+                      <Tag size={9} />
+                      {isTagged(selected) ? 'Tagged' : 'Tag'}
+                    </button>
                   </div>
-                  <button
-                    className={`btn-tag ${isTagged(selected) ? 'tagged' : ''}`}
-                    onClick={() => isTagged(selected)
-                      ? untagEvidence(`malfind_${selected.pid}_${selected.address}`)
-                      : tagEvidence({
-                          id: `malfind_${selected.pid}_${selected.address}`,
-                          name: `RWX memory region at ${selected.address} (PID ${selected.pid})`,
-                          type: 'file',  // Must be 'file' to match target string parsing perfectly in Notebook
-                          note: `PAGE_EXECUTE_READWRITE injection in ${selected.process}`,
-                          path: `RAM:${selected.address}`,
-                        })}
-                  >
-                    <Tag size={9} />
-                    {isTagged(selected) ? 'Tagged' : 'Tag'}
-                  </button>
-                </div>
 
-                <table className="ft" style={{ fontSize: '10px' }}>
-                  <tbody>
-                    {[
-                      ['PID', selected.pid],
-                      ['Process', selected.process],
-                      ['Address', selected.address],
-                      ['Protection', selected.protection],
-                      ['Size', selected.size],
-                    ].map(([k, v]) => (
-                      <tr key={k} className={k === 'Protection' && v === 'PAGE_EXECUTE_READWRITE' ? 'anomaly' : ''}>
-                        <td className="k">{k}</td>
-                        <td className="v">{String(v)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  <table className="ft" style={{ fontSize: '10px' }}>
+                    <tbody>
+                      {[
+                        ['PID', selected.pid],
+                        ['PPID', selected.ppid],
+                        ['Offset', selected.offset],
+                        ['Threads', selected.threads ?? '—'],
+                        ['pslist', selected.pslist_visible === false ? '✗ HIDDEN' : '✓ visible'],
+                        ['psscan', '✓ visible'],
+                      ].map(([k, v]) => (
+                        <tr key={k}
+                          className={isProcAnalyzed && (
+                            (k === 'pslist' && selected.pslist_visible === false) ||
+                              (k === 'PPID' && selected.ppid === 0 && selected.suspicious)
+                          ) ? 'anomaly' : ''}>
+                          <td className="k">{k}</td>
+                          <td className="v">{String(v)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
 
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: '9px', color: 'var(--text-ghost)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
-                    Hex Header
+                  {isProcAnalyzed && selected.notes && (
+                    <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 10, lineHeight: 1.5, fontStyle: 'italic' }}>
+                      {selected.notes}
+                    </p>
+                  )}
+                </>
+              ) : (
+                /* Malfind details */
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                    <div style={{ fontSize: '12px', color: 'var(--red-alert)', fontWeight: 700 }}>
+                      {selected.process} (PID {selected.pid})
+                    </div>
+                    <button
+                      className={`btn-tag ${isTagged(selected) ? 'tagged' : ''}`}
+                      onClick={() => isTagged(selected)
+                        ? untagEvidence(`malfind_${selected.pid}_${selected.address}`)
+                        : tagEvidence({
+                            id: `malfind_${selected.pid}_${selected.address}`,
+                            name: `RWX memory region at ${selected.address} (PID ${selected.pid})`,
+                            type: 'file',  // Must be 'file' to match target string parsing perfectly in Notebook
+                            note: `PAGE_EXECUTE_READWRITE injection in ${selected.process}`,
+                            path: `RAM:${selected.address}`,
+                          })}
+                    >
+                      <Tag size={9} />
+                      {isTagged(selected) ? 'Tagged' : 'Tag'}
+                    </button>
                   </div>
-                  <div style={{
-                    fontFamily: 'var(--font-mono)', fontSize: '10px',
-                    background: 'var(--bg-base)', padding: '6px 8px',
-                    borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-dim)',
-                    color: 'var(--text-primary)', letterSpacing: '0.05em',
-                  }}>
-                    {selected.header}
-                  </div>
-                </div>
 
-                {selected.notes && (
-                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 10, lineHeight: 1.5, fontStyle: 'italic' }}>
-                    {selected.notes}
-                  </p>
-                )}
-              </>
-            )}
-          </div>
-        )}
+                  <table className="ft" style={{ fontSize: '10px' }}>
+                    <tbody>
+                      {[
+                        ['PID', selected.pid],
+                        ['Process', selected.process],
+                        ['Address', selected.address],
+                        ['Protection', selected.protection],
+                        ['Size', selected.size],
+                      ].map(([k, v]) => (
+                        <tr key={k} className={isProcAnalyzed && k === 'Protection' && v === 'PAGE_EXECUTE_READWRITE' ? 'anomaly' : ''}>
+                          <td className="k">{k}</td>
+                          <td className="v">{String(v)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {isProcAnalyzed && (
+                    <div style={{ marginTop: 12 }}>
+                      <div style={{ fontSize: '9px', color: 'var(--text-ghost)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+                        Hex Header
+                      </div>
+                      <div style={{
+                        fontFamily: 'var(--font-mono)', fontSize: '10px',
+                        background: 'var(--bg-base)', padding: '6px 8px',
+                        borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-dim)',
+                        color: 'var(--text-primary)', letterSpacing: '0.05em',
+                      }}>
+                        {selected.header}
+                      </div>
+                    </div>
+                  )}
+
+                  {isProcAnalyzed && selected.notes && (
+                    <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 10, lineHeight: 1.5, fontStyle: 'italic' }}>
+                      {selected.notes}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          )
+        })()}
       </div>
     </div>
   )
@@ -1443,6 +1543,8 @@ function NetworkView() {
           ? `${pkt.protocol}: ${pkt.info} (${pkt.src} → ${pkt.dst})`
           : `${pkt.protocol} ${pkt.src} → ${pkt.dst}`
         const tagged = isTagged(pkt, selected)
+        const isPktAnalyzed = !pkt.suspicious || state.analyzedPackets?.includes(pkt.id ?? String(selected))
+
         return (
           <div style={{
             width: '260px', flexShrink: 0,
@@ -1450,8 +1552,33 @@ function NetworkView() {
             padding: '12px', overflowY: 'auto',
             background: 'var(--bg-raised)',
           }}>
+            {!isPktAnalyzed && (
+              <div style={{
+                background: 'rgba(255, 60, 60, 0.03)',
+                border: '1px dashed var(--red-dim)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '12px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: 'var(--red-alert)',
+                lineHeight: 1.5,
+                marginBottom: '12px'
+              }}>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>[!] ADVANCED NETWORK ANALYSIS REQUIRED</div>
+                <div>Deep packet capture attributes are currently locked. Use the forensic terminal to analyze and verify this packet.</div>
+                <ul style={{ margin: '8px 0 0 16px', padding: 0, color: 'var(--text-secondary)' }}>
+                  {pkt.protocol === 'DNS' && (
+                    <li>This DNS query payload may contain encoded exfiltration. Which terminal tool performs base64 decoding on packet structures?</li>
+                  )}
+                  {pkt.protocol === 'ICMP' && (
+                    <li>This network packet IP or size may indicate a covert channel. Which command performs registry lookups on IP addresses or protocol filtering?</li>
+                  )}
+                </ul>
+              </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-              <div style={{ fontSize: '11px', color: pkt.suspicious ? 'var(--amber-main)' : 'var(--text-primary)', fontWeight: 700 }}>
+              <div style={{ fontSize: '11px', color: (pkt.suspicious && isPktAnalyzed) ? 'var(--amber-main)' : 'var(--text-primary)', fontWeight: 700 }}>
                 Packet #{selected + 1}
               </div>
               <button
@@ -1476,16 +1603,16 @@ function NetworkView() {
                   ['Source', pkt.src],
                   ['Dest', pkt.dst],
                   ['Protocol', pkt.protocol],
-                  ['Flags', pkt.suspicious ? '⚠ SUSPICIOUS' : '—'],
+                  ['Flags', (pkt.suspicious && isPktAnalyzed) ? '⚠ SUSPICIOUS' : '—'],
                 ].map(([k, v]) => (
-                  <tr key={k} className={k === 'Flags' && pkt.suspicious ? 'anomaly' : ''}>
+                  <tr key={k} className={isPktAnalyzed && k === 'Flags' && pkt.suspicious ? 'anomaly' : ''}>
                     <td className="k">{k}</td><td className="v">{v}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
-            {pkt.query && (
+            {isPktAnalyzed && pkt.query && (
               <div style={{ marginTop: 12 }}>
                 <div style={{ fontSize: '9px', color: 'var(--text-ghost)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
                   DNS Query
@@ -1525,7 +1652,7 @@ function NetworkView() {
               </div>
             )}
 
-            <div style={{ marginTop: 10, fontSize: '10px', color: pkt.suspicious ? 'var(--amber-main)' : 'var(--text-secondary)', lineHeight: 1.6 }}>
+            <div style={{ marginTop: 10, fontSize: '10px', color: (pkt.suspicious && isPktAnalyzed) ? 'var(--amber-main)' : 'var(--text-secondary)', lineHeight: 1.6 }}>
               {pkt.info}
             </div>
           </div>

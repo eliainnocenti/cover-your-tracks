@@ -495,6 +495,6 @@ Chi-square test for LSB:
 │  Controls: cat_01 and cat_02 are clean           │
 │                                                  │
 │  Pre-Quiz: 1→B, 2→B, 3→C, 4→B                    │
-│  Post-Quiz: 1→B, 2→B, 3→B, 4→B                   │
+│  Post-Quiz: 1→C, 2→B, 3→B, 4→B                   │
 └──────────────────────────────────────────────────┘
 ```

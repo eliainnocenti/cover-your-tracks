@@ -90,7 +90,7 @@ export default function Debrief({ onNext }) {
 
       {/* Forensic Chain of Custody Review Card */}
       {(() => {
-        const filesTagged = taggedEvidence?.filter(e => e.type === 'file') || []
+        const filesTagged = state.taggedEvidence?.filter(e => e.type === 'file') || []
         const filesAnalyzedCount = filesTagged.filter(f => state.analyzedFiles?.includes(f.path)).length
         const custodyPercent = filesTagged.length > 0
           ? Math.round((filesAnalyzedCount / filesTagged.length) * 100)

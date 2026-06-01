@@ -71,6 +71,8 @@ const getInitialState = () => ({
   sessionLog: [],          // append-only audit trail
   foundConnections: [],    // [connectionId]
   analyzedFiles: [],       // [filePath]
+  analyzedProcesses: [],   // [pid]
+  analyzedPackets: [],     // [packetId]
   visitedPsscan: false,    // true once user toggles to psscan/malfind
   openedDirectories: {},   // { [path]: boolean }
 })
@@ -190,6 +192,34 @@ function engineReducer(state, action) {
         sessionLog: [
           ...state.sessionLog,
           logEntry('FILE_ANALYZED', `Unlocked advanced metadata for ${path}`, { path, method: 'terminal' })
+        ]
+      }
+    }
+
+    case 'ANALYZE_PROCESS': {
+      const { pid } = action.payload
+      const pidStr = String(pid)
+      if (state.analyzedProcesses?.includes(pidStr)) return state
+      return {
+        ...state,
+        analyzedProcesses: [...(state.analyzedProcesses || []), pidStr],
+        sessionLog: [
+          ...state.sessionLog,
+          logEntry('PROCESS_ANALYZED', `Unlocked advanced RAM analysis for PID ${pidStr}`, { pid: pidStr, method: 'terminal' })
+        ]
+      }
+    }
+
+    case 'ANALYZE_PACKET': {
+      const { packetId } = action.payload
+      const pktIdStr = String(packetId)
+      if (state.analyzedPackets?.includes(pktIdStr)) return state
+      return {
+        ...state,
+        analyzedPackets: [...(state.analyzedPackets || []), pktIdStr],
+        sessionLog: [
+          ...state.sessionLog,
+          logEntry('PACKET_ANALYZED', `Unlocked advanced network analysis for packet ${pktIdStr}`, { packetId: pktIdStr, method: 'terminal' })
         ]
       }
     }
@@ -468,6 +498,8 @@ export function ScenarioProvider({ children }) {
   const complete = useCallback(() => dispatch({ type: 'COMPLETE' }), [])
   const registerConnection = useCallback(c => dispatch({ type: 'REGISTER_CONNECTION', payload: c }), [])
   const analyzeFile = useCallback(path => dispatch({ type: 'ANALYZE_FILE', payload: { path } }), [])
+  const analyzeProcess = useCallback(pid => dispatch({ type: 'ANALYZE_PROCESS', payload: { pid } }), [])
+  const analyzePacket = useCallback(packetId => dispatch({ type: 'ANALYZE_PACKET', payload: { packetId } }), [])
   const visitPsscan = useCallback(() => dispatch({ type: 'VISIT_PSSCAN' }), [])
   const toggleDirectory = useCallback((path, depth) => dispatch({ type: 'TOGGLE_DIRECTORY', payload: { path, depth } }), [])
 
@@ -539,7 +571,7 @@ export function ScenarioProvider({ children }) {
       wrongSubmission, startPostQuiz, submitPostQuiz, addTerminalLine, addTerminalCmd,
       clearTerminal, updateTerminalState, complete, registerConnection,
       loadLeaderboard,
-      analyzeFile, visitPsscan,
+      analyzeFile, analyzeProcess, analyzePacket, visitPsscan,
       toggleDirectory,
     }}>
       {children}
