@@ -128,8 +128,11 @@ C:\
 ├── Users/
 │   └── kmartin/
 │       ├── Documents/
+│       │   ├── Q1_Report_v2.docx             ← ✅ Clean (decoy file)
 │       │   ├── Q2_Report_FINAL.docx          ← 🚩 TAMPERED (Flag 1)
-│       │   ├── personal_notes.txt            ← ✅ Clean
+│       │   ├── performance_review_2024.docx  ← ✅ Clean (decoy file)
+│       │   ├── personal_notes.txt            ← ✅ Clean (control file)
+│       │   ├── outlook_archive.pst           ← ✅ Clean (decoy file)
 │       │   └── HR_Termination_Draft_v3.docx  ← 🚩 TAMPERED (Flag 2)
 │       └── AppData/
 │           └── Roaming/
@@ -170,8 +173,9 @@ C:\
 
 **Action:** Click **"Tag Evidence"** on this file.
 
-### Step 3: Check `personal_notes.txt` (control file)
+### Step 3: Check personal_notes.txt and Decoy Files (control files)
 
+#### personal_notes.txt
 | Field | $SI Value | $FN Value |
 |-------|-----------|-----------|
 | Created | 2024-10-01 11:00:00 | 2024-10-01 11:00:00 |
@@ -179,7 +183,39 @@ C:\
 | Accessed | 2024-11-10 17:45:22 | 2024-11-10 17:45:22 |
 | MFT Changed | 2024-11-10 17:48:05 | 2024-11-10 17:48:05 |
 
-**Result:** \$SI and \$FN match → file is **not tampered**. No red flag should appear. This file exists as a **control** — to show what a normal file looks like by comparison.
+**Result:** \$SI and \$FN match → file is **not tampered**.
+
+#### Q1_Report_v2.docx
+| Field | $SI Value | $FN Value |
+|-------|-----------|-----------|
+| Created | 2024-06-12 14:30:00 | 2024-06-12 14:30:00 |
+| Modified | 2024-06-12 15:45:10 | 2024-06-12 15:45:10 |
+| Accessed | 2024-06-12 15:45:10 | 2024-06-12 15:45:10 |
+| MFT Changed | 2024-06-12 15:45:10 | 2024-06-12 15:45:10 |
+
+**Result:** \$SI and \$FN match → file is **not tampered** (decoy).
+
+#### performance_review_2024.docx
+| Field | $SI Value | $FN Value |
+|-------|-----------|-----------|
+| Created | 2024-09-18 10:15:22 | 2024-09-18 10:15:22 |
+| Modified | 2024-09-18 11:22:04 | 2024-09-18 11:22:04 |
+| Accessed | 2024-09-18 11:22:04 | 2024-09-18 11:22:04 |
+| MFT Changed | 2024-09-18 11:22:04 | 2024-09-18 11:22:04 |
+
+**Result:** \$SI and \$FN match → file is **not tampered** (decoy).
+
+#### outlook_archive.pst
+| Field | $SI Value | $FN Value |
+|-------|-----------|-----------|
+| Created | 2024-01-10 08:00:00 | 2024-01-10 08:00:00 |
+| Modified | 2024-11-12 17:30:45 | 2024-11-12 17:30:45 |
+| Accessed | 2024-11-12 17:30:45 | 2024-11-12 17:30:45 |
+| MFT Changed | 2024-11-12 17:30:45 | 2024-11-12 17:30:45 |
+
+**Result:** \$SI and \$FN match → file is **not tampered** (decoy).
+
+These files exist as **decoys and controls** — to show what normal, untouched files look like by comparison, making the detection of actual anomalies a non-trivial process.
 
 ### Step 4: Inspect `HR_Termination_Draft_v3.docx`
 

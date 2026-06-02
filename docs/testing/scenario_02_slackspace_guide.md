@@ -141,7 +141,9 @@ In FAT file systems, when a file is deleted:
 ```
 D:\
 ├── Projects/
+│   ├── readme.txt            ← ✅ Clean (decoy file, no slack space)
 │   ├── file.pdf              ← 🚩 2,400B in 4,096B cluster (1,696B slack!) (Flag 1)
+│   ├── presentation_draft.pptx← ✅ Clean (decoy file, 996B slack space)
 │   ├── meeting_notes.docx    ← ✅ Normal (2,180B slack but no hidden data)
 │   └── budget_2024.xlsx      ← ✅ Normal (2,364B slack but no hidden data)
 ├── $Recycle.Bin/
@@ -154,11 +156,13 @@ D:\
 
 | File | Logical Size | Allocated Size | Cluster Size | Slack |
 |------|-------------|---------------|-------------|-------|
+| readme.txt | 184 B | 184 B | — | 0 B |
 | file.pdf | 2,400 B | 4,096 B | 4,096 B | **1,696 B** |
+| presentation_draft.pptx | 3,100 B | 4,096 B | 4,096 B | 996 B |
 | meeting_notes.docx | 18,300 B | 20,480 B | 4,096 B | 2,180 B |
 | budget_2024.xlsx | 34,500 B | 36,864 B | 4,096 B | 2,364 B |
 
-Note: All three files have slack space, but only `file.pdf` has **meaningful hidden data** in its slack. The other two are red herrings with normal slack residue.
+Note: Multiple files have standard filesystem slack space, but only `file.pdf` has **meaningful hidden data** in its slack. The other block-allocated files are clean red herrings containing normal residue.
 
 
 ## 5. Investigation Walkthrough

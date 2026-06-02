@@ -174,32 +174,34 @@ Evidence\
 ├── Outbox/
 │   ├── cat_01.png    ← ✅ Clean (control image)
 │   ├── cat_02.png    ← ✅ Clean (control image)
-│   └── cat_03.png    ← 🚩 STEGANOGRAPHIC IMAGE (Flags 1, 2, 3)
+│   ├── cat_03.png    ← 🚩 STEGANOGRAPHIC IMAGE (Flags 1, 2, 3)
+│   ├── cat_04.png    ← ✅ Clean (decoy image)
+│   └── project_logo.png← ✅ Clean (decoy graphic, Photoshop metadata)
 └── Tools/
     └── steghide_history.log  ← 🔍 Smoking gun (tool usage proof)
 ```
 
 ### Image Comparison Table
 
-| Property | cat_01.png | cat_02.png | cat_03.png |
-|----------|-----------|-----------|-----------|
-| Resolution | 1920×1080 | 1920×1080 | 1920×1080 |
-| **File size** | 245,780 B | 251,200 B | **286,450 B** ⚠️ |
-| Magic bytes | 89504E47 (✅ PNG) | 89504E47 (✅ PNG) | 89504E47 (✅ PNG) |
-| **EXIF camera** | iPhone 15 Pro | iPhone 15 Pro | **null** ⚠️ |
-| **EXIF date** | 2024-11-01 18:22:08 | 2024-11-02 12:45:30 | **null** ⚠️ |
-| **EXIF GPS** | 37.7749, -122.4194 | 37.7749, -122.4194 | **null** ⚠️ |
-| **EXIF stripped** | false | false | **true** ⚠️ |
-| **LSB chi-square** | 0.92 (natural) | 0.89 (natural) | **0.48** (ANOMALOUS) ⚠️ |
-| **LSB entropy** | 7.12 | 7.08 | **7.98** ⚠️ |
-| SI modified | 2024-11-01 18:22:10 | 2024-11-02 12:45:33 | **2024-11-05 20:48:12** ⚠️ |
-| Tampered | false | false | **true** |
+| Property | cat_01.png | cat_02.png | cat_03.png | cat_04.png | project_logo.png |
+|----------|-----------|-----------|-----------|-----------|------------------|
+| Resolution | 1920×1080 | 1920×1080 | 1920×1080 | 1920×1080 | **800×800** |
+| **File size** | 245,780 B | 251,200 B | **286,450 B** ⚠️ | 248,900 B | 115,200 B |
+| Magic bytes | 89504E47 (✅ PNG) | 89504E47 (✅ PNG) | 89504E47 (✅ PNG) | 89504E47 (✅ PNG) | 89504E47 (✅ PNG) |
+| **EXIF camera** | iPhone 15 Pro | iPhone 15 Pro | **null** ⚠️ | iPhone 15 Pro | Adobe Photoshop 2024 |
+| **EXIF date** | 2024-11-01 18:22:08 | 2024-11-02 12:45:30 | **null** ⚠️ | 2024-11-04 10:14:20 | 2024-10-15 14:00:00 |
+| **EXIF GPS** | 37.7749, -122.4194 | 37.7749, -122.4194 | **null** ⚠️ | 37.7749, -122.4194 | null |
+| **EXIF stripped** | false | false | **true** ⚠️ | false | false |
+| **LSB chi-square** | 0.92 (natural) | 0.89 (natural) | **0.48** (ANOMALOUS) ⚠️ | 0.94 (natural) | 0.96 (natural) |
+| **LSB entropy** | 7.12 | 7.08 | **7.98** ⚠️ | 7.15 | 6.85 |
+| SI modified | 2024-11-01 18:22:10 | 2024-11-02 12:45:33 | **2024-11-05 20:48:12** ⚠️ | 2024-11-04 10:14:22 | 2024-10-15 14:02:11 |
+| Tampered | false | false | **true** | false | false |
 
 ### The Three Clues for cat_03.png
 
-1. **File size anomaly:** 286,450 B vs average ~248,490 B for the other two → **14% larger**
-2. **EXIF stripped:** The other two have full EXIF (camera, date, GPS) but cat_03 has **none**
-3. **LSB statistics:** Chi-square of **0.48** (far below the ~0.9 expected for natural images)
+1. **File size anomaly:** 286,450 B vs average ~248,630 B for the other three iPhone photos → **15% larger**
+2. **EXIF stripped:** The other photos from the suspect's device have full EXIF (camera, date, GPS) but cat_03 has **none**
+3. **LSB statistics:** Chi-square of **0.48** (far below the ~0.9 expected for natural images) and near-maximum entropy of **7.98** (proves structured data in LSBs)
 
 
 ## 5. Investigation Walkthrough
