@@ -4,7 +4,6 @@
   "subtitle": "Network Forensics — DNS Tunneling Exfiltration",
   "difficulty": 3,
   "domain": "network",
-  "estimatedMinutes": 20,
   "narrative": "The egress filter analyst at Cobalt Industries flagged an alert: unusually high DNS query volume from a single workstation over a 4-minute window. The PCAP has been extracted from the border router. At first glance, it looks like normal DNS traffic — but the query patterns are anything but normal. Your job: analyze the packet capture, identify the exfiltration channel, and determine what data was stolen.",
   "learningObjective": "Understand how DNS tunneling works for data exfiltration — encoding data in DNS subdomain labels and TXT record responses. Learn to identify DNS tunneling by recognizing anomalous query patterns: high volume, long random-looking subdomains, queries to a single external domain, and response sizes near protocol limits.",
   "preQuiz": [

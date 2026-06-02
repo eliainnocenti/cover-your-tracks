@@ -3,8 +3,7 @@
 ## Full Testing and Solution Guide
 
 > **Domain:** RAM / OS Forensics — Process Injection Detection  
-> **Difficulty:** ★★★☆☆ (3/5)  
-> **Estimated Time:** 20 minutes  
+> **Difficulty:** ★★★☆☆ (3/5)
 > **Max Possible Score:** 200 pts
 
 
@@ -21,7 +20,6 @@
 9. [Views to Test](#9-views-to-test)
 10. [Post-Quiz — Answers and Rationale](#10-post-quiz--answers--rationale)
 11. [Debriefing Verification](#11-debriefing-verification)
-12. [Common Mistakes and Edge Cases](#12-common-mistakes--edge-cases)
 
 
 ## 1. Scenario Overview
@@ -209,51 +207,43 @@ The header bytes `4D 5A` = **"MZ"** — the magic signature of a Windows PE (Por
 
 ## 5. Investigation Walkthrough
 
-### Step 1: Switch to the RAM View
+### Step 1: Check the Gated RAM View
 
-Click the **RAM** tab in the EvidenceNavigator. This displays the process table with columns: PID, PPID, PROCESS, OFFSET, THREADS, FLAGS.
+1. Click the **RAM** tab in the EvidenceNavigator.
+2. Note that all processes look default and unflagged. Selecting suspicious ones like PID 4812 displays an `[!] ADVANCED RAM ANALYSIS REQUIRED` lock panel, indicating that memory structures are currently locked.
+3. To unlock these indicators, you must use the forensic terminal to analyze volatile process memory.
 
-### Step 2: Scan the Process List
+### Step 2: Execute Memory Forensics in the Terminal
 
-Look for:
-1. **Red-highlighted rows** — the UI marks `suspicious: true` processes in red
-2. **Missing names** — PID 3021 has name `—`
-3. **Anomalous PPID values** — PID 4812 has PPID 3021, which doesn't appear in the normal process list
+1. Switch to the **Terminal** tab.
+2. Run the `volatility` process list plugin to audit kernel ActiveProcessLinks:
+   ```bash
+   volatility pslist
+   ```
+   Observe the list of running services. Keep in mind that rootkits can manipulate process chains.
+3. Scan physical memory structures for hidden `EPROCESS` pool tags by running the psscan plugin:
+   ```bash
+   volatility psscan
+   ```
+   Observe the output. Volatility warns you that it has located a process (`svchost.exe` PID 4812) and its parent PID 3021 that were unlisted in pslist—uncovering the direct kernel unlinking.
+4. Scan the Virtual Address Descriptors (VAD) for suspicious writable+executable allocations by executing malfind:
+   ```bash
+   volatility malfind
+   ```
+   Notice the warning: injected PE headers (MZ header `4D 5A`) have been detected in `svchost.exe` memory space at `0x00400000`.
 
-**What you should see:**
-- 16 normal processes (green/default color)
-- 2 suspicious processes at the bottom (red)
+### Step 3: Verify Unlocked Anomalies in the RAM Tab
 
-### Step 3: Analyze PID 4812
+Now that you have audited the volatile RAM dump via terminal, return to the **RAM** tab:
+1. Under **`pslist`**, only normal processes are visible.
+2. Toggle the list mode to **`psscan`**. You will now see that PID 4812 (`svchost.exe`) is highlighted, showing the label `pslist: NOT FOUND` in red alert style, and the deleted parent PID 3021 is visible.
+3. Select **`svchost.exe (PID 4812)`** and read the details panel on the right. The full forensic notes, parent relationship PPID 3021, and unlinked alerts are fully unlocked.
 
-**Red flags:**
-1. **Named svchost.exe** — a common Windows service host; attackers choose this name to blend in
-2. **PPID 3021** — this parent doesn't exist in the normal process list
-3. **Only visible via psscan** — hidden from pslist means DKOM was used
-4. **Only 3 threads** — legitimate svchost.exe instances typically have 6-20 threads
+### Step 4: Verify Malfind Code Injection in the GUI
 
-### Step 4: Analyze PID 3021 (Ghost Parent)
-
-**Red flags:**
-1. **Name is "—"** — terminated and partially overwritten in memory
-2. **0 threads** — no longer executing
-3. **PPID 508** — claims services.exe as parent (plausible but unverifiable)
-4. **Only visible via psscan** — hidden/terminated
-
-### Step 5: Identify the DKOM Technique
-
-The fact that PID 4812 appears in `psscan` but NOT in `pslist` proves:
-- Its EPROCESS structure exists in memory (psscan found the pool tag)
-- Its ActiveProcessLinks have been manipulated (pslist can't find it)
-- **This is DKOM — Direct Kernel Object Manipulation**
-
-### Step 6: Check the malfind Evidence
-
-Since a rootkit that hides processes often also injects code into them, click the new **`malfind`** button in the RAM view toolbar. This runs the virtual address descriptor (VAD) memory scanner in the game UI.
-- Select the row for **PID 4812** at address **0x00400000**.
-- In the right-hand details panel, observe that the memory protection is set to **`PAGE_EXECUTE_READWRITE`** (writable and executable, which is highly anomalous since normal code pages are read-execute only).
-- Inspect the **Hex Header** area. Notice the magic bytes `4D 5A` which translate to the **"MZ"** signature of a Windows PE executable.
-- This confirms active **code injection** inside the hidden `svchost.exe` process.
+1. Switch the RAM scan mode to **`malfind`** in the tab's toolbar.
+2. You will see that the row for **PID 4812** at address **0x00400000** is highlighted in red.
+3. Select the row and read the detail panel. The memory protection is highlighted as **`PAGE_EXECUTE_READWRITE`** (writable + executable), the **Hex Header** is fully visible (showing the `4D 5A` MZ signature), and the analysis notes are unlocked, confirming active **code injection**.
 
 ### Step 7: Tag Evidence
 
@@ -399,52 +389,6 @@ Verify the debriefing shows:
 - **Real-World Tools:** Volatility pslist/psscan/psxview/malfind, FuTo rootkit by Jamie Butler
 - **Case Connection:** PID 4812 as svchost.exe, PPID 3021 terminated, RWX + MZ = injection
 - **Further Reading:** psxview, DKOM techniques, EPROCESS internals, pool tags, malfind methodology
-
-
-## 12. Common Mistakes and Edge Cases
-
-### Testing Edge Cases
-
-| Test | Expected Behavior |
-|------|-------------------|
-| Clicking Explorer tab | Should show "No filesystem data in this scenario" |
-| Clicking Network tab | Should show "No network log in this scenario" |
-| Submitting "svchost" (partial match) | Should match target "svchost.exe PID 4812" (contains "svchost") |
-| Submitting "PID 4812" | Should match (contained in target string) |
-| Submitting "rootkit" | Should match Flag 2 if "DKOM" not yet found (check if "rootkit" is in finding string — **it's NOT**, finding is "EPROCESS unlinking") |
-| Submitting Flag 2 (DKOM) with PID 4812 or PID 3021 | **Observed:** returns "Incorrect evidence or technique" even when using "DKOM" or "EPROCESS unlinking" (reproducible) |
-| Tagging the RWX memory region | Shows "Unverified Chain of Custody" warning about missing Terminal stat/istat analysis (expected due to no filesystem) |
-
-### Common Student Mistakes
-
-1. **Only finding the hidden process, not identifying the technique** — Noticing PID 4812 is hidden is Flag 1, but understanding it's DKOM (Flag 2) requires deeper analysis.
-2. **Ignoring the malfind output** — The RWX + MZ evidence (Flag 3) requires understanding process injection, not just process hiding.
-3. **Confusing svchost.exe instances** — There are 5 legitimate svchost.exe processes; students need to identify which one is suspicious based on PPID and visibility.
-4. **Not checking PID 3021** — The ghost parent process is a clue that supports the DKOM finding.
-5. **Trying filesystem commands** — Students may waste time trying `ls`, `stat`, etc. when this is a RAM-only scenario.
-
-### Process Tree Validation
-
-Students should mentally construct the expected Windows process tree:
-
-```
-System (4)
-├── smss.exe (372)
-│   ├── csrss.exe (444)
-│   └── wininit.exe (480)
-│       ├── services.exe (508)
-│       │   ├── svchost.exe (620, 688, 784, 860, 1200)
-│       │   ├── spoolsv.exe (952)
-│       │   ├── sqlservr.exe (1044)
-│       │   │   └── sqlwriter.exe (2048)
-│       │   └── msdtc.exe (2200)
-│       └── lsass.exe (520)
-└── [Hidden by DKOM]
-    ├── ??? (3021, terminated)
-    └── svchost.exe (4812, PPID→3021)  ← ANOMALY
-```
-
-PID 4812's PPID points to PID 3021, which is terminated. In normal Windows operation, orphan processes are rare and suspicious.
 
 
 ## Quick Reference Card

@@ -1,16 +1,16 @@
 import { useState } from 'react'
-import { Shield, ChevronRight, Clock, Target, Layers, Info, Github, Linkedin, Mail, X, Settings } from 'lucide-react'
+import { Shield, ChevronRight, Target, Layers, Info, Github, Linkedin, Mail, X, Settings } from 'lucide-react'
 import { useEngine } from './ScenarioEngine'
 import Leaderboard from './Leaderboard'
 import { applyTheme, getStoredTheme, getThemes } from '../../theme'
 
 const SCENARIOS_META = [
-  { id: 'scenario_01', title: 'The Timestomper', subtitle: 'Filesystem — MAC Time Manipulation', domain: 'filesystem', difficulty: 2, minutes: 15 },
-  { id: 'scenario_02', title: 'Ghosts in the Sectors', subtitle: 'Filesystem — Slack Space Exploitation', domain: 'filesystem', difficulty: 2, minutes: 20 },
-  { id: 'scenario_03', title: 'Ghost in the Machine', subtitle: 'RAM — Process Injection Detection', domain: 'ram', difficulty: 3, minutes: 20 },
-  { id: 'scenario_04', title: 'The Whispering DNS', subtitle: 'Network — DNS Tunneling Exfiltration', domain: 'network', difficulty: 3, minutes: 20 },
-  { id: 'scenario_05', title: 'Hidden in Plain Sight', subtitle: 'Steganography — LSB Detection', domain: 'steganography', difficulty: 4, minutes: 25 },
-  { id: 'scenario_06', title: 'The Last Stand', subtitle: 'Combined — Boss Level', domain: 'combined', difficulty: 5, minutes: 35 },
+  { id: 'scenario_01', title: 'The Timestomper', subtitle: 'Filesystem — MAC Time Manipulation', domain: 'filesystem', difficulty: 2 },
+  { id: 'scenario_02', title: 'Ghosts in the Sectors', subtitle: 'Filesystem — Slack Space Exploitation', domain: 'filesystem', difficulty: 2 },
+  { id: 'scenario_03', title: 'Ghost in the Machine', subtitle: 'RAM — Process Injection Detection', domain: 'ram', difficulty: 3 },
+  { id: 'scenario_04', title: 'The Whispering DNS', subtitle: 'Network — DNS Tunneling Exfiltration', domain: 'network', difficulty: 3 },
+  { id: 'scenario_05', title: 'Hidden in Plain Sight', subtitle: 'Steganography — LSB Detection', domain: 'steganography', difficulty: 4 },
+  { id: 'scenario_06', title: 'The Last Stand', subtitle: 'Combined — Boss Level', domain: 'combined', difficulty: 5 },
 ]
 
 const DOMAIN_COLORS = {
@@ -127,9 +127,6 @@ export default function Landing({ onStart }) {
 
               {/* Meta row */}
               <div style={{ display: 'flex', gap: 16, fontSize: '11px', color: 'var(--text-ghost)' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Clock size={9} /> {s.minutes} min
-                </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Target size={9} /> Available
                 </span>

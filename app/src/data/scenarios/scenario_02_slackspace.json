@@ -4,7 +4,6 @@
   "subtitle": "File System Forensics — Slack Space Exploitation",
   "difficulty": 2,
   "domain": "filesystem",
-  "estimatedMinutes": 20,
   "narrative": "All files appear clean and standard at first glance, but forensic investigators suspect sensitive trade data was packaged in an unallocated area of an active document. Your job is to locate the sector discrepancy and extract the payload.",
   "learningObjective": "Understand how slack space works in FAT/NTFS filesystems, how data can persist in unallocated cluster space after a file is written, and how forensic tools like foremost perform file carving to recover hidden content.",
   "preQuiz": [

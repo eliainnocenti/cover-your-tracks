@@ -4,8 +4,22 @@
 
 > **Domain:** Combined — Multi-Vector Anti-Forensics  
 > **Difficulty:** ★★★★★ (5/5)  
-> **Estimated Time:** 35 minutes  
 > **Max Possible Score:** 265 pts (4 flags + 3 connections + bonus)
+
+
+## Table of Contents
+
+1. [Scenario Overview](#1-scenario-overview)
+2. [The Theory Behind It](#2-the-theory-behind-it)
+3. [Pre-Quiz — Answers and Rationale](#3-pre-quiz--answers--rationale)
+4. [Evidence Layout](#4-evidence-layout)
+5. [Investigation Walkthrough](#5-investigation-walkthrough)
+6. [Cross-Reference Connections](#6-cross-reference-connections)
+7. [Flags — What to Submit and Why](#7-flags--what-to-submit--why)
+8. [Hints and Their Cost](#8-hints--their-cost)
+9. [Scoring Breakdown](#9-scoring-breakdown)
+10. [Views to Test](#10-views-to-test)
+11. [Post-Quiz — Answers and Rationale](#11-post-quiz--answers--rationale)
 
 
 ## 1. Scenario Overview
@@ -166,36 +180,53 @@ REM Self-deleting script (but timestamps remain)
 **Why:** Typosquatting relies on human error or quick visual scanning. Naming a rootkit 'winlogon_helper.exe' or 'svch0st.exe' allows it to blend in with legitimate system processes like 'winlogon.exe' or 'svchost.exe' in task managers.
 ## 5. Investigation Walkthrough
 
-### Layer 1: Filesystem — Detect Log Wiping
+### Layer 1: Filesystem — Detect Log Wiping & Gate
 
-1. Navigate to `C:\Windows\System32\winevt\Security.evtx`
-2. **Observe:** Size is only 512 KB (should be ~18 MB for 90 days)
-3. **Observe:** Modified at 03:14 AM — suspicious off-hours activity
-4. **Read content preview:** Only 3 days of logs, 4-hour gap from 23:02 to 03:08
-5. Navigate to `Users\admin_svc\AppData\wevtutil_clear.bat`
-6. **Read content:** Script that clears Security, System, and Application logs
-7. **Tag evidence** on Security.evtx
+1. **Observe the Lock:** Navigate to `C:\Windows\System32\winevt\Security.evtx`. Because of anti-spoiler gating, its Standard Information timestamps and content preview are **locked** under an `[!] ADVANCED FORENSIC ANALYSIS REQUIRED` banner.
+2. **Execute Terminal Audit:** Switch to the **Terminal** tab. To audit the event log binary structure and extract readable elements:
+   ```bash
+   strings Security.evtx
+   ```
+   (Alternatively, run `file Security.evtx` or `xxd Security.evtx`).
+3. **Verify in GUI:** Return to the **Explorer** tab. Select `Security.evtx`. The file details are now fully unlocked. Observe:
+   - Size is only 512 KB (should be ~18 MB for 90 days).
+   - Modified at 03:14 AM — highly suspicious off-hours activity.
+   - **Content preview:** Only 3 days of logs, with a massive 4-hour gap from 23:02 to 03:08.
+4. Navigate to `Users\admin_svc\AppData\wevtutil_clear.bat` in the explorer, read the content (a script that clears event logs and self-deletes), and **Tag evidence** on both `Security.evtx` and `wevtutil_clear.bat`.
 
 ### Layer 2: RAM — Find the Hidden Rootkit
 
-1. Switch to **RAM** tab
-2. Count processes: pslist shows 22, psscan shows 24 → **2 hidden**
-3. Find **PID 3580** (`winlogon_helper.exe`):
-   - Hidden from pslist
-   - Name is similar to legit `winlogon.exe` → typosquatting
-   - PPID 0 is invalid
-4. Find **PID 3744** (`cmd.exe`):
-   - Hidden from pslist
-   - SYSTEM-level command shell with no parent
-5. **Tag evidence** on both processes
+1. **Observe the Lock:** Switch to the **RAM** tab. Note that all processes display standard default layouts, and selecting any of them displays the analysis required lock card.
+2. **Execute Memory Forensics:** Switch to the **Terminal** tab. Execute volatility plugins to list and scan physical allocations:
+   ```bash
+   volatility psscan
+   ```
+   Observe the list. Psscan flags that it has discovered two processes—`winlogon_helper.exe` (PID 3580) and `cmd.exe` (PID 3744)—that are completely hidden from the standard kernel list.
+3. **Verify in GUI:** Return to the **RAM** tab and toggle the view mode to **`psscan`**:
+   - Count processes: psscan shows 24 processes while pslist only shows 22.
+   - Find **PID 3580** (`winlogon_helper.exe`): It is highlighted in red, showing the `pslist: NOT FOUND` unlinked anomaly alert. Notice the name typosquats the legitimate `winlogon.exe` and has an invalid PPID of 0.
+   - Find **PID 3744** (`cmd.exe`): It is a hidden, SYSTEM-level shell with no parent.
+4. **Tag evidence** on both `winlogon_helper.exe` and `cmd.exe`.
 
 ### Layer 3: Network — Identify ICMP Exfiltration
 
-1. Switch to **Network** tab
-2. Notice ICMP packets to **185.220.101.47** with **1,400-byte payloads**
-3. Compare with normal traffic (DNS to 8.8.8.8, TCP to 10.1.1.20)
-4. Key anomalies: oversized payloads, Tor exit node, printable ASCII content
-5. **Tag evidence** on ICMP packets
+1. **Observe the Lock:** Switch to the **Network** tab. Click on any packet. Note that packet details, flags (`⚠ SUSPICIOUS`), and exfiltrated payloads are locked under the advanced analysis gate.
+2. **Execute Network Auditing:** Switch to the **Terminal** tab and perform stream filtering and registry IOC checks:
+   - Run `tshark` to isolate ICMP packets:
+     ```bash
+     tshark -f icmp
+     ```
+     Observe the output showing multiple oversized 1,400-byte ICMP packets going to `185.220.101.47`.
+   - Run a WHOIS registry lookup on the suspicious destination IP:
+     ```bash
+     whois 185.220.101.47
+     ```
+     The output alerts you that this IP corresponds to a known **Tor exit node**!
+3. **Verify in GUI:** Return to the **Network** tab. You will find that all packets are now unlocked. Select any ICMP packet and observe:
+   - Dest: **185.220.101.47**
+   - Payload: **1,400 bytes** (normal ping is 32 bytes).
+   - Flags: **`⚠ SUSPICIOUS`** is unlocked.
+4. **Tag evidence** on the oversized ICMP packet.
 
 ### Reconstruct the Kill Chain
 
@@ -348,29 +379,6 @@ This is the only scenario that uses **ALL THREE data sources** (filesystem + RAM
 | 3 | Windows reported an error when opening the log file | ❌ |
 
 **Why:** Three corroborating indicators: the file was 97% smaller than expected, was modified during off-hours (03:14 AM), and a self-deleting batch script (wevtutil_clear.bat) containing 'wevtutil cl Security' was found in the user's AppData.
-
-
-## 12. Common Mistakes and Edge Cases
-
-### Testing Edge Cases
-
-| Test Input / Action | Expected Engine Behavior & Rationale |
-|---------------------|--------------------------------------|
-| **Navigating all tabs (Filesystem, RAM, Network)** | All panels (Explorer, RAM List, Network Packet Viewer, Terminal, HEX) are active in this combined scenario and must show correct data states. |
-| **Submitting "Security.evtx" vs "security"** | **Success**. Normalizes to `securityevtx` or matches finding `log wiping` directly. Case-insensitive substring matching succeeds. |
-| **Submitting "winlogon_helper.exe" vs "winlogon_helper"** | **Success**. Case-insensitive substring matching maps both to the target or typosquatting flag. |
-| **Submitting "ICMP 185.220.101.47" (Network Exfil)** | **Success**. Stripping spaces/punctuation normalizes this to `icmp18522010147` which matches Flag 3. |
-| **Connecting "Security.evtx" and "185.220.101.47"** | **Success**. Connecting evidence pairs in the CrossReference panel rewards +15 pts. The engine checks literal case-insensitive matches. |
-| **Submitting "wevtutil_clear.bat" as a flag** | **Failure**. The batch script is a key corroborating artifact, but it is not a direct flag (properly rejected). |
-| **Submitting normal processes (e.g., "explorer.exe")** | **Failure**. Legitimate processes are control elements and are rejected. |
-
-### Common Student Mistakes
-
-1. **Only inspecting one or two tabs** — Since this is a combined boss-level scenario, students may stop after finding one or two vectors (e.g., filesystem log wiping and RAM processes) and miss the network exfiltration layer entirely.
-2. **Missing the typosquatting bonus** — Students might find `winlogon_helper.exe` but fail to recognize or submit the typosquatting technique name, missing out on the bonus points (Flag 4).
-3. **Confusing normal traffic with ICMP tunneling** — Students may spend time analyzing the TCP, ARP, or DNS queries (packets 6, 10, 13) which are standard decoy background traffic, instead of focusing on the oversized 1400-byte ICMP packets.
-4. **Failing to link evidence pairs** — Forgetting to use the Cross-Reference component to draw connection lines between files, RAM processes, and IPs, which prevents them from getting the full set of bonus points (+15 pts per link, 45 pts total).
-5. **Thinking Event ID 1102 is the only indicator of log clearing** — The post-quiz tests this concept. Attackers can truncate `.evtx` files or suspend Event Log services to prevent Event ID 1102 from being generated, leaving size mismatch and timestamp off-hour changes as the primary clues.
 
 
 ## Quick Reference Card

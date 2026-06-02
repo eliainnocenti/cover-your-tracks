@@ -4,7 +4,6 @@
 
 > **Domain:** Network Forensics — DNS Tunneling Exfiltration  
 > **Difficulty:** ★★★☆☆ (3/5)  
-> **Estimated Time:** 20 minutes  
 > **Max Possible Score:** 200 pts
 
 
@@ -21,7 +20,6 @@
 9. [Views to Test](#9-views-to-test)
 10. [Post-Quiz — Answers and Rationale](#10-post-quiz--answers--rationale)
 11. [Debriefing Verification](#11-debriefing-verification)
-12. [Common Mistakes and Edge Cases](#12-common-mistakes--edge-cases)
 
 
 ## 1. Scenario Overview
@@ -199,55 +197,45 @@ This scenario has **NO filesystem** and **NO RAM dump** — it focuses entirely 
 
 ## 5. Investigation Walkthrough
 
-### Step 1: Switch to the Network View
+### Step 1: Check the Gated Network View
 
-Click the **Network** tab in the EvidenceNavigator. This displays the packet capture table.
+1. Click the **Network** tab in the EvidenceNavigator to view the packet capture table.
+2. Select any query packet to `exfil-c2.net` (e.g., Packet #3).
+3. Note that the details panel shows an `[!] ADVANCED NETWORK ANALYSIS REQUIRED` lock panel. The raw query exfiltration payload and specific suspicious flags are locked.
+4. To verify and unlock this network capture, you must execute protocol analysis commands in the forensic terminal.
 
-### Step 2: Identify the Anomalous Traffic Pattern
+### Step 2: Filter DNS Traffic with `tshark` in the Terminal
 
-Scan through the packets and notice:
-- Packets 1-2 and 16-17 are **normal** DNS queries (mail.google.com, www.microsoft.com)
-- Packets 3-15 and 18 are queries to **`*.exfil-c2.net`** — all suspicious
+1. Switch to the **Terminal** tab.
+2. Run the `tshark` stream analysis tool with a DNS protocol filter:
+   ```bash
+   tshark -f dns
+   ```
+3. Observe the output list of packets. This action audits and unlocks all DNS packets in the network GUI list, highlighting the suspicious traffic burst to `exfil-c2.net`.
 
-**Key observations:**
-1. **847 queries** to a single domain in ~4 minutes → massively abnormal volume
-2. **All to the same domain** (`exfil-c2.net`) → not normal browsing behavior
-3. **Long, random-looking subdomains** → not human-readable (base64-encoded data)
-4. **TXT record responses** → used for returning data to the malware
+### Step 3: Decode the Covert Payloads with `base64`
 
-### Step 3: Recognize the Domain as Suspicious
+To analyze what data is being exfiltrated and unlock details for Packet #3 (the first exfiltration query):
+1. In the terminal, run the Base64 decoder on the specific packet shortcut:
+   ```bash
+   base64 -d pkt_3
+   ```
+2. Observe the decoded value output:
+   `root:x:0:0:root:/root:/bin/`
+3. Switch back to the **Network** tab and select **Packet #3**. You will find that the **Flags** (`⚠ SUSPICIOUS`) and **DNS Query** box are now fully unlocked. The raw Base64 payload `cm9vdDp4OjA6MDpyb290Oi9yb290Oi9iaW4v` and the `Copy` button are available.
 
-**`exfil-c2.net`** — the domain name itself is a clue:
-- `exfil` = exfiltration
-- `c2` = command and control
-- In a real investigation, you'd check WHOIS, VirusTotal, and passive DNS databases
+### Step 4: Identify the Target File and Payload Structure
 
-### Step 4: Decode the Subdomains
+By base64-decoding other query packets (e.g. running `base64 -d pkt_5`, `base64 -d pkt_7`), you can decode more records:
+- `YmFzaDpkYWVtb246L3Vzci9iaW4vbm9sb2dpbg` → `bash:daemon:/usr/bin/nologin`
+- `c3luYzp4OjU6MDpzeW5jOi9zYmluOi9iaW4v` → `sync:x:5:0:sync:/sbin:/bin/`
+- `RU9GCg` → `EOF` (end of file marker)
 
-Take the first subdomain: `cm9vdDp4OjA6MDpyb290Oi9yb290Oi9iaW4v`
+These correspond to lines from **`/etc/passwd`**—the system user accounts database file! The attacker read this file and exfiltrated it using base64 subdomain labels.
 
-**Base64 decode it:**
-```
-cm9vdDp4OjA6MDpyb290Oi9yb290Oi9iaW4v
-→ root:x:0:0:root:/root:/bin/
-```
+### Step 5: Recognize the Domain as Suspicious
 
-This is the **first line of `/etc/passwd`**!
-
-**Decode more:**
-```
-YmFzaDpkYWVtb246L3Vzci9iaW4vbm9sb2dpbg → bash:daemon:/usr/bin/nologin
-c3luYzp4OjU6MDpzeW5jOi9zYmluOi9iaW4v → sync:x:5:0:sync:/sbin:/bin/
-RU9GCg → EOF
-```
-
-### Step 5: Understand the Attack
-
-The attacker:
-1. Compromised the workstation at 192.168.1.47
-2. Read the `/etc/passwd` file
-3. Split it into base64 chunks
-4. Sent each chunk as a DNS subdomain query to `exfil-c2.net`
+**`exfil-c2.net`**—the domain name itself is a clear indicator of exfiltration (exfil) and command-and-control (c2). In a real investigation, WHOIS lookups would be conducted. You can verify network IOCs by running `whois exfil-c2.net` or `whois 8.8.8.8` in the terminal to trace registries.
 5. The data traversed the firewall as "normal DNS traffic"
 6. The attacker's DNS server collected and reassembled the file
 
@@ -418,42 +406,6 @@ Verify the debriefing shows:
 - **Real-World Tools:** iodine, dnscat2, Cobalt Strike, Zeek DNS analytics, passive DNS
 - **Case Connection:** 847 queries, 4 minutes, ~40-char base64 subdomains, /etc/passwd decoded
 - **Further Reading:** iodine, dnscat2, Cobalt Strike beaconing, Zeek, passive DNS, RFC 1035
-
-
-## 12. Common Mistakes and Edge Cases
-
-### Testing Edge Cases
-
-| Test Input / Action | Expected Engine Behavior & Rationale |
-|---------------------|--------------------------------------|
-| **Clicking Explorer/RAM/HEX tabs** | Correctly shows "No data/No files" empty panel states since this is a pure network forensic scenario. |
-| **Submitting "EXFIL-C2.NET" (Uppercase)** | **Success**. Normalizes to `exfilc2net` and matches Flag 1. |
-| **Submitting "/etc/passwd" vs "etc/passwd"** | **Success**. Normalizes to `etcpasswd` by stripping leading/trailing slashes and matches Flag 3. |
-| **Submitting "dns-tunneling" (Hyphenated)** | **Success**. Strips hyphens and normalizes to `dnstunneling` to match Flag 2. |
-| **Submitting "suspicious domain" (Finding) vs "exfil-c2.net" (Target)** | **Success**. Both paths are fully mapped; the dual-matching engine approves either entry. |
-| **Tagging *any* C2 DNS Query Packet** | **Success**. Rich metadata tagging generates a packet string containing `exfil-c2.net`. The notebook has a Scenario 4 content override so tagging *any* of the queries containing this domain serves as the correct evidence for Flag 1, 2, and 3. |
-| **Submitting "base64" alone** | **Failure**. Does not match any flag targets or findings (proper rejection). |
-| **Submitting "DNS" alone** | **Failure**. Rejected because "DNS" is too generic and doesn't explicitly target the core tunneling technique. |
-
-### Common Student Mistakes
-
-1. **Not recognizing base64** — The subdomain strings look random but are structured base64. Students who don't recognize the character set (A-Z, a-z, 0-9) may miss this.
-2. **Focusing on the normal traffic** — Packets 1-2 and 16-17 are decoys; the key evidence is in the burst of exfil-c2.net queries.
-3. **Not connecting volume to technique** — Seeing "847 queries" without realizing that's abnormal for DNS.
-4. **Ignoring TXT responses** — The TXT records are the **inbound** channel; students may focus only on the queries (outbound).
-5. **Confusing DNS over HTTPS (DoH) with DNS tunneling** — DoH is a privacy feature that encrypts DNS; DNS tunneling uses DNS as a covert data channel regardless of encryption.
-
-### Real-World Detection Comparison
-
-Students should understand how this would be detected in practice:
-
-| Method | Tool | What it detects |
-|--------|------|-----------------|
-| Query volume monitoring | Zeek, Suricata | Abnormal query rate to single domain |
-| Subdomain length analysis | Custom scripts, Zeek | Labels >20 chars are suspicious |
-| Shannon entropy | Statistical analysis | High-entropy subdomains indicate encoding |
-| Passive DNS | DNSDB, Farsight | Unknown domain with no history |
-| Response size monitoring | IDS rules | Unusually large TXT responses |
 
 
 ## Quick Reference Card

@@ -4,7 +4,6 @@
 
 > **Domain:** Steganography — LSB Detection  
 > **Difficulty:** ★★★★☆ (4/5)  
-> **Estimated Time:** 25 minutes  
 > **Max Possible Score:** 200 pts
 
 
@@ -21,7 +20,6 @@
 9. [Terminal Commands to Test](#9-terminal-commands-to-test)
 10. [Post-Quiz — Answers and Rationale](#10-post-quiz--answers--rationale)
 11. [Debriefing Verification](#11-debriefing-verification)
-12. [Common Mistakes and Edge Cases](#12-common-mistakes--edge-cases)
 
 
 ## 1. Scenario Overview
@@ -206,17 +204,32 @@ Evidence\
 
 ## 5. Investigation Walkthrough
 
-### Step 1: Compare File Sizes
+### Step 1: Compare File Sizes & Notice the Lock Gate
 
-In the Explorer, navigate to `Evidence\ → Outbox` and click on each image.
+1. In the Explorer, navigate to `Evidence\ → Outbox` and click on each image.
+2. **Observation:** cat_01 and cat_02 are ~246-251 KB, but cat_03 is 286 KB — **14% larger** for the same 1920×1080 resolution.
+3. **Advanced Forensic Analysis Gating:** When you click `cat_03.png`, you will notice that EXIF properties, LSB statistics, and content previews are **locked** under an `[!] ADVANCED FORENSIC ANALYSIS REQUIRED` banner.
+4. To unlock these deep attributes in the GUI explorer, you must parse the file using terminal commands.
 
-**Observation:** cat_01 and cat_02 are ~246-251 KB, but cat_03 is 286 KB — **14% larger** for the same 1920×1080 resolution.
+### Step 2: Audit `cat_03.png` in the Virtual Terminal
 
-**Why this matters:** If all three images are from the same camera with similar content (cat photos), they should be approximately the same size. A significantly larger file size suggests additional data has been embedded.
+To verify the steganographic payload and EXIF metadata anomalies:
+1. Switch to the **Terminal** tab.
+2. Run `exiftool` to inspect the metadata details of the image:
+   ```bash
+   exiftool cat_03.png
+   ```
+   Observe the output. `exiftool` confirms that EXIF metadata is completely **STRIPPED / REMOVED**, which is highly anomalous compared to the other photos.
+3. Run `zsteg` to analyze LSB steganographic bit-distributions in the PNG:
+   ```bash
+   zsteg cat_03.png
+   ```
+   Observe the output. `zsteg` alerts you that it has detected `Zip archive data` embedded in the Least Significant Bits (LSB) of the RGB channels, with an embedded payload named `product_designs_v4.zip`.
+4. Switch back to the **Explorer** tab. You will find that the **LSB Analysis** and **EXIF** sections are now fully unlocked for `cat_03.png`, confirming the statistical anomalies and stripped status.
 
-### Step 2: Check EXIF Metadata
+### Step 3: Compare EXIF Metadata
 
-Click on each image and compare the EXIF fields:
+Now that EXIF is unlocked in the GUI explorer, click on each image and compare fields:
 
 | Image | Camera | Date | GPS |
 |-------|--------|------|-----|
@@ -438,44 +451,6 @@ Verify the debriefing shows:
 - **Real-World Tools:** zsteg (PNG), StegDetect, StegExpose, Steghide, OpenStego, chi-square analysis, RS analysis
 - **Case Connection:** Three clues (file size, EXIF, chi-square), zsteg confirmed zip payload, steghide log as smoking gun
 - **Further Reading:** zsteg, Steghide, chi-square steganalysis, RS analysis, PNG structure, EXIF forensics
-
-
-## 12. Common Mistakes and Edge Cases
-
-### Testing Edge Cases
-
-| Test | Expected Behavior |
-|------|-------------------|
-| Clicking cat_01.png and cat_02.png | Should show normal files with EXIF data, chi-square ~0.9 |
-| Submitting "cat_01" or "cat_02" | Should NOT match any flag (they're clean) |
-| Submitting "steghide" | Does not directly match a flag target/finding (steghide_history.log is not a flag) |
-| Submitting "product_designs" | May match if contained in flag description, but not in target or finding |
-| Exploring the Tools directory | steghide_history.log is corroborating evidence, not a flag itself |
-
-### Common Student Mistakes
-
-1. **Suspecting all three images** — Students may waste time analyzing cat_01 and cat_02. The file size and EXIF comparisons should quickly narrow the focus to cat_03.
-2. **Confusing steganography with encryption** — Steganography hides the **existence** of a message; encryption hides the **content**. LSB stego doesn't encrypt the data.
-3. **Not understanding chi-square values** — A lower chi-square value is MORE suspicious (counter-intuitive for some).
-4. **Ignoring the steghide log** — While not a flag, the log in the Tools directory provides definitive proof of the technique and intent.
-5. **Thinking EXIF removal always = steganography** — The post-quiz tests this nuance. EXIF removal alone is not conclusive; it's the combination with other anomalies that matters.
-
-### Statistical Analysis Deep Dive
-
-For students who want to understand the chi-square test:
-
-```
-Chi-square test for LSB:
-  For each pair of values (2k, 2k+1) where k = 0, 1, 2, ..., 127:
-    Expected: equal frequency of 2k and 2k+1 values
-    Observed: actual frequency in the image
-    
-  If LSBs are untouched (natural): pairs are roughly equal → χ² ≈ 1.0
-  If LSBs carry data: pairs become exactly equal → χ² << 1.0
-  
-  cat_01: χ² = 0.92 → natural (some variation in pairs)
-  cat_03: χ² = 0.48 → embedded data has equalized pair frequencies
-```
 
 
 ## Quick Reference Card

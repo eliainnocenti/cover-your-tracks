@@ -3,8 +3,7 @@
 ## Full Testing and Solution Guide
 
 > **Domain:** File System Forensics — Slack Space Exploitation  
-> **Difficulty:** ★★☆☆☆ (2/5)  
-> **Estimated Time:** 20 minutes  
+> **Difficulty:** ★★☆☆☆ (2/5)
 > **Max Possible Score:** 200 pts
 
 
@@ -21,7 +20,6 @@
 9. [Terminal Commands to Test](#9-terminal-commands-to-test)
 10. [Post-Quiz — Answers and Rationale](#10-post-quiz--answers--rationale)
 11. [Debriefing Verification](#11-debriefing-verification)
-12. [Common Mistakes and Edge Cases](#12-common-mistakes--edge-cases)
 
 
 ## 1. Scenario Overview
@@ -165,25 +163,30 @@ Note: All three files have slack space, but only `file.pdf` has **meaningful hid
 
 ## 5. Investigation Walkthrough
 
-### Step 1: Notice the File Size Discrepancy
+### Step 1: Notice the File Size Discrepancy & Gate
 
 In the Explorer, click on `file.pdf` in the Projects directory.
 
 **Key observations in the metadata panel:**
-- **Size:** 2,400 bytes
-- **Cluster size:** 4,096 bytes (if shown)
-- **Allocated size:** 4,096 bytes
-- **Slack bytes:** 1,696 bytes
+- **Advanced Forensic Analysis Required:** Because of the anti-spoiler gameplay gating, deep sector structures and slack space block details are initially locked. You will see a warning asking you to parse the file using terminal commands.
+- **Vague Clue:** The warning mentions the cluster allocation discrepancy between physical and logical sizes, asking you which terminal tool analyzes unallocated block regions.
 
-**Why this matters:** A 2,400-byte PDF in a 4,096-byte cluster leaves 1,696 bytes of slack. That slack is large enough to hold meaningful data.
+### Step 2: Run `blkls` in the Virtual Terminal
 
-### Step 2: Compare with Other Files
+To verify the deep sector structures and unlock the slack space metrics in the GUI:
+1. Switch to the **Terminal** tab.
+2. Run the block listing command:
+   ```bash
+   blkls file.pdf
+   ```
+3. Observe the output detailing the logical vs physical allocations and indicating carved block anomalies.
+4. Switch back to the **Explorer** tab and select `file.pdf`. The **Cluster Allocation** block is now unlocked, confirming `1,696 bytes of slack space`.
 
-Check `meeting_notes.docx` (18,300B / 20,480B) and `budget_2024.xlsx` (34,500B / 36,864B).
+### Step 3: Compare with Other Files
 
-While these also have slack, their `tampered` metadata is `false` and their slack content contains no hidden data.
+If you inspect `meeting_notes.docx` or `budget_2024.xlsx` in the file explorer, you can also run `blkls meeting_notes.docx` and `blkls budget_2024.xlsx` in the terminal. While they have physical slack space, their metrics reveal standard padding with no carved anomaly alerts or content payloads.
 
-**The key differentiator:** `file.pdf` has `tamper_note: "File itself is not tampered, but its slack space contains hidden data."`
+The key differentiator is `file.pdf`'s anomalous carved slack payload.
 
 ### Step 3: Examine the Forensics Output
 
@@ -426,28 +429,6 @@ Verify the debriefing shows:
 - **Further Reading:** NTFS cluster allocation, FAT directory entries, foremost/scalpel file carving
 
 
-## 12. Common Mistakes and Edge Cases
-
-### Testing Edge Cases
-
-| Test Input / Action | Expected Engine Behavior & Rationale |
-|---------------------|--------------------------------------|
-| **Clicking RAM / Network tabs** | Correctly shows "No data/No files in this scenario" empty panel states since this is a pure filesystem forensic scenario. |
-| **Submitting "å5alary_export.csv" vs "salary_export.csv"** | **Success**. The notebook normalizer dynamically strips any leading `å` or `å5` characters, allowing students to submit either string correctly. |
-| **Submitting "file.pdf" (Partial Match)** | **Success**. The substring matcher accepts simple names like `file.pdf` to match Flag 1. |
-| **Submitting "slack" or "carving" techniques** | **Success**. The normalizer strips punctuation and lowercase inputs to support wide submissions of `slack space` or `file carving`. |
-| **Submitting "meeting_notes.docx"** | **Failure (Proper Rejection)**. This is a control file with normal size-to-allocation attributes, so it is clean. |
-| **Submitting absolute paths in terminal commands** | **Failure (Path Constraint)**. Commands like `stat Projects/file.pdf` will fail. The terminal requires `cd` navigation before running file inspection commands. |
-
-### Common Student Mistakes
-
-1. **Ignoring the Recycle Bin directory** — Students might inspect the `Projects` folder and find the PDF slack space but miss the deleted directory entry `å5alary_export.csv` which confirms what file was deleted.
-2. **Confusing file size with cluster size** — Students must realize that a file's logical size (bytes) is different from its allocated disk size (clusters), which is what creates the slack space boundary.
-3. **Failing to navigate (cd) in the terminal** — Attempting to run `xxd file.pdf` from the root directory will fail due to the simplified terminal pathing model. Students must first run `cd Projects`.
-4. **Not checking the foremost output log** — The carved CSV file fragment is detailed inside `/forensics_output/foremost_output.txt`. Students who do not inspect this will miss the specific salary content (Flag 2).
-5. **Thinking E5 deletion overwrites clusters** — Deleting a file in FAT only marks the directory entry as deleted (`0xE5`) and marks the clusters as free; it does not zero out or destroy the data immediately.
-
-
 ## Quick Reference Card
 
 ```
@@ -462,7 +443,7 @@ Verify the debriefing shows:
 │  Smoking Gun: CSV salary data in slack space    │
 │  Deleted File: salary_export.csv (0xE5 prefix)  │
 │                                                 │
-│  Pre-Quiz: 1→B, 2→C, 3→C, 4→C                           │
-│  Post-Quiz: 1→B, 2→B, 3→B, 4→B                          │
+│  Pre-Quiz: 1→B, 2→C, 3→C, 4→C                   │
+│  Post-Quiz: 1→B, 2→B, 3→B, 4→B                  │
 └─────────────────────────────────────────────────┘
 ```

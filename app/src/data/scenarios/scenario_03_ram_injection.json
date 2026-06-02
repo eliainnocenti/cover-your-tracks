@@ -4,7 +4,6 @@
   "subtitle": "RAM / OS Forensics — Process Injection Detection",
   "difficulty": 3,
   "domain": "ram",
-  "estimatedMinutes": 20,
   "narrative": "A production server at Nexus Financial behaved erratically for 45 minutes before being powered down by the SOC team. A memory dump was captured with LiME during incident response. The initial pslist output looks normal — standard Windows services. But the IR lead has a hunch: run psscan and compare. Your job: find the ghost process that's hiding from the kernel.",
   "learningObjective": "Understand the difference between pslist (walks the kernel's active process list doubly-linked list) and psscan (carves EPROCESS structures from raw memory). Learn how DKOM (Direct Kernel Object Manipulation) rootkits unlink processes from the active list to hide them, and how memory forensics tools detect this.",
   "preQuiz": [

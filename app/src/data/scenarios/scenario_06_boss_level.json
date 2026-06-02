@@ -4,7 +4,6 @@
   "subtitle": "Combined — Multi-Vector Anti-Forensics",
   "difficulty": 5,
   "domain": "combined",
-  "estimatedMinutes": 35,
   "narrative": "The IR team's initial triage came back clean. No obvious intrusion. No flagged files. And yet something is wrong — the machine's behaviour doesn't match its records. Your job is to find out why.",
   "learningObjective": "Combine filesystem, memory, and network forensics skills to analyze a multi-vector attack. Detect log wiping (truncated event logs), rootkit activity (DKOM-hidden processes with typosquatting names), and covert network exfiltration (oversized ICMP payloads to known Tor exit nodes).",
   "preQuiz": [
